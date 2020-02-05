@@ -1,2 +1,2 @@
 # dsOmicClient
-dsOmic client site base functions
+dsOmics client site base functions
