@@ -4,20 +4,22 @@
 \alias{ds.limma}
 \title{Differential expression using limma}
 \usage{
-ds.limma(model, eSet, type.data = "microarray", sva = FALSE,
-  connections = NULL)
+ds.limma(model, Set, type.data = "microarray", sva = FALSE,
+  fNames = NULL, datasources = NULL)
 }
 \arguments{
 \item{model}{formula indicating the condition (left side) and other covariates to be adjusted for 
 (i.e. condition ~ covar1 + ... + covar2). The fitted model is: feature ~ condition + covar1 + ... + covarN}
 
-\item{eSet}{name of the DataSHIELD object to which the ExpresionSet has been assigned}
+\item{Set}{name of the DataSHIELD object to which the ExpresionSet or RangedSummarizedExperiment has been assigned}
 
 \item{type.data}{optional parameter that allows the user to specify the number of CPU cores to use during}
 
 \item{sva}{logical value}
 
-\item{connections}{....}
+\item{fNames}{...}
+
+\item{datasources}{....}
 }
 \description{
 Performing differential expression analysis using limma

@@ -8,7 +8,7 @@
 ##' SNPs (rs numbers) that should be analysed. If missing all SNPs are analysed
 ##' @param model list of phenotypic variables to use as covariates in the regression analysis in the form: 
 ##' "outcome ~ covar1 + covar2 +  ... + covarN"
-##' @param data name of the DataSHIELD object to which the genotype (snpMatrix) and phenotypic data (data.frame) has been assigned
+##' @param genoData name of the DataSHIELD object to which the genotype (snpMatrix) and phenotypic data (data.frame) has been assigned
 ##' @param datasources Opal object or list of opal objects denoting the opal server(s) information
 ##' @param mc.cores optional parameter that allows the user to specify the number of CPU cores to use during 
 ##' parallel processing. Argument can only be > 1 when the function is run on a linux machine
@@ -16,42 +16,35 @@
 ##' @examples
 ##' 
 
-ds.glmSNP <- function(snps.fit=NULL, model, gds, covars, connections,
-                      maf=0.05, missing.rate=0.9, 
+ds.glmSNP <- function(snps.fit=NULL, model, genoData, datasources=NULL,
                       type.p.adj='fdr', mc.cores = 1){
   
+  if (is.null(datasources)) {
+    datasources <- DSI::datashield.connections_find()
+  }
   
   mt <- as.formula(model)
   vars <- all.vars(mt)
   
-  # Check whether data are in the same order
-  cally <- paste0("readGdsnDS(indexGdsnDS(", gds, ", 'sample.id'))")
-  ids <- datashield.aggregate(connections,  cally)
-#  if (!identical(ids, vars[,1]))
-#    stop("There VCF ids are not identical to those in the first column of 'covars' ")
+# check vars are present in covars
   
   
   # Get snp rs's
-  cally <- paste0("readGdsnDS(indexGdsnDS(", gds, ", 'snp.rs.id'))")
-  snps <- unlist(datashield.aggregate(connections,  cally))
+  cally <- paste0("getVariable(", genoData, ", 'snp.rs.id')")
+  snps <- unlist(DSI::datashield.aggregate(datasources,  cally))
   
   # Setting the SNPs to loop over if no SNPs are specified.
   # They are based on those that pass QC
   if(is.null(snps.fit)){
-    cally <- paste0("snpgdsSelectSNPDS(", gds, ",maf=", maf, 
-                    ",missing.rate=", missing.rate, ")")
-    
-    snps.id <- unlist(datashield.aggregate(connections, cally))
-    snps.fit <- snps[snps.id]
+    snps.fit <- snps
   }
+
   
-  
-  ans <- t(as.data.frame(parallel::mclapply(snps.fit, glmSNPDS, 
+  ans <- t(as.data.frame(parallel::mclapply(snps.fit, glmSNP, 
                                             snps=snps, 
-                                            covars=covars,
                                             vars=vars,
-                                            gds=gds, 
-                                            connections=connections,
+                                            genoData=genoData, 
+                                            datasources=datasources,
                                             mc.cores = mc.cores))) 
   
   if (nrow(ans) > 1) {

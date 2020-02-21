@@ -18,3 +18,8 @@ datashield.assign.expr(conns, symbol = "ES", expr = quote(as.resource.object(res
 library(opalr)
 o <- opal.login(username="administrator", password="password", url="https://opal-test.obiba.org")
 opal.execute(o, "BiocManager::install('SummarizedExperiment', ask=FALSE)")
+
+
+library(opalr)
+o <- opal.login(username="administrator", password="password", url="https://opal-test.obiba.org")
+opal.execute(o, "BiocManager::install('MEAL', ask=FALSE)")

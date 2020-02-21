@@ -4,12 +4,12 @@
 \alias{ds.featureData}
 \title{Retrieve information on features from eSets.}
 \usage{
-ds.featureData(object, connections = NULL)
+ds.featureData(object, datasources = NULL)
 }
 \arguments{
 \item{object}{name of the DataSHIELD object to which the ExpresionSet has been assigned}
 
-\item{connections}{....}
+\item{datasources}{....}
 }
 \value{
 \code{featureNames} returns a (usually long!) character vector uniquely identifying each feature.

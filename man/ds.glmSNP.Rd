@@ -4,8 +4,8 @@
 \alias{ds.glmSNP}
 \title{Logistic regression analysis of pooled data for each SNP site in study}
 \usage{
-ds.glmSNP(snps.fit = NULL, model, gds, covars, connections, maf = 0.05,
-  missing.rate = 0.9, type.p.adj = "fdr", mc.cores = 1)
+ds.glmSNP(snps.fit = NULL, model, genoData, datasources = NULL,
+  type.p.adj = "fdr", mc.cores = 1)
 }
 \arguments{
 \item{snps.fit}{an optional parameter input as a character vector of
@@ -14,12 +14,12 @@ SNPs (rs numbers) that should be analysed. If missing all SNPs are analysed}
 \item{model}{list of phenotypic variables to use as covariates in the regression analysis in the form: 
 "outcome ~ covar1 + covar2 +  ... + covarN"}
 
-\item{mc.cores}{optional parameter that allows the user to specify the number of CPU cores to use during 
-parallel processing. Argument can only be > 1 when the function is run on a linux machine}
-
-\item{data}{name of the DataSHIELD object to which the genotype (snpMatrix) and phenotypic data (data.frame) has been assigned}
+\item{genoData}{name of the DataSHIELD object to which the genotype (snpMatrix) and phenotypic data (data.frame) has been assigned}
 
 \item{datasources}{Opal object or list of opal objects denoting the opal server(s) information}
+
+\item{mc.cores}{optional parameter that allows the user to specify the number of CPU cores to use during 
+parallel processing. Argument can only be > 1 when the function is run on a linux machine}
 }
 \description{
 Performing a logistic regression analysis on pooled data from multiple studies for every SNP

@@ -9,7 +9,6 @@
 ##' @param model formula indicating the condition (left side) and other covariates to be adjusted for 
 ##' (i.e. condition ~ covar1 + ... + covar2). The fitted model is: feature ~ condition + covar1 + ... + covarN
 ##' @param eSet name of the DataSHIELD object to which the ExpresionSet has been assigned
-##' @param connections ....
 ##' @param type.p.adj multiple comparison correction method. Default 'fdr' 
 ##' @param cellCountsAdjust logical value which indicates whether models should be
 ##' adjusted for cell counts that are estimated using 'meffil.estimate.cell.counts.from.betas'
@@ -19,28 +18,30 @@
 ##' models should be adjusted for the estimated cell counts by including the variables in the models.
 ##' NOTE: This assumes that the Opal pheno tables for every study include the necessary estimated cell count data 
 ##' originally computed when running the createOpalFiles function
+##' ##' @param datasources ....
+##' 
 ##' @export
 ##' @examples
 ##' 
 
-ds.lmFeature <- function(features=NULL, model, eSet, connections=NULL,
+ds.lmFeature <- function(features=NULL, model, eSet, 
                          type.p.adj='fdr', cellCountsAdjust = FALSE,
-                         mc.cores = 1){
+                         mc.cores = 1, datasources=NULL){
   
-  if (is.null(connections)) {
-    connections <- datashield.connections_find()
+  if (is.null(datasources)) {
+    datasources <- DSI::datashield.connections_find()
   }
   
   # Compute cell-types if cellCountsAdjust argument has been specified
   if(isTRUE(cellCountsAdjust)){
     cally <- paste0("cellCountsDS(", eSet, ")")
-    datashield.assign(connections, 'cell.counts', as.symbol(cally))
+    DSI::datashield.assign(datasources, 'cell.counts', as.symbol(cally))
     check.cell <- ds.dim("cell.counts")
     if (any(sapply(check.cell, is.null)))
       stop("There is any problem with cell-type estimation in at least one study")
   }
   else {
-    datashield.assign(connections, "cell.counts", as.symbol(NA))
+    DSI::datashield.assign(datasources, "cell.counts", as.symbol(NA))
   }
   
   
@@ -51,15 +52,15 @@ ds.lmFeature <- function(features=NULL, model, eSet, connections=NULL,
   # features in the studies if no features are specified
   if(is.null(features)){
     cally <- paste0("featureNamesDS(", eSet, ")")
-    ff <- datashield.aggregate(connections, as.symbol(cally))    
+    ff <- DSI::datashield.aggregate(datasources, as.symbol(cally))    
     features <- Reduce(intersect, ff)
   }
   
-  ans <- t(as.data.frame(parallel::mclapply(features, lmFeatureDS, 
+  ans <- t(as.data.frame(parallel::mclapply(features, lmFeature, 
                                             vars=vars,
                                             eSet=eSet,
                                             cellCountsAdjust=cellCountsAdjust,
-                                            connections=connections, 
+                                            datasources=datasources, 
                                             mc.cores = mc.cores))) 
 
   if (nrow(ans) > 1) {

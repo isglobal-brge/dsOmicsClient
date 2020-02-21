@@ -4,8 +4,8 @@
 \alias{ds.lmFeature}
 \title{Linear regression analysis of pooled data for each CpG site in study}
 \usage{
-ds.lmFeature(features = NULL, model, eSet, connections = NULL,
-  type.p.adj = "fdr", cellCountsAdjust = FALSE, mc.cores = 1)
+ds.lmFeature(features = NULL, model, eSet, type.p.adj = "fdr",
+  cellCountsAdjust = FALSE, mc.cores = 1, datasources = NULL)
 }
 \arguments{
 \item{features}{an optional parameter input as a vector of integer values which indicates the indices of specific 
@@ -15,8 +15,6 @@ features (e.g. genes, CpGs, ...) that should be analysed. If missing all feature
 (i.e. condition ~ covar1 + ... + covar2). The fitted model is: feature ~ condition + covar1 + ... + covarN}
 
 \item{eSet}{name of the DataSHIELD object to which the ExpresionSet has been assigned}
-
-\item{connections}{....}
 
 \item{type.p.adj}{multiple comparison correction method. Default 'fdr'}
 
@@ -28,7 +26,8 @@ function from \code{meffil} package.}
 parallel processing. Argument can only be > 1 when the function is run on a linux machine
 models should be adjusted for the estimated cell counts by including the variables in the models.
 NOTE: This assumes that the Opal pheno tables for every study include the necessary estimated cell count data 
-originally computed when running the createOpalFiles function}
+originally computed when running the createOpalFiles function
+##' @param datasources ....}
 }
 \description{
 Performing a linear regression analysis on pooled data from multiple studies for every feature

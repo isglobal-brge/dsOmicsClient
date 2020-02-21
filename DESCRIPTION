@@ -6,13 +6,12 @@ Date: 2020-02-05
 Authors@R: c(person("Yannick", "Marcon", , "yannick.marcon@obiba.org", role = "aut"),
   person("Juan R.", "Gonzalez", ,"juanr.gonzalez@isglobal.org", role = c("aut", "cre")))
 Description: Collection of functions to perform non-disclosive Omics data analysis with DataSHIELD and Bioconductor.
-Depends: R (>= 3.6.1),
-     dsOmics
+Depends: R (>= 3.6.1)
 Imports:
-     parallel,
-     Biobase,
-     SNPRelate,
-     limma
+    opal,
+    DSI,
+    parallel,
+    dsOmics
 License: MIT
 biocViews: DNAMethylation, Microarray, Software, WholeGenome, GWAS, Non-disclosive
 LazyData: true

@@ -4,12 +4,12 @@
 \alias{ds.varLabels}
 \title{Retrieve phenotypic data (e.g. covariates) from eSets.}
 \usage{
-ds.varLabels(object, connections = NULL)
+ds.varLabels(object, datasources = NULL)
 }
 \arguments{
 \item{object}{name of the DataSHIELD object to which the ExpresionSet has been assigned}
 
-\item{connections}{....}
+\item{datasources}{....}
 }
 \value{
 a character vector of measured variables.
