@@ -8,7 +8,7 @@
 ##' @param Set name of the DataSHIELD object to which the ExpresionSet or RangedSummarizedExperiment has been assigned
 ##' @param type.data optional parameter that allows the user to specify the number of CPU cores to use during 
 ##' @param sva logical value 
-##' @param fNames ...
+##' @param annotCols ...
 ##' @param datasources ....
 ##' 
 ##' @export
@@ -16,7 +16,7 @@
 ##' 
 
 ds.limma <- function(model, Set, type.data="microarray", 
-                     sva=FALSE, fNames=NULL, 
+                     sva=FALSE, annotCols=NULL, 
                      datasources=NULL){
   
   type <- charmatch(type.data, c("microarray", "RNAseq"))
@@ -33,8 +33,14 @@ ds.limma <- function(model, Set, type.data="microarray",
     covariable_names <- paste(mt[-1], collapse=",")
   else
     covariable_names <- NULL
+  
+  if (!is.null(annotCols)){
+    annotCols <- paste(annotCols, collapse=",")
+  }
+    
+  
   cally <- paste0("limmaDS(", Set, ",", deparse(variable_names), ",", 
-                  deparse(covariable_names), ",", type, ",", sva, ",", deparse(fNames), ")")
+                  deparse(covariable_names), ",", type, ",", sva, ",", deparse(annotCols), ")")
   ans <- DSI::datashield.aggregate(datasources, as.symbol(cally))
   
   class(ans) <- c("dsLimma", class(ans))

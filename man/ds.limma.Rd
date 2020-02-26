@@ -5,7 +5,7 @@
 \title{Differential expression using limma}
 \usage{
 ds.limma(model, Set, type.data = "microarray", sva = FALSE,
-  fNames = NULL, datasources = NULL)
+  annotCols = NULL, datasources = NULL)
 }
 \arguments{
 \item{model}{formula indicating the condition (left side) and other covariates to be adjusted for 
@@ -17,7 +17,7 @@ ds.limma(model, Set, type.data = "microarray", sva = FALSE,
 
 \item{sva}{logical value}
 
-\item{fNames}{...}
+\item{annotCols}{...}
 
 \item{datasources}{....}
 }
