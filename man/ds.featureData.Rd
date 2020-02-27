@@ -2,7 +2,7 @@
 % Please edit documentation in R/ds.featureData.R
 \name{ds.featureData}
 \alias{ds.featureData}
-\title{Retrieve information on features from eSets.}
+\title{Retrieve information on features from eSets and RSEs.}
 \usage{
 ds.featureData(object, datasources = NULL)
 }

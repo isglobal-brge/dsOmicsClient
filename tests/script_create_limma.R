@@ -8,15 +8,15 @@ library(dsOmics)
 
 # make a DSLite server with resources inside
 dslite.server <- newDSLiteServer(resources = list(
-  GSE66351 = resourcer::newResource(name = "GSE66351", url = "https://github.com/isglobal-brge/dsOmicsClient/raw/master/data/GSE66351.Rdata", format = "ExpressionSet"),
-  GSE80970 = resourcer::newResource(name = "GSE80970", url = "https://github.com/isglobal-brge/dsOmicsClient/raw/master/data/GSE80970.Rdata", format = "ExpressionSet")
+  GSE66351_1 = resourcer::newResource(name = "GSE66351_1", url = "https://github.com/isglobal-brge/brgedata/raw/master/data/gse66351_1.rda", format = "ExpressionSet"),
+  GSE66351_2 = resourcer::newResource(name = "GSE66351_2", url = "https://github.com/isglobal-brge/brgedata/raw/master/data/gse66351_2.rda", format = "ExpressionSet")
 ))
 
 
 # build login details
 builder <- DSI::newDSLoginBuilder()
-builder$append(server = "study1", url = "dslite.server", resource = "GSE66351", driver = "DSLiteDriver")
-builder$append(server = "study2", url = "dslite.server", resource = "GSE80970", driver = "DSLiteDriver")
+builder$append(server = "study1", url = "dslite.server", resource = "GSE66351_1", driver = "DSLiteDriver")
+builder$append(server = "study2", url = "dslite.server", resource = "GSE66351_2", driver = "DSLiteDriver")
 logindata <- builder$build()# login and assign resources
 conns <- datashield.login(logins = logindata, assign = TRUE, symbol = "res")# R data file resource
 
@@ -26,11 +26,11 @@ datashield.assign.expr(conns, symbol = "ES", expr = quote(as.resource.object(res
 ds.ls(conns)
 ds.dim('ES', datasources = conns)
 
-vars <- c("casecon")
+vars <- c("diagnosis")
 type <- 1
 cally <- paste0("limmaDS(", 'ES', ",", deparse(vars[1]), ",", deparse(NULL),
                 ",", type, "," , FALSE, 
-                ",", deparse(NULL) , ")")
+                ",", deparse("CHR,UCSC_RefGene_Name") , ")")
 cally
 fit <- datashield.aggregate(conns, as.symbol(cally))
 lapply(fit, function(x) head(x[order(x[,7]),]))[[1]]

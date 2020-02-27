@@ -1,4 +1,4 @@
-##' @title Retrieve feature names from eSets
+##' @title Retrieve feature names from eSets and RSEs.
 ##' @description This function is similar to Bioconductor function \code{featureNames} 
 ##' 
 ##' @param object name of the DataSHIELD object to which the ExpresionSet has been assigned

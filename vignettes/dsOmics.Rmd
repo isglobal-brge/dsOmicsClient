@@ -178,7 +178,7 @@ We have donwloaded data from [GEO](https://www.ncbi.nlm.nih.gov/geo/) correspond
 
 In order to illustrate how to perform data analyses using federated data, we have split the data into two `ExpressionSet`s having 100 and 90 samples as if they were two different studies. Figure \@ref(fig:testResources) show the two resources defined for both studies (GSE66351_1 and GSE66351_2)
 
-In order to perform omic daa analyses, we need first to login and assigning resources to DataSHIELD
+In order to perform omic data analyses, we need first to login and assign resources to DataSHIELD
 
 ```{r login_assign}
 builder <- DSI::newDSLoginBuilder()
@@ -200,6 +200,9 @@ After that, we check whether the opal server has the assigned resources. This ca
 ```{r show_assign}
 ds.ls()
 ```
+
+
+## Analysis having methylation data as a `data.frame`
 
 The `ExpressionSet` object (accessed by the resource client) could be coerced to a data frame by
 
@@ -246,13 +249,47 @@ ds.glm(cg07363416 ~ diagnosis + Sex, data="methyl_df",
        family="binomial")
 ```
 
+We close the session by:
 
-Nontheless, as we have previously mentioned, it is recomended to work with the data encapsulated as an `ExpressionSet`. The resource can be assigned to their own R class by using `as.resource.object()` assignment function as following 
+```{r close_glm, echo=FALSE}
+datashield.logout(conns)
+```
 
 
-```{r assign_es}
+## Analysis having methylation data as an `ExpressionSet`
+
+As we have previously mentioned, it is recomended to work with the data encapsulated as an `ExpressionSet` due to two main reasons: 
+
+- Omic data are properly managed into R
+- We can use existing R/Bioc functions to perform downstream analyses
+
+In that case, the resources having the `ExpressionSet`s can be assigned into the R server by using `as.resource.object()` function
+
+```{r login_assign_eSet}
+builder <- DSI::newDSLoginBuilder()
+builder$append(server = "study1", url = "https://opal-test.obiba.org", 
+               user = "dsuser", password = "password", 
+               resource = "test.GSE66351_1", driver = "OpalDriver")
+builder$append(server = "study2", url = "https://opal-test.obiba.org", 
+               user = "dsuser", password = "password", 
+               resource = "test.GSE66351_2", driver = "OpalDriver")
+
+logindata <- builder$build()
+
+conns <- DSI::datashield.login(logins = logindata, assign = TRUE, 
+                               symbol = "res")
+
+
+# Assign to the original R class (e.g ExpressionSet)
 datashield.assign.expr(conns, symbol = "methy", 
                        expr = quote(as.resource.object(res)))
+
+```
+
+
+Now, we can see that the resources are actually loaded into the R servers as their original class
+
+```{r assign_es}
 ds.class("methy")
 ```
 
@@ -270,31 +307,33 @@ Experimental phenotypes variables can be obtained by
 ds.varLabels("methy")
 ```
 
-## Single CpG analysis
+### Single CpG analysis
+
 Once the methylation data have been loaded into the opal server, we can perform different type of analyses using `dsOmicsClient`. Let us start by illustrating how to analyze a single CpG from two studies by using an approach that is mathematically equivalent to placing all individual-level.
 
 ```{r one_cpg}
 ans <- ds.lmFeature(feature = "cg07363416", 
                     model = ~ diagnosis + Sex, 
-                    eSet = "methy",
+                    Set = "methy",
                     datasources = conns)
 ans
 ```
 
-## Genome-wide CpG analysis
+### Multiple CpG analysis
 
 The same analysis can be performed for all features (e.g. CpGs) just avoiding the `feature` argument. This process can be parallelized using `mclapply` function from `multicore` package.
 
+
 ```{r multiple_cpg, eval=FALSE}
 ans <- ds.lmFeature(model = ~ diagnosis + Sex, 
-                    eSet = "methy",
+                    Set = "methy",
                     datasources = conns,
                     mc.cores = 20)
 ```
 
-We can create a QQ-plot by using the generic function `plot` (here not showed). 
 
 This method can be very time consiming since the function repeteadly calls the DataSHIELD function `ds.glm()`. We can adopt another strategy that is to run a glm of each feature independently at each study using `limma` package which is really fast. 
+
 
 ```{r limma_methy}
 ans.limma <- ds.limma(model = ~ diagnosis + Sex,
@@ -312,16 +351,18 @@ ds.fvarLabels("methy")
 Then we can run the analysis and obtain the output with the chromosome and gene symbol by:
 
 ```{r limma_methy_annot}
-ans.limma <- ds.limma(model = ~ diagnosis + Sex,
-                      Set = "methy", annotCols = c("CHR", "UCSC_RefGene_Name"),
-                      datasources = conns)
-ans.limma
+ans.limma.annot <- ds.limma(model = ~ diagnosis + Sex,
+                            Set = "methy", 
+                            annotCols = c("CHR", "UCSC_RefGene_Name"),
+                            datasources = conns)
+ans.limma.annot
 ```
 
 
 
 Then, the results can be combined by ....
 
+We can create a QQ-plot by using the generic function `plot` (here not showed). In some cases inflation can be observed, so that, correction for cell-type or surrogate variables must be performed. We describe how to do that in the next two sections.
 
 
 ## Adjusting for cell-type
@@ -333,7 +374,7 @@ The vast majority of studies on DNA methylation are based on blood samples. This
 ```{r one_cpg_cellCount, error=TRUE}
 ans.cell <- ds.lmFeature(feature = "cg07363416", 
                     model = ~ diagnosis + Sex, 
-                    eSet = "methy", 
+                    Set = "methy", 
                     cellCountsAdjust = TRUE,
                     datasources = conns)
 ```
@@ -346,14 +387,16 @@ By doing that, a new object ...
 The vast majority of omic studies required to control for unwanted variability. The surrogate variable analysis (SVA) can address this issue by estimating some hidden covariates that capture differences across individuals due to some artifacts such as batch effects or sample quality sam among others. The method is implemented in `r Biocpkg("SVA")` package.
 
 
-Performing this type of analysis using `ds.lmFeature` function is not allowed since estimating SVA would require to implement a non-disclosive method that computes SVA from the different servers. This will be a future topic of `dsOmicsClient`. NOTE that, estimating SVA separately at each server would not be a good idea since the aim of SVA is to capture differences mainly due to experiemental issues amogn ALL individuals. What we can do instead is to use `ds.limma` and perform the analyses adjusted for SVA at each study. Then, data can be combined using ... 
+Performing this type of analysis using `ds.lmFeature` function is not allowed since estimating SVA would require to implement a non-disclosive method that computes SVA from the different servers. This will be a future topic of `dsOmicsClient`. NOTE that, estimating SVA separately at each server would not be a good idea since the aim of SVA is to capture differences mainly due to experiemental issues amogn ALL individuals. What we can do instead is to use `ds.limma` and perform the analyses adjusted for SVA at each study. 
 
-```{r all_cpg_sva}
+```{r all_cpg_sva, eval=FALSE}
 ans.sva <- ds.limma(model = ~ diagnosis + Sex, 
                     Set = "methy",
                     sva = TRUE, annotCols = c("CHR", "UCSC_RefGene_Name"))
 ans.sva
 ```
+
+Then, data can be combined using ... 
 
 
 The DataSHIELD session must by closed by:

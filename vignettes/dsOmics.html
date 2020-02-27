@@ -11,7 +11,7 @@
 
 
 
-<meta name="date" content="2020-02-25" />
+<meta name="date" content="2020-02-27" />
 
 <title>Non-disclosive federated omic data analysis with DataSHIELD and Bioconductor</title>
 
@@ -1760,7 +1760,7 @@ div.tocify {
 <p class="author-name">Yannick Marcon<span class="affil-mark">1</span> and Juan R. Gonzalez<span class="affil-mark">2,3*</span></p>
 <p class="author-affiliation"><span class="affil-mark">1</span>EPIGENY<br><span class="affil-mark">2</span>Bioinformatics Research Group in Epidemiolgy (BRGE), Barcelona Insitute for Global Health (ISGlobal)<br><span class="affil-mark">3</span>Department of Mathematics, Autonomous University of Barcelona (UAB)</p>
 <p class="author-email"><span class="affil-mark">*</span><a href="mailto:juanr.gonzalez@isglobal.org">juanr.gonzalez@isglobal.org</a></p>
-<h4 class="date">2020-02-25</h4>
+<h4 class="date">2020-02-27</h4>
 <h4 class="package">Package</h4>
 <p>dsOmics 0.3.0</p>
 
@@ -1894,7 +1894,7 @@ Figure 10: <span class="caption-title">Non-disclosive omic data analysis with Da
 <h1 number="4"><span class="header-section-number">4</span> Analysis of methylation data</h1>
 <p>We have donwloaded data from <a href="https://www.ncbi.nlm.nih.gov/geo/">GEO</a> corresponding to the accesion number GSE66351 which includes DNA methylation profiling (Illumina 450K array) of 190 individuals. Data corresponds to CpGs beta values measured in the superior temporal gyrus and prefrontal cortex brain regions of patients with Alzheimer’s. Data have been downloaded using <em><a href="https://bioconductor.org/packages/3.9/GEOquery">GEOquery</a></em> package that gets GEO data as <code>ExpressionSet</code> objects. Researchers who are not familiar with <code>ExpressionSet</code>s or for those who have data in other formats, this page (<a href="https://kasperdanielhansen.github.io/genbioconductor/html/ExpressionSet.html" class="uri">https://kasperdanielhansen.github.io/genbioconductor/html/ExpressionSet.html</a>) can be used as a good starting point to undersatand how methylation data can be encapsulated in a <code>ExpressionSet</code>. Notice that data are encoded as beta-values that ensure data harmonization accross studies.</p>
 <p>In order to illustrate how to perform data analyses using federated data, we have split the data into two <code>ExpressionSet</code>s having 100 and 90 samples as if they were two different studies. Figure <a href="#fig:testResources">4</a> show the two resources defined for both studies (GSE66351_1 and GSE66351_2)</p>
-<p>In order to perform omic daa analyses, we need first to login and assigning resources to DataSHIELD</p>
+<p>In order to perform omic data analyses, we need first to login and assign resources to DataSHIELD</p>
 <pre class="r"><code>builder &lt;- DSI::newDSLoginBuilder()
 builder$append(server = &quot;study1&quot;, url = &quot;https://opal-test.obiba.org&quot;, 
                user = &quot;dsuser&quot;, password = &quot;password&quot;, 
@@ -1914,6 +1914,8 @@ conns &lt;- DSI::datashield.login(logins = logindata, assign = TRUE,
 
 $study2
 [1] &quot;res&quot;</code></pre>
+<div id="analysis-having-methylation-data-as-a-data.frame" class="section level2" number="4.1">
+<h2 number="4.1"><span class="header-section-number">4.1</span> Analysis having methylation data as a <code>data.frame</code></h2>
 <p>The <code>ExpressionSet</code> object (accessed by the resource client) could be coerced to a data frame by</p>
 <pre class="r"><code>datashield.assign.expr(conns, symbol = &quot;methyl_df&quot;, 
                        expr = quote(as.resource.data.frame(res)))
@@ -2057,10 +2059,35 @@ $df
 
 $output.information
 [1] &quot;SEE TOP OF OUTPUT FOR INFORMATION ON MISSING DATA AND ERROR MESSAGES&quot;</code></pre>
-<p>Nontheless, as we have previously mentioned, it is recomended to work with the data encapsulated as an <code>ExpressionSet</code>. The resource can be assigned to their own R class by using <code>as.resource.object()</code> assignment function as following</p>
-<pre class="r"><code>datashield.assign.expr(conns, symbol = &quot;methy&quot;, 
-                       expr = quote(as.resource.object(res)))
-ds.class(&quot;methy&quot;)</code></pre>
+<p>We close the session by:</p>
+</div>
+<div id="analysis-having-methylation-data-as-an-expressionset" class="section level2" number="4.2">
+<h2 number="4.2"><span class="header-section-number">4.2</span> Analysis having methylation data as an <code>ExpressionSet</code></h2>
+<p>As we have previously mentioned, it is recomended to work with the data encapsulated as an <code>ExpressionSet</code> due to two main reasons:</p>
+<ul>
+<li>Omic data are properly managed into R</li>
+<li>We can use existing R/Bioc functions to perform downstream analyses</li>
+</ul>
+<p>In that case, the resources having the <code>ExpressionSet</code>s can be assigned into the R server by using <code>as.resource.object()</code> function</p>
+<pre class="r"><code>builder &lt;- DSI::newDSLoginBuilder()
+builder$append(server = &quot;study1&quot;, url = &quot;https://opal-test.obiba.org&quot;, 
+               user = &quot;dsuser&quot;, password = &quot;password&quot;, 
+               resource = &quot;test.GSE66351_1&quot;, driver = &quot;OpalDriver&quot;)
+builder$append(server = &quot;study2&quot;, url = &quot;https://opal-test.obiba.org&quot;, 
+               user = &quot;dsuser&quot;, password = &quot;password&quot;, 
+               resource = &quot;test.GSE66351_2&quot;, driver = &quot;OpalDriver&quot;)
+
+logindata &lt;- builder$build()
+
+conns &lt;- DSI::datashield.login(logins = logindata, assign = TRUE, 
+                               symbol = &quot;res&quot;)
+
+
+# Assign to the original R class (e.g ExpressionSet)
+datashield.assign.expr(conns, symbol = &quot;methy&quot;, 
+                       expr = quote(as.resource.object(res)))</code></pre>
+<p>Now, we can see that the resources are actually loaded into the R servers as their original class</p>
+<pre class="r"><code>ds.class(&quot;methy&quot;)</code></pre>
 <pre><code>$study1
 [1] &quot;ExpressionSet&quot;
 attr(,&quot;package&quot;)
@@ -2138,29 +2165,28 @@ $study2
 
 attr(,&quot;class&quot;)
 [1] &quot;dsvarLabels&quot; &quot;list&quot;       </code></pre>
-<div id="single-cpg-analysis" class="section level2" number="4.1">
-<h2 number="4.1"><span class="header-section-number">4.1</span> Single CpG analysis</h2>
+<div id="single-cpg-analysis" class="section level3" number="4.2.1">
+<h3 number="4.2.1"><span class="header-section-number">4.2.1</span> Single CpG analysis</h3>
 <p>Once the methylation data have been loaded into the opal server, we can perform different type of analyses using <code>dsOmicsClient</code>. Let us start by illustrating how to analyze a single CpG from two studies by using an approach that is mathematically equivalent to placing all individual-level.</p>
 <pre class="r"><code>ans &lt;- ds.lmFeature(feature = &quot;cg07363416&quot;, 
-                    model = `diagnosis` ~ `Sex`, 
-                    eSet=&quot;methy&quot;,
-                    datasources=conns)
+                    model = ~ diagnosis + Sex, 
+                    Set = &quot;methy&quot;,
+                    datasources = conns)
 ans</code></pre>
 <pre><code>             Estimate Std. Error   p-value
 cg07363416 0.03459886 0.02504291 0.1670998
 attr(,&quot;class&quot;)
 [1] &quot;dsLmFeature&quot; &quot;matrix&quot;     </code></pre>
 </div>
-<div id="genome-wide-cpg-analysis" class="section level2" number="4.2">
-<h2 number="4.2"><span class="header-section-number">4.2</span> Genome-wide CpG analysis</h2>
+<div id="multiple-cpg-analysis" class="section level3" number="4.2.2">
+<h3 number="4.2.2"><span class="header-section-number">4.2.2</span> Multiple CpG analysis</h3>
 <p>The same analysis can be performed for all features (e.g. CpGs) just avoiding the <code>feature</code> argument. This process can be parallelized using <code>mclapply</code> function from <code>multicore</code> package.</p>
-<pre class="r"><code>ans &lt;- ds.lmFeature(model = diagnosis ~ Sex, 
-                    eSet = &quot;methy&quot;,
+<pre class="r"><code>ans &lt;- ds.lmFeature(model = ~ diagnosis + Sex, 
+                    Set = &quot;methy&quot;,
                     datasources = conns,
                     mc.cores = 20)</code></pre>
-<p>We can create a QQ-plot by using the generic function <code>plot</code> (here not showed).</p>
 <p>This method can be very time consiming since the function repeteadly calls the DataSHIELD function <code>ds.glm()</code>. We can adopt another strategy that is to run a glm of each feature independently at each study using <code>limma</code> package which is really fast.</p>
-<pre class="r"><code>ans.limma &lt;- ds.limma(model = `diagnosis` ~ `Sex`,
+<pre class="r"><code>ans.limma &lt;- ds.limma(model = ~ diagnosis + Sex,
                       Set = &quot;methy&quot;, 
                       datasources = conns)
 ans.limma</code></pre>
@@ -2245,10 +2271,11 @@ $study2
 attr(,&quot;class&quot;)
 [1] &quot;dsfvarLabels&quot; &quot;list&quot;        </code></pre>
 <p>Then we can run the analysis and obtain the output with the chromosome and gene symbol by:</p>
-<pre class="r"><code>ans.limma &lt;- ds.limma(model = `diagnosis` ~ `Sex`,
-                      Set = &quot;methy&quot;, annotCols = c(&quot;CHR&quot;, &quot;UCSC_RefGene_Name&quot;),
-                      datasources = conns)
-ans.limma</code></pre>
+<pre class="r"><code>ans.limma.annot &lt;- ds.limma(model = ~ diagnosis + Sex,
+                            Set = &quot;methy&quot;, 
+                            annotCols = c(&quot;CHR&quot;, &quot;UCSC_RefGene_Name&quot;),
+                            datasources = conns)
+ans.limma.annot</code></pre>
 <pre><code>$study1
 # A tibble: 481,868 x 12
    id    CHR   UCSC_RefGene_Na~   logFC    CI.L    CI.R AveExpr     t P.Value
@@ -2286,6 +2313,8 @@ $study2
 attr(,&quot;class&quot;)
 [1] &quot;dsLimma&quot; &quot;list&quot;   </code></pre>
 <p>Then, the results can be combined by ….</p>
+<p>We can create a QQ-plot by using the generic function <code>plot</code> (here not showed). In some cases inflation can be observed, so that, correction for cell-type or surrogate variables must be performed. We describe how to do that in the next two sections.</p>
+</div>
 </div>
 <div id="adjusting-for-cell-type" class="section level2" number="4.3">
 <h2 number="4.3"><span class="header-section-number">4.3</span> Adjusting for cell-type</h2>
@@ -2295,21 +2324,22 @@ attr(,&quot;class&quot;)
 <li><strong>get error if required CpGs are not available</strong></li>
 </ul>
 <pre class="r"><code>ans.cell &lt;- ds.lmFeature(feature = &quot;cg07363416&quot;, 
-                    model = diagnosis.ch1 ~ Sex.ch1, 
-                    eSet = &quot;methy&quot;, 
+                    model = ~ diagnosis + Sex, 
+                    Set = &quot;methy&quot;, 
                     cellCountsAdjust = TRUE,
                     datasources = conns)</code></pre>
-<pre><code>Error in ds.lmFeature(feature = &quot;cg07363416&quot;, model = diagnosis.ch1 ~ : There is any problem with cell-type estimation in at least one study</code></pre>
+<pre><code>Error in ds.lmFeature(feature = &quot;cg07363416&quot;, model = ~diagnosis + Sex, : There is any problem with cell-type estimation in at least one study</code></pre>
 <p>By doing that, a new object …</p>
 </div>
 <div id="adjusting-for-surrogate-variables" class="section level2" number="4.4">
 <h2 number="4.4"><span class="header-section-number">4.4</span> Adjusting for Surrogate Variables</h2>
 <p>The vast majority of omic studies required to control for unwanted variability. The surrogate variable analysis (SVA) can address this issue by estimating some hidden covariates that capture differences across individuals due to some artifacts such as batch effects or sample quality sam among others. The method is implemented in <em><a href="https://bioconductor.org/packages/3.9/SVA">SVA</a></em> package.</p>
-<p>Performing this type of analysis using <code>ds.lmFeature</code> function is not allowed since estimating SVA would require to implement a non-disclosive method that computes SVA from the different servers. This will be a future topic of <code>dsOmicsClient</code>. NOTE that, estimating SVA separately at each server would not be a good idea since the aim of SVA is to capture differences mainly due to experiemental issues amogn ALL individuals. What we can do instead is to use <code>ds.limma</code> and perform the analyses adjusted for SVA at each study. Then, data can be combined using …</p>
-<pre class="r"><code>ans.sva &lt;- ds.limma(model = diagnosis ~ Sex, 
+<p>Performing this type of analysis using <code>ds.lmFeature</code> function is not allowed since estimating SVA would require to implement a non-disclosive method that computes SVA from the different servers. This will be a future topic of <code>dsOmicsClient</code>. NOTE that, estimating SVA separately at each server would not be a good idea since the aim of SVA is to capture differences mainly due to experiemental issues amogn ALL individuals. What we can do instead is to use <code>ds.limma</code> and perform the analyses adjusted for SVA at each study.</p>
+<pre class="r"><code>ans.sva &lt;- ds.limma(model = ~ diagnosis + Sex, 
                     Set = &quot;methy&quot;,
-                    sva = TRUE)</code></pre>
-<pre><code>Error: Command &#39;limmaDS(methy,&quot;diagnosis&quot;,&quot;Sex&quot;,1,TRUE,NULL)&#39; failed on &#39;study1&#39;: Unexpected R server error: eval failed</code></pre>
+                    sva = TRUE, annotCols = c(&quot;CHR&quot;, &quot;UCSC_RefGene_Name&quot;))
+ans.sva</code></pre>
+<p>Then, data can be combined using …</p>
 <p>The DataSHIELD session must by closed by:</p>
 <pre class="r"><code>datashield.logout(conns)</code></pre>
 </div>

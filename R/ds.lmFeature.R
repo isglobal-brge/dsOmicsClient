@@ -8,7 +8,7 @@
 ##' features (e.g. genes, CpGs, ...) that should be analysed. If missing all features are analysed
 ##' @param model formula indicating the condition (left side) and other covariates to be adjusted for 
 ##' (i.e. condition ~ covar1 + ... + covar2). The fitted model is: feature ~ condition + covar1 + ... + covarN
-##' @param eSet name of the DataSHIELD object to which the ExpresionSet has been assigned
+##' @param Set name of the DataSHIELD object to which the ExpresionSet or RangedSummarizedExperiment has been assigned
 ##' @param type.p.adj multiple comparison correction method. Default 'fdr' 
 ##' @param cellCountsAdjust logical value which indicates whether models should be
 ##' adjusted for cell counts that are estimated using 'meffil.estimate.cell.counts.from.betas'
@@ -24,7 +24,7 @@
 ##' @examples
 ##' 
 
-ds.lmFeature <- function(features=NULL, model, eSet, 
+ds.lmFeature <- function(features=NULL, model, Set, 
                          type.p.adj='fdr', cellCountsAdjust = FALSE,
                          mc.cores = 1, datasources=NULL){
   
@@ -34,7 +34,7 @@ ds.lmFeature <- function(features=NULL, model, eSet,
   
   # Compute cell-types if cellCountsAdjust argument has been specified
   if(isTRUE(cellCountsAdjust)){
-    cally <- paste0("cellCountsDS(", eSet, ")")
+    cally <- paste0("cellCountsDS(", Set, ")")
     DSI::datashield.assign(datasources, 'cell.counts', as.symbol(cally))
     check.cell <- ds.dim("cell.counts")
     if (any(sapply(check.cell, is.null)))
@@ -51,14 +51,14 @@ ds.lmFeature <- function(features=NULL, model, eSet,
   # Setting the features to loop over as the total number of 
   # features in the studies if no features are specified
   if(is.null(features)){
-    cally <- paste0("featureNamesDS(", eSet, ")")
+    cally <- paste0("featureNamesDS(", Set, ")")
     ff <- DSI::datashield.aggregate(datasources, as.symbol(cally))    
     features <- Reduce(intersect, ff)
   }
   
   ans <- t(as.data.frame(parallel::mclapply(features, lmFeature, 
                                             vars=vars,
-                                            eSet=eSet,
+                                            Set=Set,
                                             cellCountsAdjust=cellCountsAdjust,
                                             datasources=datasources, 
                                             mc.cores = mc.cores))) 

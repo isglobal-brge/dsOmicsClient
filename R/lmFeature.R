@@ -12,10 +12,10 @@
 #' @author Gonzalez, JR.
 #'
 
-lmFeature <- function(feature, vars, eSet, cellCountsAdjust,
+lmFeature <- function(feature, vars, Set, cellCountsAdjust,
                         datasources){
   
-  cally <- paste0("selFeatureDS(", eSet, ",", deparse(feature), ",", 
+  cally <- paste0("selFeatureDS(", Set, ",", deparse(feature), ",", 
                   deparse(vars), ")")  
   datashield.assign(datasources, 'dat', as.symbol(cally))
                       
