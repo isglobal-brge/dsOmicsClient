@@ -4,6 +4,7 @@ author:
 - name: Yannick Marcon
   affiliation:
   - &epigeny EPIGENY
+  email: yannick.marcon@obiba.org
 - name: Juan R. Gonzalez
   affiliation:
   - &isglobal Bioinformatics Research Group in Epidemiolgy (BRGE), Barcelona Insitute for Global Health (ISGlobal)
@@ -30,7 +31,7 @@ knitr::opts_chunk$set(comment="", warning=FALSE, message=FALSE, cache=TRUE)
 
 # Purpose
 
-The purpose of `r Githubpkg("isgloba-brge", "dsOmicsClient")` is to provide a set of functions to perform omic association analyses when data are stored on federated databases or, more generally, in different repositories. In particular the package utilizes DataSHIELD infrastructure which is a software solution that allows for the simultaneous co-analysis of data from multiple studies stored on different servers without the need to physically pool data or disclose sensitive information [@wilson_datashield_2017]. DataSHIELD uses [Opal servers](http://opaldoc.obiba.org/en/latest/) to properly perform such analyses. 
+The purpose of `r Githubpkg("isglobal-brge/dsOmicsClient")` is to provide a set of functions to perform omic association analyses when data are stored on federated databases or, more generally, in different repositories. In particular the package utilizes DataSHIELD infrastructure which is a software solution that allows for the simultaneous co-analysis of data from multiple studies stored on different servers without the need to physically pool data or disclose sensitive information [@wilson_datashield_2017]. DataSHIELD uses [Opal servers](http://opaldoc.obiba.org/en/latest/) to properly perform such analyses. 
 
 At a high level DataSHIELD is set up as a client-server model which houses the data for a particular study. A request is made from the client to run specific functions on the remote servers where the analysis is performed. Non-sensitive and pre-approved summary statistics are returned from each study to the client where they can be combined for an overall analysis. An overview of what a single-site DataSHIELD architecture would look like is illustrated in Figure \@ref(fig:dsArchitec). 
 
@@ -39,12 +40,12 @@ knitr::include_graphics("fig/singleSiteDSInfrastructure.jpg")
 ```
 
 
-One of the main limitations of DataSHIELD is how to deal with large data given the restrictions of Opal with databases. Nonetheless, the recent development of the `r Githubpkg("obiba", "resourcer")` R package allows DataSHIELD developers to overcome this drawback by granting the Opal servers to deal with any type of data (e.g. **resources**). So far, Opal can register access to different type of data resources in different formats (csv, tsv, R data, SQL, tiddy, ..) that can also be located in different places (http, ssh, ASW W3, local, ...). This is another important advancement since the `r Githubpkg("obiba", "resourcer")` addresses another important issue that is having duplicated data in diferent research centers or hospitals.
+One of the main limitations of DataSHIELD is how to deal with large data given the restrictions of Opal with databases. Nonetheless, the recent development of the `r Githubpkg("obiba/resourcer")` R package allows DataSHIELD developers to overcome this drawback by granting the Opal servers to deal with any type of data (e.g. **resources**). So far, Opal can register access to different type of data resources in different formats (csv, tsv, R data, SQL, tiddy, ..) that can also be located in different places (http, ssh, ASW W3, local, ...). This is another important advancement since the `r Githubpkg("obiba/resourcer")` addresses another important issue that is having duplicated data in diferent research centers or hospitals.
 
 
-The `r Githubpkg("obiba", "resourcer")` package permits to work with specific R data classes. This is higly important in our setting since it will allow to use [Bioconductor](www.bioconductor.org) classes to properly manage omic data using efficient infrastructures such as `ExpressionSet` or `RangedSummarizedExperiment` among others. Another important asset of the `r Githubpkg("obiba", "resourcer")` package is that it can be extended to new data types by writting specific functions (see https://github.com/obiba/resourcer/#extending-resources). We have use this feature and created some functions for the analysis of Variant Calling Format (VCF files) that are loaded into R as Genomic Data Storage objects. These functions along with others that allow the managment of Bioconductor classes in DataSHIELD have been included in a new DataSHIELD base package, `r Githubpkg("isglobal-brge", "dsOmics")`, that is able to manage different  [Bioconductor](www.bioconductor.org) data infrastructures that are required to perform omic association analyses. These including `ExpressionSet`, `RangedSummarizedExperiment` or `GDS` among others **[what about HDF5, Yannick?]**.
+The `r Githubpkg("obiba/resourcer")` package permits to work with specific R data classes. This is higly important in our setting since it will allow to use [Bioconductor](http://www.bioconductor.org) classes to properly manage omic data using efficient infrastructures such as `ExpressionSet` or `RangedSummarizedExperiment` among others. Another important asset of the `r Githubpkg("obiba/resourcer")` package is that it can be extended to new data types by writting specific functions (see https://github.com/obiba/resourcer/#extending-resources). We have use this feature and created some functions for the analysis of Variant Calling Format (VCF files) that are loaded into R as Genomic Data Storage objects. These functions along with others that allow the managment of Bioconductor classes in DataSHIELD have been included in a new DataSHIELD base package, `r Githubpkg("isglobal-brge/dsOmics")`, that is able to manage different  [Bioconductor](http://www.bioconductor.org) data infrastructures that are required to perform omic association analyses. These including `ExpressionSet`, `RangedSummarizedExperiment` or `GDS` among others **[what about HDF5, Yannick?]**.
 
-In the next sections we first describe how to deal with Opal servers and resources. We illustre how we prepared a test envioronment to describe how Opal must be setup as well as how to provide the appropiate R/DataSHILED configuration in both the Opal server and in the client side to perform omic association analyses. Then, different the different types of omic data analyses that can be perfomred with `r Githubpkg("isgloba-brge", "dsOmicsClient")` are described and further illustrated using real data examples including epigenome, transcriptome and genomic data analyses.
+In the next sections we first describe how to deal with Opal servers and resources. We illustre how we prepared a test envioronment to describe how Opal must be setup as well as how to provide the appropiate R/DataSHILED configuration in both the Opal server and in the client side to perform omic association analyses. Then, different the different types of omic data analyses that can be perfomred with `r Githubpkg("isglobal-brge/dsOmicsClient")` are described and further illustrated using real data examples including epigenome, transcriptome and genomic data analyses.
 
 # Setup
 
@@ -55,7 +56,7 @@ In this section we describe how to configure the Opal server and the needed pack
 knitr::include_graphics("fig/Table_resources.jpg")
 ```
 
-Also, the servers need some R packages to carry out specific data analyses (also they contain the aggregated and the assigned methods) and in some cases these packages can also include new extensions of the the `r Githubpkg("obiba", "resourcer")` package to deal with new types of data (e.g. `dsOmics` deals with VFC formats - VCF2GDS). Finally, the client also needs to have some R packages (`r Githubpkg("obiba", "resourcer")`, `r Githubpkg("obiba", "DSI")`, `r Githubpkg("obiba", "DSIOpal")`). For specific data analyses DataSHIELD packages are also required. In our case, `r Githubpkg("datashield", "dsBaseClient")` and `r Githubpkg("isglobal-brge", "dsOmicsClient")`. Next subsections describe what is required along with some examples.
+Also, the servers need some R packages to carry out specific data analyses (also they contain the aggregated and the assigned methods) and in some cases these packages can also include new extensions of the the `r Githubpkg("obiba/resourcer")` package to deal with new types of data (e.g. `dsOmics` deals with VFC formats - VCF2GDS). Finally, the client also needs to have some R packages (`r Githubpkg("obiba/resourcer")`, `r Githubpkg("obiba/DSI")`, `r Githubpkg("obiba/DSIOpal")`). For specific data analyses DataSHIELD packages are also required. In our case, `r Githubpkg("datashield/dsBaseClient")` and `r Githubpkg("isglobal-brge/dsOmicsClient")`. Next subsections describe what is required along with some examples.
 
 ## Required Opal server with resources
 
@@ -138,7 +139,7 @@ devtools::install_github("isglobal-brge/dsOmicsClient", dependencies = TRUE)
 
 ## OPAL and resources 
 
-The Figure \@ref(fig:opalOmic) describes how omic associatin analyses are performed using DataSHIELD client functions implemented in the `{r Githubpkg("isglobal-brge", "dsOmicsClient")` package. Basically, data (omic and phenotypes/covariates) can be stored in different sites (http, ssh, ASW W3, local, ...) and are managed with Opal through the `{r Githubpkg("obiba", "resourcer")` package and their extensions implemented in `{r Githubpkg("isglobal-brge", "dsOmics")`.  
+The Figure \@ref(fig:opalOmic) describes how omic associatin analyses are performed using DataSHIELD client functions implemented in the `{r Githubpkg("isglobal-brge/dsOmicsClient")` package. Basically, data (omic and phenotypes/covariates) can be stored in different sites (http, ssh, ASW W3, local, ...) and are managed with Opal through the `{r Githubpkg("obiba/resourcer")` package and their extensions implemented in `{r Githubpkg("isglobal-brge/dsOmics")`.  
 
 
 ```{r opalOmic, echo=FALSE, fig.cap="Non-disclosive omic data analysis with DataSHIELD and Bioconductor. The figure illustrates how the `resourcer` package is used to get access to omic data through the OPAL servers. Then DataSHIELD is used in the client side to perform non-disclosive data analyses.", out.width = '100%', fig.align='center'}
@@ -481,7 +482,7 @@ datashield.logout(conns)
 # Analysis of SNP array data 
 
 ## Extension of the resources to a VCF file 
-Genomic data can be stored in different formats. [PLINK](http://zzz.bwh.harvard.edu/plink/) and [VCF](https://www.internationalgenome.org/wiki/Analysis/vcf4.0/) files are commonly used in genetic epidemiology studies. In order to deal with this type of data, we have extended the resources available at the `r Githubpkg("obiba", "resourcer")` package to VCF files. **NOTE**: PLINK files can be translated into VCF files using different pipelines. In R you can use `r Biocpkg("SeqArray")` to get VCF files. 
+Genomic data can be stored in different formats. [PLINK](http://zzz.bwh.harvard.edu/plink/) and [VCF](https://www.internationalgenome.org/wiki/Analysis/vcf4.0/) files are commonly used in genetic epidemiology studies. In order to deal with this type of data, we have extended the resources available at the `r Githubpkg("obiba/resourcer")` package to VCF files. **NOTE**: PLINK files can be translated into VCF files using different pipelines. In R you can use `r Biocpkg("SeqArray")` to get VCF files. 
 
 We use the Genomic Data Storage (GDS) format which efficiently manage VCF files into the R environment. This extension requires to create a Client and a Resolver function that are located into the `r Biocpkg("dsOmics")` package. The client function uses `snpgdsVCF2GDS` function implemented in `r Biocpkg("SNPrelate")` to coerce the VCF file to a GDS object. Then the GDS object is loaded into R as an object of class `GdsGenotypeReader` from `r Biocpkg("GWASTools")` package that facilitates downstream analyses.
  
@@ -541,7 +542,7 @@ These are the objects available in the OPAL server
 ds.ls()
 ```
 
-We can use `r Githubpkg("datashield", "dsBaseClient")` functions to inspect the variables that are in the `covars` data.frame. The variables are
+We can use `r Githubpkg("datashield/dsBaseClient")` functions to inspect the variables that are in the `covars` data.frame. The variables are
 
 
 ```{r show_covars}
