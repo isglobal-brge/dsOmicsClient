@@ -8,10 +8,8 @@ Authors@R: c(person("Yannick", "Marcon", , "yannick.marcon@obiba.org", role = "a
 Description: Collection of functions to perform non-disclosive Omics data analysis with DataSHIELD and Bioconductor.
 Depends: R (>= 3.6.1)
 Imports:
-    opal,
     DSI,
-    parallel,
-    dsOmics
+    parallel
 License: MIT
 biocViews: DNAMethylation, Microarray, Software, WholeGenome, GWAS, Non-disclosive
 LazyData: true
