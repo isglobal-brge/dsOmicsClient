@@ -40,16 +40,16 @@ knitr::include_graphics("fig/singleSiteDSInfrastructure.jpg")
 ```
 
 
-One of the main limitations of DataSHIELD is how to deal with large data given the restrictions of Opal with databases. Nonetheless, the recent development of the `r Githubpkg("obiba/resourcer")` R package allows DataSHIELD developers to overcome this drawback by granting the Opal servers to deal with any type of data (e.g. **resources**). So far, Opal can register access to different types of data resources in different formats (csv, tsv, R data, SQL, tiddy, ..) that can also be located in different places (http, ssh, ASW W3, local, ...). This is another important advancement since the `r Githubpkg("obiba/resourcer")` addresses another important issue that is having duplicated data in different research centers or hospitals.
+One of the main limitations of DataSHIELD is how to deal with large data given the restrictions of Opal with databases. Nonetheless, the recent development of the `r Githubpkg("obiba/resourcer")` R package allows DataSHIELD developers to overcome this drawback by granting the Opal servers to deal with any type of data (e.g. **resources**). So far, Opal can register access to different types of data resources in different formats (csv, tsv, R data, SQL, tiddy, ..) that can also be located in different places (local, http, ssh, AWS S3 or Mongodb file stores, ...). This is another important advancement since the `r Githubpkg("obiba/resourcer")` addresses another important issue that is having duplicated data in different research centers or hospitals.
 
 
-The `r Githubpkg("obiba/resourcer")` package permits to work with specific R data classes. This is highly important in our setting since it will allow to use [Bioconductor](http://www.bioconductor.org) classes to properly manage omic data using efficient infrastructures such as `ExpressionSet` or `RangedSummarizedExperiment` among others. Another important asset of the `r Githubpkg("obiba/resourcer")` package is that it can be extended to new data types by writting specific functions (see https://github.com/obiba/resourcer/#extending-resources). We have used this feature and created some functions for the analysis of Variant Calling Format (VCF files) that are loaded into R as Genomic Data Storage objects. These functions along with others that allow the managment of Bioconductor classes in DataSHIELD have been included in a new DataSHIELD package, the `r Githubpkg("isglobal-brge/dsOmics")`, which is able to manage different [Bioconductor](http://www.bioconductor.org) data infrastructures that are required to perform omic association analyses. These including `ExpressionSet`, `RangedSummarizedExperiment` or `GDS` among others **[what about HDF5, Yannick?]**.
+The `r Githubpkg("obiba/resourcer")` package permits to work with specific R data classes. This is highly important in our setting since it will allow to use [Bioconductor](http://www.bioconductor.org) classes to properly manage omic data using efficient infrastructures such as `ExpressionSet` or `RangedSummarizedExperiment` among others. Another important asset of the `r Githubpkg("obiba/resourcer")` package is that it can be extended to new data types by writting specific functions (see [how to extending resources](https://github.com/obiba/resourcer/#extending-resources). We have used this feature and created some functions for the analysis of Variant Calling Format (VCF files) that are loaded into R as Genomic Data Storage objects. These functions along with others that allow the managment of Bioconductor classes in DataSHIELD have been included in a new DataSHIELD package, the `r Githubpkg("isglobal-brge/dsOmics")`, which is able to manage different [Bioconductor](http://www.bioconductor.org) data infrastructures that are required to perform omic association analyses. These including `ExpressionSet`, `RangedSummarizedExperiment` or `GDS` among others. Generaly speaking, any data format and storage that can be read by R can be expressed as a **resource**.
 
 In the next sections we first describe how to deal with Opal servers and resources. We illustre how we prepared a test environment to describe how Opal must be setup as well as how to provide the appropiate R/DataSHIELD configuration in both the Opal server and the client side to perform omic association analyses. Then, the different types of omic data analyses that can be performed with the `r Githubpkg("isglobal-brge/dsOmicsClient")` functionality are described and further illustrated using real data examples including epigenome, transcriptome and genomic data analyses.
 
 # Setup
 
-In this section we describe how to configure the Opal server and the needed packages to carry out omic association analyses from the client side. Basically, the reources must be defined in the Opal along with the required information that includes the url where data is located, the format (e.g., SPSS, R data, file,  ...) and the credentials which are not visible to the DataSHIELD users (Figure \@ref(fig:tableResource)). 
+In this section we describe how to configure the Opal server and the needed packages to carry out omic association analyses from the client side. Basically, the resources must be defined in the Opal along with the required information that includes the url where data is located, the format (e.g., SPSS, R class, GDS ...) and the credentials which are not visible to the DataSHIELD users (Figure \@ref(fig:tableResource)). The permission to use a resource for DataSHIELD operations is granted (to a user or a group of users) in Opal.
 
 
 ```{r tableResource, echo=FALSE, fig.cap="Information required for Resources.", out.width = '90%', fig.align='center'}
@@ -57,12 +57,12 @@ knitr::include_graphics("fig/Table_resources.jpg")
 ```
 
 
-A description of the pre-requisites can be found [here](https://datashield.discourse.group/t/datashield-resources/152). Basically, what is needed is:
+A description of the pre-requisites can be found [here](https://datashield.discourse.group/t/datashield-resources/152). At the time of the writing of this vignette, the resource capabilities of Opal, DataSHIELD and related R packages have not been released yet. Basically, what is needed is:
 
 - `r Githubpkg("obiba/DSI")` in the resources branch
 - `r Githubpkg("obiba/DSOpal")` in the resources branch
 - `r Githubpkg("obiba/opalr")` in the resources branch
-- OPTIONAL(used to debug): `r Githubpkg("obiba/DSILite")` in the resources branch
+- OPTIONAL (used to debug): `r Githubpkg("obiba/DSLite")` in the resources branch
 
 - `r Githubpkg("datashield/dsBaseClient")` in the DSI branch
 - `r Githubpkg("isglobal-brge/dsOmicsClient")`
@@ -72,7 +72,7 @@ and in the server side:
 - `r Githubpkg("datashield/dsBase")`
 
 
-Notice that the `r Githubpkg("isglobal-brge/dsOmics")` package includes new extensions of the the `r Githubpkg("obiba/resourcer")` package to deal with new types of data such as VFC formats (VCF2GDS). Next subsections further describe what is required along with some examples. 
+Notice that the `r Githubpkg("isglobal-brge/dsOmics")` package includes new extensions of the `r Githubpkg("obiba/resourcer")` package to deal with new types of resources such as file in VCF format to converted to a file in GDS format (VCF2GDS). Next subsections further describe what is required along with some examples. 
 
 
 ## Required Opal server with resources
@@ -88,10 +88,12 @@ knitr::include_graphics("fig/resourcer_fig.jpg")
 
 As previously mentioned, the `resourcer` R package allows to deal with the main data sources (using tidyverse, DBI, dplyr, sparklyr, MongoDB, AWS S3, SSH etc.) and is easily extensible to new ones including specific data infrastructure in R or Bioconductor. So far `ExpressionSet` and `RangedSummarizedExperiment` objects saved in `.rdata` files are accesible through the `resourcer` package. The `dsOmics` package contains a new extension that deals with VCF (Variant Calling Format) files which are coerced to a GDS (Genomic Data Storage) format (VCF2GDS). 
 
-**[Yannick, do we have to write something here? or just indicate the functions you created?]
+In order to achive this `resourcer` extension, two `R6` classes have been implemented:
 
+* `GDSFileResourceResolver` class which handles file-base resources with data in GDS or VCF formats. This class is responsible for creating a `GDSFileResourceClient` object instance from an assigned resource.
+* `GDSFileResourceClient` class which is responsible for getting the referenced file and making a connection (created by `GWASTools`) to the GDS file (will also convert the VCF file to a GDS file on the fly, using `SNPRelate`). For the subsequent analysis, it's this connection handle to the GDS file that will be used.
 
-We have prepared a test environment, with the Opal implementation of Resources and an appropriate R/DataSHIELD configuration that is available at: https://opal-test.obiba.org. This figure illustrate the resources which are available for the `test` project:
+We have prepared a test environment, with the Opal implementation of Resources and an appropriate R/DataSHIELD configuration that is available at: [opal-test.obiba.org](https://opal-test.obiba.org). This figure illustrate the resources which are available for the `test` project:
 
 ```{r testResources, echo=FALSE, fig.cap="Resources from a test enviroment available at https://opal-test.obiba.org", fig.align='center', out.height='120%'}
 knitr::include_graphics("fig/opal_resources.png", dpi=NA)
@@ -144,9 +146,10 @@ devtools::install_github("obiba/resourcer", dependencies = TRUE)
 The other three packages can be installed by:
 
 ```{r install_all, eval=FALSE}
-devtools::install_github("datashield/DSI", dependencies = TRUE)
-devtools::install_github("datashield/DSOpal", dependencies = TRUE)
-devtools::install_github("datashield/dsBaseClient", dependencies = TRUE)
+devtools::install_github("datashield/DSI", ref = "resources", dependencies = TRUE)
+devtools::install_github("obiba/opalr", ref = "resources", dependencies = TRUE)
+devtools::install_github("datashield/DSOpal", ref = "resources", dependencies = TRUE)
+devtools::install_github("datashield/dsBaseClient", ref = "DSI", dependencies = TRUE)
 devtools::install_github("isglobal-brge/dsOmicsClient", dependencies = TRUE)
 ```
 
