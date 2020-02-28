@@ -551,7 +551,7 @@ The opal API server allows to incorporate this new type of resource as illustrat
 
 
 ```{r resourceVCF, echo=FALSE, fig.cap="Description of how a VCF file can be added to the opal resources", out.height= '5%', fig.align='center'}
-knitr::include_graphics("fig/opal_resource_VCF.png", )
+knitr::include_graphics("fig/opal_resource_VCF.png")
 ```
 
 
