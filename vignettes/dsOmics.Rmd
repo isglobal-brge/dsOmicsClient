@@ -160,7 +160,7 @@ devtools::install_github("isglobal-brge/dsOmicsClient", dependencies = TRUE)
 ## OPAL and resources 
 
 
-The Figure \@ref(fig:opalOmic) describes how omic association analyses are performed using DataSHIELD client functions implemented in the `{r Githubpkg("isglobal-brge/dsOmicsClient")` package. Basically, data (omic and phenotypes/covariates) can be stored in different sites (http, ssh, AWS S3, local, ...) and are managed with Opal through the `{r Githubpkg("obiba/resourcer")` package and their extensions implemented in `{r Githubpkg("isglobal-brge/dsOmics")`.  
+The Figure \@ref(fig:opalOmic) describes how omic association analyses are performed using DataSHIELD client functions implemented in the `r Githubpkg("isglobal-brge/dsOmicsClient")` package. Basically, data (omic and phenotypes/covariates) can be stored in different sites (http, ssh, AWS S3, local, ...) and are managed with Opal through the `r Githubpkg("obiba/resourcer")` package and their extensions implemented in `r Githubpkg("isglobal-brge/dsOmics")`.  
 
 
 ```{r opalOmic, echo=FALSE, fig.cap="Non-disclosive omic data analysis with DataSHIELD and Bioconductor. The figure illustrates how the `resourcer` package is used to get access to omic data through the OPAL servers. Then DataSHIELD is used in the client side to perform non-disclosive data analyses.", out.width = '100%', fig.align='center'}
