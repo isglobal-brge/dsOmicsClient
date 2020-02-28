@@ -56,7 +56,24 @@ In this section we describe how to configure the Opal server and the needed pack
 knitr::include_graphics("fig/Table_resources.jpg")
 ```
 
-Also, the servers need some R packages to carry out specific data analyses (also they contain the aggregated and the assigned methods) and in some cases these packages can also include new extensions of the the `r Githubpkg("obiba/resourcer")` package to deal with new types of data (e.g. `dsOmics` deals with VFC formats - VCF2GDS). Finally, the client also needs to have some R packages (`r Githubpkg("obiba/resourcer")`, `r Githubpkg("obiba/DSI")`, `r Githubpkg("obiba/DSOpal")`). For specific data analyses DataSHIELD packages are also required. In our case, `r Githubpkg("datashield/dsBaseClient")` and `r Githubpkg("isglobal-brge/dsOmicsClient")`. Next subsections describe what is required along with some examples.
+
+A description of the pre-requisites can be found [here](https://datashield.discourse.group/t/datashield-resources/152). Basically, what is needed is:
+
+- `r Githubpkg("obiba/DSI")` in the resources branch
+- `r Githubpkg("obiba/DSOpal")` in the resources branch
+- `r Githubpkg("obiba/opalr")` in the resources branch
+- OPTIONAL(used to debug): `r Githubpkg("obiba/DSILite")` in the resources branch
+
+- `r Githubpkg("datashield/dsBaseClient")` in the DSI branch
+- `r Githubpkg("isglobal-brge/dsOmicsClient")`
+
+and in the server side: 
+- `r Githubpkg("isglobal-brge/dsOmics")`
+- `r Githubpkg("datashield/dsBase")`
+
+
+Notice that the `r Githubpkg("isglobal-brge/dsOmics")` package includes new extensions of the the `r Githubpkg("obiba/resourcer")` package to deal with new types of data such as VFC formats (VCF2GDS). Next subsections further describe what is required along with some examples. 
+
 
 ## Required Opal server with resources
 
@@ -352,6 +369,13 @@ ds.fvarLabels("methy")
 
 Then we can run the analysis and obtain the output with the chromosome and gene symbol by:
 
+
+```{r remove_ans_limma, echo=FALSE}
+ds.rm("ans.limma")
+```
+
+
+
 ```{r limma_methy_annot}
 ans.limma.annot <- ds.limma(model = ~ diagnosis + Sex,
                             Set = "methy", 
@@ -373,7 +397,14 @@ The vast majority of studies on DNA methylation are based on blood samples. This
 - **implementation description to be provided**
 - **get error if required CpGs are not available**
 
-```{r one_cpg_cellCount, error=TRUE}
+
+```{r remove_ans_limma_annot, echo=FALSE}
+ds.rm("ans.limma.annot")
+```
+
+
+
+```{r one_cpg_cellCount, eval=FALSE}
 ans.cell <- ds.lmFeature(feature = "cg07363416", 
                     model = ~ diagnosis + Sex, 
                     Set = "methy", 
@@ -390,6 +421,11 @@ The vast majority of omic studies require to control for unwanted variability. T
 
 
 Performing this type of analysis using the `ds.lmFeature` function is not allowed since estimating SVA would require to implement a non-disclosive method that computes SVA from the different servers. This will be a future topic of the `dsOmicsClient`. NOTE that, estimating SVA separately at each server would not be a good idea since the aim of SVA is to capture differences mainly due to experimental issues among ALL individuals. What we can do instead is to use the `ds.limma` function to perform the analyses adjusted for SVA at each study. 
+
+```{r remove_ans_cell, echo=FALSE}
+ds.rm("ans.cell")
+```
+
 
 ```{r all_cpg_sva}
 ans.sva <- ds.limma(model = ~ diagnosis + Sex, 
@@ -594,6 +630,6 @@ datashield.logout(conns)
 
 
 # Acknowledgments
-JRG want to thank Deroshan Padotan for having worked on a preliminary version of `dsOmicsClient` package developed before the `resourcer` package was created.
+JRG want to thank Deroshan Padotan for having worked on a preliminary version of `dsOmicsClient` package developed before the `resourcer` package was created. We also thank Demetris Avraam for his feedback while programming DataSHIELD functions and writing the vignette. 
 
 # References

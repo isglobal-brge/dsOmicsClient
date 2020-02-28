@@ -21,7 +21,31 @@ logindata <- builder$build()# login and assign resources
 conns <- datashield.login(logins = logindata, assign = TRUE, symbol = "res")# R data file resource
 
 
-datashield.assign.expr(conns, symbol = "ES", expr = quote(as.resource.object(res)))
+datashield.assign.expr(conns, symbol = "methy", expr = quote(as.resource.object(res)))
+
+
+
+ans.limma <- ds.limma(model = ~ diagnosis + Sex,
+                      Set = "methy", 
+                      datasources = conns)
+
+ans.limma.annot <- ds.limma(model = ~ diagnosis + Sex,
+                            Set = "methy", 
+                            annotCols = c("CHR", "UCSC_RefGene_Name"),
+                            datasources = conns)
+
+ans.cell <- ds.lmFeature(feature = "cg07363416", 
+                         model = ~ diagnosis + Sex, 
+                         Set = "methy", 
+                         cellCountsAdjust = TRUE,
+                         datasources = conns)
+
+ans.sva <- ds.limma(model = ~ diagnosis + Sex, 
+                    Set = "methy",
+                    sva = TRUE, annotCols = c("CHR", "UCSC_RefGene_Name"))
+
+
+
 
 ds.ls(conns)
 ds.dim('ES', datasources = conns)
