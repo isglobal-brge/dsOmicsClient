@@ -422,9 +422,30 @@ The vast majority of omic studies require to control for unwanted variability. T
 
 Performing this type of analysis using the `ds.lmFeature` function is not allowed since estimating SVA would require to implement a non-disclosive method that computes SVA from the different servers. This will be a future topic of the `dsOmicsClient`. NOTE that, estimating SVA separately at each server would not be a good idea since the aim of SVA is to capture differences mainly due to experimental issues among ALL individuals. What we can do instead is to use the `ds.limma` function to perform the analyses adjusted for SVA at each study. 
 
-```{r remove_ans_cell, echo=FALSE}
-ds.rm("ans.cell")
+
+
+```{r login_assign_eSet_new, echo=FALSE}
+datashield.logout(conns)
+builder <- DSI::newDSLoginBuilder()
+builder$append(server = "study1", url = "https://opal-test.obiba.org", 
+               user = "dsuser", password = "password", 
+               resource = "test.GSE66351_1", driver = "OpalDriver")
+builder$append(server = "study2", url = "https://opal-test.obiba.org", 
+               user = "dsuser", password = "password", 
+               resource = "test.GSE66351_2", driver = "OpalDriver")
+
+logindata <- builder$build()
+
+conns <- DSI::datashield.login(logins = logindata, assign = TRUE, 
+                               symbol = "res")
+
+
+# Assign to the original R class (e.g ExpressionSet)
+datashield.assign.expr(conns, symbol = "methy", 
+                       expr = quote(as.resource.object(res)))
+
 ```
+
 
 
 ```{r all_cpg_sva}
