@@ -547,7 +547,7 @@ Genomic data can be stored in different formats. [PLINK](http://zzz.bwh.harvard.
 
 We use the Genomic Data Storage (GDS) format which efficiently manage VCF files into the R environment. This extension requires to create a Client and a Resolver function that are located into the `r Biocpkg("dsOmics")` package. The client function uses `snpgdsVCF2GDS` function implemented in `r Biocpkg("SNPrelate")` to coerce the VCF file to a GDS object. Then the GDS object is loaded into R as an object of class `GdsGenotypeReader` from `r Biocpkg("GWASTools")` package that facilitates downstream analyses.
 
-The opal API server allows to incorporate this new type of resource as illustrated in Figure \@ref{fig:resourceVCF}
+The opal API server allows to incorporate this new type of resource as illustrated in Figure \@ref(fig:resourceVCF).
 
 
 ```{r resourceVCF, echo=FALSE, fig.cap="Description of how a VCF file can be added to the opal resources", out.height= '5%', fig.align='center'}
