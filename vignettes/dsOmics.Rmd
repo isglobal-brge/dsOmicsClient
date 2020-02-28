@@ -139,7 +139,7 @@ devtools::install_github("isglobal-brge/dsOmicsClient", dependencies = TRUE)
 
 ## OPAL and resources 
 
-The Figure \@ref(fig:opalOmic) describes how omic associatin analyses are performed using DataSHIELD client functions implemented in the `{r Githubpkg("isglobal-brge/dsOmicsClient")` package. Basically, data (omic and phenotypes/covariates) can be stored in different sites (http, ssh, ASW W3, local, ...) and are managed with Opal through the `{r Githubpkg("obiba/resourcer")` package and their extensions implemented in `{r Githubpkg("isglobal-brge/dsOmics")`.  
+The Figure \@ref(fig:opalOmic) describes how omic associatin analyses are performed using DataSHIELD client functions implemented in the `r Githubpkg("isglobal-brge/dsOmicsClient")` package. Basically, data (omic and phenotypes/covariates) can be stored in different sites (http, ssh, ASW W3, local, ...) and are managed with Opal through the `r Githubpkg("obiba/resourcer")` package and their extensions implemented in `r Githubpkg("isglobal-brge/dsOmics")`.  
 
 
 ```{r opalOmic, echo=FALSE, fig.cap="Non-disclosive omic data analysis with DataSHIELD and Bioconductor. The figure illustrates how the `resourcer` package is used to get access to omic data through the OPAL servers. Then DataSHIELD is used in the client side to perform non-disclosive data analyses.", out.width = '100%', fig.align='center'}
@@ -390,7 +390,7 @@ The vast majority of omic studies required to control for unwanted variability. 
 
 Performing this type of analysis using `ds.lmFeature` function is not allowed since estimating SVA would require to implement a non-disclosive method that computes SVA from the different servers. This will be a future topic of `dsOmicsClient`. NOTE that, estimating SVA separately at each server would not be a good idea since the aim of SVA is to capture differences mainly due to experiemental issues amogn ALL individuals. What we can do instead is to use `ds.limma` and perform the analyses adjusted for SVA at each study. 
 
-```{r all_cpg_sva, eval=FALSE}
+```{r all_cpg_sva}
 ans.sva <- ds.limma(model = ~ diagnosis + Sex, 
                     Set = "methy",
                     sva = TRUE, annotCols = c("CHR", "UCSC_RefGene_Name"))
@@ -486,7 +486,7 @@ Genomic data can be stored in different formats. [PLINK](http://zzz.bwh.harvard.
 
 We use the Genomic Data Storage (GDS) format which efficiently manage VCF files into the R environment. This extension requires to create a Client and a Resolver function that are located into the `r Biocpkg("dsOmics")` package. The client function uses `snpgdsVCF2GDS` function implemented in `r Biocpkg("SNPrelate")` to coerce the VCF file to a GDS object. Then the GDS object is loaded into R as an object of class `GdsGenotypeReader` from `r Biocpkg("GWASTools")` package that facilitates downstream analyses.
  
-The opal API server allows to incorporte this new type of resource as illustrated in Figure \@ref{fig:resourceVCF}
+The opal API server allows to incorporte this new type of resource as illustrated in Figure \@ref(fig:resourceVCF)
 
 
 ```{r resourceVCF, echo=FALSE, fig.cap="Description of how a VCF file can be added to the opal resources", out.height= '5%', fig.align='center'}
