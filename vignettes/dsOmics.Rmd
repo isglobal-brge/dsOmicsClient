@@ -3,7 +3,7 @@ title: "Non-disclosive federated omic data analysis with DataSHIELD and Biocondu
 author:
 - name: Yannick Marcon
   affiliation:
-  - &epigeny EPIGENY
+  - &epigeny Epigeny
   email: yannick.marcon@obiba.org
 - name: Juan R. Gonzalez
   affiliation:
@@ -143,7 +143,7 @@ library(dsOmicsClient)
 devtools::install_github("obiba/resourcer", dependencies = TRUE) 
 ```
  
-The other three packages can be installed by:
+The other packages can be installed by:
 
 ```{r install_all, eval=FALSE}
 devtools::install_github("datashield/DSI", ref = "resources", dependencies = TRUE)
@@ -157,13 +157,13 @@ devtools::install_github("isglobal-brge/dsOmicsClient", dependencies = TRUE)
 
 # Omics data analysis
 
-## OPAL and resources 
+## Opal and resources 
 
 
 The Figure \@ref(fig:opalOmic) describes how omic association analyses are performed using DataSHIELD client functions implemented in the `r Githubpkg("isglobal-brge/dsOmicsClient")` package. Basically, data (omic and phenotypes/covariates) can be stored in different sites (http, ssh, AWS S3, local, ...) and are managed with Opal through the `r Githubpkg("obiba/resourcer")` package and their extensions implemented in `r Githubpkg("isglobal-brge/dsOmics")`.  
 
 
-```{r opalOmic, echo=FALSE, fig.cap="Non-disclosive omic data analysis with DataSHIELD and Bioconductor. The figure illustrates how the `resourcer` package is used to get access to omic data through the OPAL servers. Then DataSHIELD is used in the client side to perform non-disclosive data analyses.", out.width = '100%', fig.align='center'}
+```{r opalOmic, echo=FALSE, fig.cap="Non-disclosive omic data analysis with DataSHIELD and Bioconductor. The figure illustrates how the `resourcer` package is used to get access to omic data through the Opal servers. Then DataSHIELD is used in the client side to perform non-disclosive data analyses.", out.width = '100%', fig.align='center'}
 knitr::include_graphics("fig/dsOmics_A.jpg")
 ```
 
@@ -564,7 +564,7 @@ https://raw.githubusercontent.com/isglobal-brge/scoreInvHap/master/inst/extdata/
 In that case we indicate that only biallelic SNPs are considered ('method=biallelic.only') and that genotypes are stored in the individual-major mode, (i.e., list all SNPs for the first individual, and then list all SNPs for the second individual, etc) ('snpfirstdim=TRUE').
 
 
-## Assigning the resources (VCF file and ) to the OPAL server
+## Assigning the resources (VCF file and ) to the Opal server
 
 We are using a GWAS example described in @gonzalez2019omic (Section 4.5). We have genotype data in VCF format which is available in 
 
@@ -597,7 +597,7 @@ datashield.assign.expr(conns, symbol = "covars",
                        expr = quote(as.resource.data.frame(covars.res)))
 ```
 
-These are the objects available in the OPAL server
+These are the objects available in the Opal server
 
 ```{r ls_vcf}
 ds.ls()
