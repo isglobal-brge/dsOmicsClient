@@ -59,21 +59,20 @@ knitr::include_graphics("fig/Table_resources.jpg")
 
 A description of the pre-requisites can be found [here](https://datashield.discourse.group/t/datashield-resources/152). At the time of the writing of this vignette, the resource capabilities of Opal, DataSHIELD and related R packages have not been released yet. Basically, what is needed is:
 
-- `r Githubpkg("obiba/DSI")` in the resources branch
-- `r Githubpkg("obiba/DSOpal")` in the resources branch
-- `r Githubpkg("obiba/opalr")` in the resources branch
-- OPTIONAL (used to debug): `r Githubpkg("obiba/DSLite")` in the resources branch
+- `r Githubpkg("obiba/DSI")`
+- `r Githubpkg("obiba/DSOpal")`
+- `r Githubpkg("obiba/opalr")`
+- OPTIONAL (used for development): `r Githubpkg("obiba/DSLite")`
 
-- `r Githubpkg("datashield/dsBaseClient")` in the DSI branch
+- `r Githubpkg("datashield/dsBaseClient")` in the v6.0-dev branch
 - `r Githubpkg("isglobal-brge/dsOmicsClient")`
 
 and in the server side: 
+- `r Githubpkg("obiba/resourcer")`
 - `r Githubpkg("isglobal-brge/dsOmics")`
-- `r Githubpkg("datashield/dsBase")`
-
+- `r Githubpkg("datashield/dsBase")` in the v6.0-dev branch
 
 Notice that the `r Githubpkg("isglobal-brge/dsOmics")` package includes new extensions of the `r Githubpkg("obiba/resourcer")` package to deal with new types of resources such as file in VCF format to converted to a file in GDS format (VCF2GDS). Next subsections further describe what is required along with some examples. 
-
 
 ## Required Opal server with resources
 
@@ -84,7 +83,6 @@ Instead of storing the data in Opal databases, only the way to access them needs
 ```{r resources, echo=FALSE, fig.cap="Resources: a new DataSHIELD infrastructure", out.width = '90%', fig.align='center'}
 knitr::include_graphics("fig/resourcer_fig.jpg")
 ```
-
 
 As previously mentioned, the `resourcer` R package allows to deal with the main data sources (using tidyverse, DBI, dplyr, sparklyr, MongoDB, AWS S3, SSH etc.) and is easily extensible to new ones including specific data infrastructure in R or Bioconductor. So far `ExpressionSet` and `RangedSummarizedExperiment` objects saved in `.rdata` files are accesible through the `resourcer` package. The `dsOmics` package contains a new extension that deals with VCF (Variant Calling Format) files which are coerced to a GDS (Genomic Data Storage) format (VCF2GDS). 
 
@@ -125,10 +123,19 @@ knitr::include_graphics("fig/add_packages_opal_2.png")
 ```
 ## Required R Packages in the client site (e.g. local machine)
 
-In order to use the functions contained within this package the following R packages must be installed and loaded. 
+In order to use the functions contained within this package the following R packages must be installed (in their development version):
+
+```{r install_all, eval=FALSE}
+devtools::install_github("datashield/DSI", dependencies = TRUE)
+devtools::install_github("obiba/opalr", dependencies = TRUE)
+devtools::install_github("datashield/DSOpal", dependencies = TRUE)
+devtools::install_github("datashield/dsBaseClient", ref = "v6.0-dev", dependencies = TRUE)
+devtools::install_github("isglobal-brge/dsOmicsClient", dependencies = TRUE)
+```
+
+The package dependencies are then loaded as follows:
 
 ```{r requiredRPackages}
-library(resourcer)
 library(DSI)
 library(DSOpal)
 library(dsBaseClient)
@@ -137,22 +144,14 @@ library(dsOmicsClient)
 
 **Notes**:
 
- - `dsOmics` depends on the `resourcer` package that can be installed by (this is needed only when debugging with `DSLite`, in a standard DataSHIELD operation these packages are installed on the R server side):
- 
+For advanced users willing to use `DSLite`, the server side packages needs to be installed as well:
+
 ```{r install_resourcer, eval=FALSE}
-devtools::install_github("obiba/resourcer", dependencies = TRUE) 
+install.packages("resourcer", dependencies = TRUE)
+devtools::install_github("datashield/DSLite", dependencies = TRUE)
+devtools::install_github("isglobal-brge/dsOmics", dependencies = TRUE)
+devtools::install_github("datashield/dsBase", ref = "v6.0-dev", dependencies = TRUE)
 ```
- 
-The other packages can be installed by:
-
-```{r install_all, eval=FALSE}
-devtools::install_github("datashield/DSI", ref = "resources", dependencies = TRUE)
-devtools::install_github("obiba/opalr", ref = "resources", dependencies = TRUE)
-devtools::install_github("datashield/DSOpal", ref = "resources", dependencies = TRUE)
-devtools::install_github("datashield/dsBaseClient", ref = "DSI", dependencies = TRUE)
-devtools::install_github("isglobal-brge/dsOmicsClient", dependencies = TRUE)
-```
-
 
 
 # Omics data analysis
