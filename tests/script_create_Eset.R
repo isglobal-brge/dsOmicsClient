@@ -5,6 +5,9 @@ library(dsBaseClient)
 library(dsBase)
 
 
+# https://github.com/isglobal-brge/brgedata/raw/master/data/gse66351_1.rda
+# https://github.com/isglobal-brge/brgedata/raw/master/data/gse66351_2.rda
+
 # make a DSLite server with resources inside
 dslite.server <- newDSLiteServer(resources = list(
   GSE66351 = resourcer::newResource(name = "GSE66351", url = "https://github.com/epigeny/dsOmics/raw/master/data/GSE66351.Rdata", format = "ExpressionSet"),
