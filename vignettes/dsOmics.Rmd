@@ -360,7 +360,12 @@ This method can be very time consiming since the function repeatedly calls the D
 ans.limma <- ds.limma(model = ~ diagnosis + Sex,
                       Set = "methy", 
                       datasources = conns)
-ans.limma
+```
+
+Then, we can visualize the top genes at each study (i.e server) by 
+
+```{r show_limma_methy}
+lapply(ans.limma, head)
 ```
 
 The annotation can be added by using the argument `annotCols`. It should be a vector with the columns of the annotation available in the `ExpressionSet` or `RangedSummarizedExperiment` that want to be showed. The columns of the annotation can be obtained by
@@ -372,7 +377,7 @@ ds.fvarLabels("methy")
 Then we can run the analysis and obtain the output with the chromosome and gene symbol by:
 
 
-```{r remove_ans_limma, echo=FALSE}
+```{r remove_ans_limma, eval=FALSE, echo=FALSE}
 ds.rm("ans.limma")
 ```
 
@@ -383,12 +388,16 @@ ans.limma.annot <- ds.limma(model = ~ diagnosis + Sex,
                             Set = "methy", 
                             annotCols = c("CHR", "UCSC_RefGene_Name"),
                             datasources = conns)
-ans.limma.annot
+```
+
+```{r show_limma_methy_annot}
+lapply(ans.limma.annot, head)
 ```
 
 
-
 Then, the results can be combined by ....
+
+
 
 We can create a QQ-plot by using the generic function `plot` (here not showed). In some cases inflation can be observed, so that, correction for cell-type or surrogate variables must be performed. We describe how we can do that in the next two sections.
 
