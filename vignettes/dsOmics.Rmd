@@ -156,19 +156,96 @@ devtools::install_github("datashield/dsBase", ref = "v6.0-dev", dependencies = T
 
 # Omics data analysis
 
-## Opal and resources 
+## Single study analysis
+
+Let us start by illustrating a simple example where a researcher may be interested in perfoming differential gene expression anaylis (DGE) having data in a single repository (e.g. one study).
+
+### Illustrative example: differential gene expression (DGE) analysis
+
+Let us illustrate how to perform transcriptomic data analysis using data from [TCGA project](https://www.cancer.gov/about-nci/organization/ccg/research/structural-genomics/tcga). We have uploaded to the opal server a resource called `tcga_liver` whose URL is http://duffel.rail.bio/recount/TCGA/rse_gene_liver.Rdata which is available through the [recount project](https://jhubiostatistics.shinyapps.io/recount/). This resource contains the `RangeSummarizedExperiment` with the RNAseq profiling of liver cancer data from TCGA. Next, we illustrate how a differential expression analysis to compare RNAseq profiling of women vs men (variable `gdc_cases.demographic.gender`). The DGE analysis is normally performed using `r Biocpkg("limma")` package. In that case, as we are analyzing RNA-seq data, `limma + voom` method will be required. 
+
+Let us start by creating the connection to the opal server:
+
+```{r pipeline_gene_expr}
+builder <- newDSLoginBuilder()
+builder$append(server = "study1", url = "https://opal-test.obiba.org", 
+               user = "dsuser", password = "password", 
+               resource = "test.tcga_liver", driver = "OpalDriver")
+
+logindata <- builder$build()
+
+conns <- datashield.login(logins = logindata, assign = TRUE, 
+                          symbol = "res")
+```
+
+Then, let us coerce the resource to a `RangedSummarizedExperiment` which is the type of object that is available in the [recount project](https://jhubiostatistics.shinyapps.io/recount/).
+
+```{r get_rse}
+datashield.assign.expr(conns, symbol = "rse", 
+                       expr = quote(as.resource.object(res)))
+ds.class("rse")
+```
+
+The number of features and samples can be inspected by
+
+```{r dim_rse}
+ds.dim("rse")
+```
+
+And the names of the features using the same function used in the case of analyzing an `ExpressionSet`
+
+```{r name_feature_rse}
+name.features <- ds.featureNames("rse")
+lapply(name.features, head)
+```
+
+Also the covariate names can be inspected by
+
+```{r name_covar_rse}
+name.vars <- ds.featureData("rse")
+lapply(name.vars, head, n=15)
+```
+
+We can visualize the levels of the variable having gender information
+
+```{r table_gender}
+ds.table1D("rse$gdc_cases.demographic.gender")
+```
 
 
-The Figure \@ref(fig:opalOmic) describes how omic association analyses are performed using DataSHIELD client functions implemented in the `r Githubpkg("isglobal-brge/dsOmicsClient")` package. Basically, data (omic and phenotypes/covariates) can be stored in different sites (http, ssh, AWS S3, local, ...) and are managed with Opal through the `r Githubpkg("obiba/resourcer")` package and their extensions implemented in `r Githubpkg("isglobal-brge/dsOmics")`.  
+The differential expression analysis is then performed by:
+  
+  
+```{r voom_gender}
+ans.gender <- ds.limma(model =  ~ gdc_cases.demographic.gender, 
+                   Set = "rse", type.data = "RNAseq", 
+                   sva = FALSE)
+```
+
+Notice that we have set `type.data='RNAseq'` to consider that our data are counts obtained from a RNA-seq experiment. By indicating so, the differential analysis is performed by using  `voom` + `limma` as previously mention.
+
+As usual, we close the DataSHIELD session by:
+  
+```{r close_ds2}
+datashield.logout(conns)
+```
+
+
+
+
+## Analysis from multiple studies 
+
+
+The Figure \@ref(fig:opalOmic) describes the different types of omic association analyses that can be performed using DataSHIELD client functions implemented in the `r Githubpkg("isglobal-brge/dsOmicsClient")` package. Basically, data (omic and phenotypes/covariates) can be stored in different sites (http, ssh, AWS S3, local, ...) and are managed with Opal through the `r Githubpkg("obiba/resourcer")` package and their extensions implemented in `r Githubpkg("isglobal-brge/dsOmics")`.  
 
 
 ```{r opalOmic, echo=FALSE, fig.cap="Non-disclosive omic data analysis with DataSHIELD and Bioconductor. The figure illustrates how the `resourcer` package is used to get access to omic data through the Opal servers. Then DataSHIELD is used in the client side to perform non-disclosive data analyses.", out.width = '100%', fig.align='center'}
 knitr::include_graphics("fig/dsOmics_A.jpg")
 ```
 
-Then, `dsOmicsClient` package allows different types of analyses: pooled and meta-analysis. 
+Then, `dsOmicsClient` package allows different types of analyses: pooled and meta-analysis. Both methods are based on fitting different generalized linear models (GLMs) for each feature when assesing association between omic data and the phenotype/trait/condition of interest. 
 
-The **pooled approach** (Figure \@ref(fig:omicAnal1)) is recommended when the user wants to analyze omic data from different sources and obtain results as if the data were located in a single computer. It should be noticed that this can be very time consuming when analyzing multiple features since and that it cannot be recommended when data are not properly harmonized (e.g. gene expression normalized using different methods, GWAS data having different platforms, ...). Also when it is necesary to remove unwanted variability (for transcriptomic and epigenomica analysis) or control for population stratification (for GWAS analysis), this approach cannot be used since we need to develop methods to compute surrogate variables (to remove unwanted variability) or PCAs (to to address population stratification) in a non-disclosive way. 
+The **pooled approach** (Figure \@ref(fig:omicAnal1)) is recommended when the user wants to analyze omic data from different sources and obtain results as if the data were located in a single computer. It should be noticed that this can be very time consuming when analyzing multiple features since it calls repeatedly to a base function in DataSHIELD (`ds.glm`) and that it cannot be recommended when data are not properly harmonized (e.g. gene expression normalized using different methods, GWAS data having different platforms, ...). Also when it is necesary to remove unwanted variability (for transcriptomic and epigenomica analysis) or control for population stratification (for GWAS analysis), this approach cannot be used since we need to develop methods to compute surrogate variables (to remove unwanted variability) or PCAs (to to address population stratification) in a non-disclosive way. 
 
 The **meta-analysis approach** Figure \@ref(fig:omicAnal2) overcomes the limitations raised when performing pooled analyses. First, the computation issue is addressed by using scalable and fast methods to perform data analysis at whole-genome level at each server. The transcriptomic and epigenomic data analyses make use of the widely used `r Biocpkg("limma")` package that uses `ExpressionSet` or `RangedSummarizedExperiment` Bioc infrastructures to deal with omic and phenotypic (e.g covariates). The genomic data are analyzed using `r Biocpkg("GWASTools")` and `r Biocpkg("GENESIS")` that are designed to perform quality control (QC) and GWAS using GDS infrastructure.
 
@@ -191,8 +268,9 @@ knitr::include_graphics("fig/dsOmics_C.jpg")
 ```
 
 
+### Illustrative example: Epigenome-wide association analysis (EWAS) 
 
-# Analysis of methylation data 
+Here we use methylation data but the the same analyses can be performed when having transcriptomic data from multiple studies. However, we should point out that for DGE analysses, the user must be sure that the **pooled analysis** can be performed since data of each study must have different range values. If so, gene expression harmonization should be performed, for instance, by standardizing the data at each study. For EWAS where methylation is measured using beta values (e.g CpG data are in the range 0-1) this is not a problem. In any case, adopting the **meta-analysis** approach could be a safe option.
 
 We have downloaded data from [GEO](https://www.ncbi.nlm.nih.gov/geo/) corresponding to the accesion number GSE66351 which includes DNA methylation profiling (Illumina 450K array) of 190 individuals. Data corresponds to CpGs beta values measured in the superior temporal gyrus and prefrontal cortex brain regions of patients with Alzheimer’s. Data have been downloaded using `r Biocpkg("GEOquery")` package that gets GEO data as `ExpressionSet` objects. Researchers who are not familiar with `ExpressionSet`s or for those who have data in other formats, this page (https://kasperdanielhansen.github.io/genbioconductor/html/ExpressionSet.html) can be used as a good starting point to understand how methylation data can be encapsulated in a `ExpressionSet`. Notice that data are encoded as beta-values that ensure data harmonization across studies. 
 
@@ -233,6 +311,8 @@ datashield.assign.expr(conns, symbol = "methyl_df",
 ds.class("methyl_df")
 ```
 
+
+This may help those users who are not familiar with Bioconductor. There are many researchers who have methylation (or gene expression) data in a tabular form. If so, data could be available in the OPAL server as a data.frame and then the following analyses could also be performed. 
 
 We verify that each server has their own data and that the total sample size is the sum of both studies
 
@@ -353,7 +433,7 @@ ans <- ds.lmFeature(model = ~ diagnosis + Sex,
 ```
 
 
-This method can be very time consiming since the function repeatedly calls the DataSHIELD function `ds.glm()`. We can adopt another strategy that is to run a glm of each feature independently at each study using `limma` package which is really fast. 
+This method corresponds to the **pooled analysis** approach and can be very time consiming since the function repeatedly calls the DataSHIELD function `ds.glm()`. We can adopt another strategy that is to run a glm of each feature independently at each study using `limma` package (which is really fast) and then combine the results (i.e. **meta-analysis** approach). 
 
 
 ```{r limma_methy}
@@ -472,78 +552,6 @@ Then, data can be combined using ...
 The DataSHIELD session must by closed by:
 
 ```{r close_ds}
-datashield.logout(conns)
-```
-
-# Analysis of transcriptomic data 
-
-The analysis of gene expression can also be performed using `r Biocpkg("limma")` package. In that case, it is not recommended to use the `ds.lmFeature` function since gene expression can have different range of values accross studies (this is different from methylation where CpG data is measured in the range 0-1). However, if data of each study have been harmonized this function can also be used to get results as if it had been used in a pooled data analysis.  
-
-Let us illustrate how to perform transcriptomic data analysis from [TCGA project](https://www.cancer.gov/about-nci/organization/ccg/research/structural-genomics/tcga). We have uploaded to the opal server a resource called `tcga_liver` whose URL is http://duffel.rail.bio/recount/TCGA/rse_gene_liver.Rdata which is available through the [recount project](https://jhubiostatistics.shinyapps.io/recount/). This resource contains the `RangeSummarizedExperiment` with the RNAseq profiling of liver cancer data from TCGA. Next, we illustrate how a differential expression analysis to compare RNAseq profiling of women vs men (variable `gdc_cases.demographic.gender`). 
-
-Let us start by creating the connection to the opal server:
-
-```{r pipeline_gene_expr}
-builder <- newDSLoginBuilder()
-builder$append(server = "study1", url = "https://opal-test.obiba.org", 
-               user = "dsuser", password = "password", 
-               resource = "test.tcga_liver", driver = "OpalDriver")
-
-logindata <- builder$build()
-
-conns <- datashield.login(logins = logindata, assign = TRUE, 
-                          symbol = "res")
-```
-
-Then, let us coerce the resource to a `RangedSummarizedExperiment` which is the type of object that is available in the [recount project](https://jhubiostatistics.shinyapps.io/recount/).
-
-```{r get_rse}
-datashield.assign.expr(conns, symbol = "rse", 
-                       expr = quote(as.resource.object(res)))
-ds.class("rse")
-```
-
-The number of features and samples can be inspected by
-
-```{r dim_rse}
-ds.dim("rse")
-```
-
-And the names of the features using the same function used in the case of analyzing an `ExpressionSet`
-
-```{r name_feature_rse}
-name.features <- ds.featureNames("rse")
-lapply(name.features, head)
-```
-
-Also the covariate names can be inspected by
-
-```{r name_covar_rse}
-name.vars <- ds.featureData("rse")
-lapply(name.vars, head, n=15)
-```
-
-We can visualize the levels of the variable having gender information
-
-```{r table_gender}
-ds.table1D("rse$gdc_cases.demographic.gender")
-```
-
-
-The differential expression analysis is then performed by:
-  
-  
-```{r voom_gender}
-ans.gender <- ds.limma(model =  ~ gdc_cases.demographic.gender, 
-                   Set = "rse", type.data = "RNAseq", 
-                   sva = FALSE)
-```
-
-Notice that in that case we have set `type.data='RNAseq'` since our data are counts obtained from a NGS experiment. By indicating so, the differential analysis is performed by using  `voom` + `limma` implemented in the `r Biocpkg("MEAL")` package.
-
-As usual, we close the DataSHIELD session by:
-  
-```{r close_ds2}
 datashield.logout(conns)
 ```
 
