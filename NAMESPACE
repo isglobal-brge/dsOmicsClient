@@ -3,6 +3,7 @@
 S3method(plot,dsLmFeature)
 export(ds.GWAS)
 export(ds.GenotypeData)
+export(ds.PLINK)
 export(ds.featureData)
 export(ds.featureNames)
 export(ds.fvarLabels)

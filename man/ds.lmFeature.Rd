@@ -4,8 +4,15 @@
 \alias{ds.lmFeature}
 \title{Linear regression analysis of pooled data for each CpG site in study}
 \usage{
-ds.lmFeature(features = NULL, model, eSet, type.p.adj = "fdr",
-  cellCountsAdjust = FALSE, mc.cores = 1, datasources = NULL)
+ds.lmFeature(
+  features = NULL,
+  model,
+  Set,
+  type.p.adj = "fdr",
+  cellCountsAdjust = FALSE,
+  mc.cores = 1,
+  datasources = NULL
+)
 }
 \arguments{
 \item{features}{an optional parameter input as a vector of integer values which indicates the indices of specific 
@@ -14,7 +21,7 @@ features (e.g. genes, CpGs, ...) that should be analysed. If missing all feature
 \item{model}{formula indicating the condition (left side) and other covariates to be adjusted for 
 (i.e. condition ~ covar1 + ... + covar2). The fitted model is: feature ~ condition + covar1 + ... + covarN}
 
-\item{eSet}{name of the DataSHIELD object to which the ExpresionSet has been assigned}
+\item{Set}{name of the DataSHIELD object to which the ExpresionSet or RangedSummarizedExperiment has been assigned}
 
 \item{type.p.adj}{multiple comparison correction method. Default 'fdr'}
 

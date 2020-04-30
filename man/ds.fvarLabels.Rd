@@ -2,7 +2,7 @@
 % Please edit documentation in R/ds.fvarLabels.R
 \name{ds.fvarLabels}
 \alias{ds.fvarLabels}
-\title{Retrieve phenotypic data (e.g. covariates) from eSets.}
+\title{Retrieve phenotypic data (e.g. covariates) from eSets and RSEs.}
 \usage{
 ds.fvarLabels(object, datasources = NULL)
 }

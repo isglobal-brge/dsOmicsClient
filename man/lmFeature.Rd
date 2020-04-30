@@ -4,7 +4,7 @@
 \alias{lmFeature}
 \title{Fits a LM to assess association between the features (outcome) and grouping variable (e.g case/control, condition, ...)}
 \usage{
-lmFeature(feature, vars, eSet, cellCountsAdjust, datasources)
+lmFeature(feature, vars, Set, cellCountsAdjust, datasources)
 }
 \arguments{
 \item{datasources}{}

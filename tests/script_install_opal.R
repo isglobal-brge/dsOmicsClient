@@ -23,3 +23,8 @@ opal.execute(o, "BiocManager::install('SummarizedExperiment', ask=FALSE)")
 library(opalr)
 o <- opal.login(username="administrator", password="password", url="https://opal-test.obiba.org")
 opal.execute(o, "BiocManager::install('MEAL', ask=FALSE)")
+
+
+library(opalr)
+o <- opal.login(username="administrator", password="password", url="https://opal-test.obiba.org")
+opal.execute(o, "BiocManager::install('snpStats', ask=FALSE)")

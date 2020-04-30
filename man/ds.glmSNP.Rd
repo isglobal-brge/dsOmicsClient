@@ -4,8 +4,14 @@
 \alias{ds.glmSNP}
 \title{Logistic regression analysis of pooled data for each SNP site in study}
 \usage{
-ds.glmSNP(snps.fit = NULL, model, genoData, datasources = NULL,
-  type.p.adj = "fdr", mc.cores = 1)
+ds.glmSNP(
+  snps.fit = NULL,
+  model,
+  genoData,
+  datasources = NULL,
+  type.p.adj = "fdr",
+  mc.cores = 1
+)
 }
 \arguments{
 \item{snps.fit}{an optional parameter input as a character vector of

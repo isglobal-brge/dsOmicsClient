@@ -154,7 +154,7 @@ devtools::install_github("datashield/dsBase", ref = "v6.0-dev", dependencies = T
 ```
 
 
-# Omics data analysis
+# Transcriptomic and Epigenomic data analysis
 
 ## Single study analysis
 
@@ -556,10 +556,15 @@ datashield.logout(conns)
 ```
 
 
-# Analysis of SNP array data 
+# Genomic data analysis: GWAS 
 
-## Extension of the resources to a VCF file 
-Genomic data can be stored in different formats. [PLINK](http://zzz.bwh.harvard.edu/plink/) and [VCF](https://www.internationalgenome.org/wiki/Analysis/vcf4.0/) files are commonly used in genetic epidemiology studies. In order to deal with this type of data, we have extended the resources available at the `r Githubpkg("obiba/resourcer")` package to VCF files. **NOTE**: PLINK files can be translated into VCF files using different pipelines. In R you can use `r Biocpkg("SeqArray")` to get VCF files. 
+Genomic data can be stored in different formats. [PLINK](http://zzz.bwh.harvard.edu/plink/) and [VCF](https://www.internationalgenome.org/wiki/Analysis/vcf4.0/) files are commonly used in genetic epidemiology studies. We have a GWAS example available at [BRGE data repository](https://github.com/isglobal-brge/brgedata) that aims to find SNPs associated with asthma. We have data stored in VCF (brge.vcf) with several covariates and phenotypes available in the file brge.txt (gender, age, obesity, smoking, country and asthma status). The same data is also available in PLINK format (brge.bed, brge.bim, brge.fam) with covariates in the file brge.phe.
+
+
+
+## Analysis with Bioconductor packages: example how to extend the resources
+
+In order to deal with this type of data, we have extended the resources available at the `r Githubpkg("obiba/resourcer")` package to VCF files. **NOTE**: PLINK files can be translated into VCF files using different pipelines. In R you can use `r Biocpkg("SeqArray")` to get VCF files. 
 
 We use the Genomic Data Storage (GDS) format which efficiently manage VCF files into the R environment. This extension requires to create a Client and a Resolver function that are located into the `r Biocpkg("dsOmics")` package. The client function uses `snpgdsVCF2GDS` function implemented in `r Biocpkg("SNPrelate")` to coerce the VCF file to a GDS object. Then the GDS object is loaded into R as an object of class `GdsGenotypeReader` from `r Biocpkg("GWASTools")` package that facilitates downstream analyses.
 
@@ -579,10 +584,9 @@ https://raw.githubusercontent.com/isglobal-brge/scoreInvHap/master/inst/extdata/
 
 In that case we indicate that only biallelic SNPs are considered ('method=biallelic.only') and that genotypes are stored in the individual-major mode, (i.e., list all SNPs for the first individual, and then list all SNPs for the second individual, etc) ('snpfirstdim=TRUE').
 
+ 
 
-## Assigning the resources (VCF file and ) to the Opal server
-
-We are using a GWAS example described in @gonzalez2019omic (Section 4.5). We have genotype data in VCF format which is available in 
+We have created a resource having the VCF file of our study on asthma as previously described. The name of the resource is `brge_vcf` the phenotypes are available in another resource called `brge` that is a .txt file. The GWAS analysis is then perform as follows
 
 We first start by preparing login data 
 
@@ -590,7 +594,7 @@ We first start by preparing login data
 builder <- newDSLoginBuilder()
 builder$append(server = "study1", url = "https://opal-test.obiba.org",
                user = "dsuser", password = "password",
-               resource = "test.obesity_vcf", driver = "OpalDriver")
+               resource = "test.brge_vcf", driver = "OpalDriver")
 logindata <- builder$build()
 
 conns <- datashield.login(logins = logindata, assign = TRUE,
@@ -602,13 +606,13 @@ In this case we have to assign to different resources. One for the VCF (obesity_
 
 ```{r assign_vcf}
 datashield.assign.resource(conns, symbol = "vcf.res", 
-                           resource = list(study1 = "test.obesity_vcf"))
+                           resource = list(study1 = "test.brge_vcf"))
 datashield.assign.expr(conns, symbol = "gds", 
                        expr = quote(as.resource.object(vcf.res)))
 
 
 datashield.assign.resource(conns, symbol = "covars.res", 
-                           resource = list(study1 = "test.obesity"))
+                           resource = list(study1 = "test.brge"))
 datashield.assign.expr(conns, symbol = "covars", 
                        expr = quote(as.resource.data.frame(covars.res)))
 ```
@@ -626,10 +630,10 @@ We can use `r Githubpkg("datashield/dsBaseClient")` functions to inspect the var
 ds.colnames("covars")
 ```
 
-The `obese` variable has this number of individuals at each level (0: controls, 1: cases)
+The `asthma` variable has this number of individuals at each level (1: controls, 2: cases)
 
 ```{r show_group}
-ds.table1D("covars$obese")
+ds.table1D("covars$asthma")
 ```
 
 Then, an object of class `GenotypeData` must be created at the server side to perform genetic data analyses. This is a container defined in the `r Biocpkg("GWASTools")` package for storing genotype and phenotypic data from genetic association studies. By doing that we will also verify whether individuals in the GDS (e.g VCF) and covariates files have the same individuals and are in the same order. This can be performed by
@@ -641,23 +645,23 @@ ds.GenotypeData(x='gds', covars = 'covars', columnId = 1, newobj.name = 'gds.Dat
 
 
 
-## Descriptive
+### Descriptive analysis
 
 To be supplied ... 
 
-## Association analysis
+### Association analysis
 
 The association analysis for a given SNP is performed by simply
 
 ```{r snp_analysis}
-ds.glmSNP(snps.fit = "rs11247693", model = obese ~ gender + age, genoData='gds.Data')
+ds.glmSNP(snps.fit = "rs11247693", model = asthma ~ gender + age, genoData='gds.Data')
 ```
 
 
 The analysis of all available SNPs is performed when the argument `snps.fit` is missing. The function performs the analysis of the selected SNPs in a single repository or in multiple repositories as performing pooled analyses (it uses `ds.glm` DataSHIELD function). As in the case of transcriptomic data, analyzing all the SNPs in the genome (e.g GWAS) will be high time-consuming. We can adopt a similar approach as the one adopted using the `r Biocpkg("limma")` at each server. That is, we run GWAS at each repository using specific and scalable packages available in R/Bioc. In that case we use the `r Biocpkg("GWASTools")` and `r Biocpkg("GENESIS")` packages. The complete pipeline is implemented in this function 
 
 ```{r GWAS}
-ds.GWAS('gds.Data', model=obese~age+country)
+ds.GWAS('gds.Data', model=asthma~age+country)
 ```
 
 
@@ -667,6 +671,83 @@ This close the DataSHIELD session
 datashield.logout(conns)
 ```
 
+
+## Analysis with PLINK: example of using secure shell programs
+
+GWAS data analysis can also be performed using program that are executed using shell commands. This is the case of [PLINK](http://zzz.bwh.harvard.edu/plink/), one of the state-of-the-art programs to run GWAS and other genomic data analyses such gene-enviroment interactions or polygenic risc score analyses that requires efficient and scalable pipelines. We have allowed the use of SSH service to run programs on a remote server accessible through ssh containing data and analysis tools where R is just used for launching the analyses and aggregating results. Here we illustrate how to perform the same GWAS analyses on the obesity example previously analyzed using `r Githubpkg("isglobal-brge/dsOmicsClient")`. This R code can be used as a guideline to carry out similar analyses using existing analysis tools in genomics such as IMPUTE, SAMtools or BEDtools among many others. 
+
+We start by assigning the resources 
+
+```{r GWAS_shell_1}
+library(opalr)
+conns <- opal.login(username="administrator", password="password",
+                    url="https://opal-test.obiba.org")
+opal.assign.resource(conns, "client", "test.obesity_plink")
+```
+
+Then we can verify whether the resource is a shell commands resource client object
+
+```{r GWAS_shell_2}
+opal.execute(conns, "class(client)")
+```
+
+This code lists files in the working folder
+
+```{r GWAS_shell_3}
+opal.execute(conns, "client$exec('ls')")
+```
+
+
+Then we assign the base output file name
+
+```{r GWAS_shell_4}
+baseout <- opal.execute(conns, "assign('baseout', file.path(tempdir(), 'out'))")
+baseout
+```
+
+Now, we are ready to run any PLINK command using the `exec` element of our client object. Notice that in this case we want to assess association between the genotype data in bed format and use as phenotype the variable 'obese' that is in the file 'obesity.phe'. The sentence in a PLINK command would be (NOTE: `baseout` encodes for the output folder)
+
+```
+plink --bfile obesity --assoc --pheno obesity.phe --pheno-name obese --out baseout --noweb
+```
+
+that translates into R
+
+```{r GWAS_shell_gwas}
+opal.execute(conns, "client$exec('plink1', c('--bfile', 'obesity', '--assoc', '--pheno', 'obesity.phe', '--pheno-name', 'obese', '--out', baseout, '--noweb'))")
+```
+
+
+This command shows the output files generated 
+
+```{r GWAS_shell_folder}
+opal.execute(conns, "list.files(tempdir())")
+```
+
+
+Now, we can retrieve the association p-values (note that this is non-disclosive information) by simply reading the file 'out.assoc'
+
+```{r GWAS_shell_res}
+results <- opal.execute(conns, 
+                        "read.table(file.path(tempdir(), 'out.assoc'), header=TRUE)")
+head(results)
+```
+
+
+```{r GWAS_shell_descr}
+opal.execute(conns, "client$exec('plink1', c('--bfile', 'obesity', '--freq', '--hardy', '--pheno', 'obesity.phe', '--pheno-name', 'obese', '--out', baseout, '--noweb'))")
+
+results2 <- opal.execute(conns, 
+                        "read.table(file.path(tempdir(), 'out.frq'), header=TRUE)")
+head(results2)
+```
+
+
+This close the OPAL session 
+
+```{r close_conns4}
+opal.logout(conns)
+```
 
 
 # Acknowledgments

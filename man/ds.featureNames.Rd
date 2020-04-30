@@ -2,7 +2,7 @@
 % Please edit documentation in R/ds.featureNames.R
 \name{ds.featureNames}
 \alias{ds.featureNames}
-\title{Retrieve feature names from eSets}
+\title{Retrieve feature names from eSets and RSEs.}
 \usage{
 ds.featureNames(object, datasources = NULL)
 }

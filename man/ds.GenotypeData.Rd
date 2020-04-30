@@ -4,8 +4,7 @@
 \alias{ds.GenotypeData}
 \title{Creates a GenotypeData object at each server}
 \usage{
-ds.GenotypeData(x, covars, columnId, newobj.name = NULL,
-  datasources = NULL)
+ds.GenotypeData(x, covars, columnId, newobj.name = NULL, datasources = NULL)
 }
 \arguments{
 \item{x}{a \code{GdsGenotypeReader} object (see GWASTools). It is the object that is obtained in the opal servers
