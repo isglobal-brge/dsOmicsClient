@@ -676,74 +676,64 @@ datashield.logout(conns)
 
 GWAS data analysis can also be performed using program that are executed using shell commands. This is the case of [PLINK](http://zzz.bwh.harvard.edu/plink/), one of the state-of-the-art programs to run GWAS and other genomic data analyses such gene-enviroment interactions or polygenic risc score analyses that requires efficient and scalable pipelines. We have allowed the use of SSH service to run programs on a remote server accessible through ssh containing data and analysis tools where R is just used for launching the analyses and aggregating results. Here we illustrate how to perform the same GWAS analyses on the obesity example previously analyzed using `r Githubpkg("isglobal-brge/dsOmicsClient")`. This R code can be used as a guideline to carry out similar analyses using existing analysis tools in genomics such as IMPUTE, SAMtools or BEDtools among many others. 
 
-We start by assigning the resources 
+We start by assigning login resources 
 
 ```{r GWAS_shell_1}
-library(opalr)
-conns <- opal.login(username="administrator", password="password",
-                    url="https://opal-test.obiba.org")
-opal.assign.resource(conns, "client", "test.obesity_plink")
+library(DSOpal)
+library(dsBaseClient)
+library(dsOmicsClient)
+builder <- newDSLoginBuilder()
+builder$append(server = "study1", url = "https://opal-test.obiba.org",
+               user = "dsuser", password = "password",
+               resource = "test.brge_plink", driver = "OpalDriver")
+logindata <- builder$build()
 ```
 
-Then we can verify whether the resource is a shell commands resource client object
+Then we assign the resource to a symbol (i.e. R object) called `client` which is  ... 
+
 
 ```{r GWAS_shell_2}
-opal.execute(conns, "class(client)")
-```
-
-This code lists files in the working folder
-
-```{r GWAS_shell_3}
-opal.execute(conns, "client$exec('ls')")
+conns <- datashield.login(logins = logindata, assign = TRUE,
+                          symbol = "client")
 ```
 
 
-Then we assign the base output file name
+The class object is 
+
+```{r GWAS_sell_3}
+ds.class("client")
+```
+
+Now, we are ready to run any PLINK command from the client site. Notice that in this case we want to assess association between the genotype data in bed format and use as phenotype the variable 'obese' that is in the file 'obesity.phe'. The sentence in a PLINK command would be (NOTE: we avoid --out to indicate the output file since the file will be available in R as a tibble).
+
+```
+plink --bfile obesity --assoc --pheno obesity.phe --pheno-name obese 
+```
+
+The arguments musth be encapsulated in a single character without the command 'plink'
 
 ```{r GWAS_shell_4}
-baseout <- opal.execute(conns, "assign('baseout', file.path(tempdir(), 'out'))")
-baseout
+plink.arguments <- "--bfile brge --logistic --covar brge.phe --covar-name gender,age"
 ```
 
-Now, we are ready to run any PLINK command using the `exec` element of our client object. Notice that in this case we want to assess association between the genotype data in bed format and use as phenotype the variable 'obese' that is in the file 'obesity.phe'. The sentence in a PLINK command would be (NOTE: `baseout` encodes for the output folder)
-
-```
-plink --bfile obesity --assoc --pheno obesity.phe --pheno-name obese --out baseout --noweb
-```
-
-that translates into R
+the analyses are then performed by
 
 ```{r GWAS_shell_gwas}
-opal.execute(conns, "client$exec('plink1', c('--bfile', 'obesity', '--assoc', '--pheno', 'obesity.phe', '--pheno-name', 'obese', '--out', baseout, '--noweb'))")
+ans <- ds.PLINK("client", plink.arguments)
+```
+
+The object `ans` contains the PLINK results at each server as well as the outuput provided by PLINK
+
+```{r GWAS_shell_result1}
+lapply(ans, names)
+
+head(ans$study1$results$assoc)
+
+ans$study$plink.out
 ```
 
 
-This command shows the output files generated 
-
-```{r GWAS_shell_folder}
-opal.execute(conns, "list.files(tempdir())")
-```
-
-
-Now, we can retrieve the association p-values (note that this is non-disclosive information) by simply reading the file 'out.assoc'
-
-```{r GWAS_shell_res}
-results <- opal.execute(conns, 
-                        "read.table(file.path(tempdir(), 'out.assoc'), header=TRUE)")
-head(results)
-```
-
-
-```{r GWAS_shell_descr}
-opal.execute(conns, "client$exec('plink1', c('--bfile', 'obesity', '--freq', '--hardy', '--pheno', 'obesity.phe', '--pheno-name', 'obese', '--out', baseout, '--noweb'))")
-
-results2 <- opal.execute(conns, 
-                        "read.table(file.path(tempdir(), 'out.frq'), header=TRUE)")
-head(results2)
-```
-
-
-This close the OPAL session 
+This close the DataSHIELD session 
 
 ```{r close_conns4}
 opal.logout(conns)

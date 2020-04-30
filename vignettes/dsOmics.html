@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2020-04-28" />
+<meta name="date" content="2020-04-30" />
 
 <title>Non-disclosive federated omic data analysis with DataSHIELD and Bioconductor</title>
 
@@ -1788,7 +1788,7 @@ div.tocify {
 <p class="author-name">Yannick Marcon<span class="affil-mark">1*</span> and Juan R. Gonzalez<span class="affil-mark">2,3**</span></p>
 <p class="author-affiliation"><span class="affil-mark">1</span>Epigeny<br><span class="affil-mark">2</span>Bioinformatics Research Group in Epidemiolgy (BRGE), Barcelona Insitute for Global Health (ISGlobal)<br><span class="affil-mark">3</span>Department of Mathematics, Autonomous University of Barcelona (UAB)</p>
 <p class="author-email"><span class="affil-mark">*</span><a href="mailto:yannick.marcon@obiba.org">yannick.marcon@obiba.org</a><br><span class="affil-mark">**</span><a href="mailto:juanr.gonzalez@isglobal.org">juanr.gonzalez@isglobal.org</a></p>
-<h4 class="date">2020-04-28</h4>
+<h4 class="date">2020-04-30</h4>
 <h4 class="package">Package</h4>
 <p>dsOmics 0.3.0</p>
 
@@ -2567,197 +2567,109 @@ attr(,&quot;class&quot;)
 <div id="analysis-with-plink-example-of-using-secure-shell-programs" class="section level2" number="4.2">
 <h2><span class="header-section-number">4.2</span> Analysis with PLINK: example of using secure shell programs</h2>
 <p>GWAS data analysis can also be performed using program that are executed using shell commands. This is the case of <a href="http://zzz.bwh.harvard.edu/plink/">PLINK</a>, one of the state-of-the-art programs to run GWAS and other genomic data analyses such gene-enviroment interactions or polygenic risc score analyses that requires efficient and scalable pipelines. We have allowed the use of SSH service to run programs on a remote server accessible through ssh containing data and analysis tools where R is just used for launching the analyses and aggregating results. Here we illustrate how to perform the same GWAS analyses on the obesity example previously analyzed using <em><a href="https://github.com/isglobal-brge/dsOmicsClient">dsOmicsClient</a></em>. This R code can be used as a guideline to carry out similar analyses using existing analysis tools in genomics such as IMPUTE, SAMtools or BEDtools among many others.</p>
-<p>We start by assigning the resources</p>
-<pre class="r"><code>library(opalr)
-conns &lt;- opal.login(username=&quot;administrator&quot;, password=&quot;password&quot;,
-                    url=&quot;https://opal-test.obiba.org&quot;)
-opal.assign.resource(conns, &quot;client&quot;, &quot;test.obesity_plink&quot;)</code></pre>
-<p>Then we can verify whether the resource is a shell commands resource client object</p>
-<pre class="r"><code>opal.execute(conns, &quot;class(client)&quot;)</code></pre>
-<pre><code>[1] &quot;ShellResourceClient&quot;   &quot;CommandResourceClient&quot; &quot;ResourceClient&quot;       
-[4] &quot;R6&quot;                   </code></pre>
-<p>This code lists files in the working folder</p>
-<pre class="r"><code>opal.execute(conns, &quot;client$exec(&#39;ls&#39;)&quot;)</code></pre>
+<p>We start by assigning login resources</p>
+<pre class="r"><code>library(DSOpal)
+library(dsBaseClient)
+library(dsOmicsClient)
+builder &lt;- newDSLoginBuilder()
+builder$append(server = &quot;study1&quot;, url = &quot;https://opal-test.obiba.org&quot;,
+               user = &quot;dsuser&quot;, password = &quot;password&quot;,
+               resource = &quot;test.brge_plink&quot;, driver = &quot;OpalDriver&quot;)
+logindata &lt;- builder$build()</code></pre>
+<p>Then we assign the resource to a symbol (i.e. R object) called <code>client</code> which is …</p>
+<pre class="r"><code>conns &lt;- datashield.login(logins = logindata, assign = TRUE,
+                          symbol = &quot;client&quot;)</code></pre>
+<p>The class object is</p>
+<pre class="r"><code>ds.class(&quot;client&quot;)</code></pre>
+<pre><code>$study1
+[1] &quot;SshResourceClient&quot;     &quot;CommandResourceClient&quot; &quot;ResourceClient&quot;        &quot;R6&quot;                   </code></pre>
+<p>Now, we are ready to run any PLINK command from the client site. Notice that in this case we want to assess association between the genotype data in bed format and use as phenotype the variable ‘obese’ that is in the file ‘obesity.phe’. The sentence in a PLINK command would be (NOTE: we avoid –out to indicate the output file since the file will be available in R as a tibble).</p>
+<pre><code>plink --bfile obesity --assoc --pheno obesity.phe --pheno-name obese </code></pre>
+<p>The arguments musth be encapsulated in a single character without the command ‘plink’</p>
+<pre class="r"><code>plink.arguments &lt;- &quot;--bfile brge --logistic --covar brge.phe --covar-name gender,age&quot;</code></pre>
+<p>the analyses are then performed by</p>
+<pre class="r"><code>ans &lt;- ds.PLINK(&quot;client&quot;, plink.arguments)</code></pre>
+<p>The object <code>ans</code> contains the PLINK results at each server as well as the outuput provided by PLINK</p>
+<pre class="r"><code>lapply(ans, names)</code></pre>
+<pre><code>$study1
+[1] &quot;results&quot;   &quot;plink.out&quot;</code></pre>
+<pre class="r"><code>head(ans$study1$results$assoc)</code></pre>
+<pre><code>  CHR        SNP   BP A1   TEST NMISS     OR    STAT         P
+1   0 MitoC3993T 3993  T    ADD  2286 0.7521 -1.3330 0.1824000
+2   0 MitoC3993T 3993  T gender  2286 0.7425 -3.2710 0.0010730
+3   0 MitoC3993T 3993  T    age  2286 1.0040  0.5648 0.5722000
+4   0 MitoG4821A 4821  A    ADD  2282 2.6850  1.7070 0.0879100
+5   0 MitoG4821A 4821  A gender  2282 0.7398 -3.3080 0.0009405
+6   0 MitoG4821A 4821  A    age  2282 1.0030  0.4648 0.6421000</code></pre>
+<pre class="r"><code>ans$study$plink.out</code></pre>
 <pre><code>$status
 [1] 0
 
 $output
-[1] &quot;obesity.bed&quot; &quot;obesity.bim&quot; &quot;obesity.fam&quot; &quot;obesity.phe&quot;
+ [1] &quot;&quot;                                                                                   
+ [2] &quot;@----------------------------------------------------------@&quot;                       
+ [3] &quot;|        PLINK!       |     v1.07      |   10/Aug/2009     |&quot;                       
+ [4] &quot;|----------------------------------------------------------|&quot;                       
+ [5] &quot;|  (C) 2009 Shaun Purcell, GNU General Public License, v2  |&quot;                       
+ [6] &quot;|----------------------------------------------------------|&quot;                       
+ [7] &quot;|  For documentation, citation &amp; bug-report instructions:  |&quot;                       
+ [8] &quot;|        http://pngu.mgh.harvard.edu/purcell/plink/        |&quot;                       
+ [9] &quot;@----------------------------------------------------------@&quot;                       
+[10] &quot;&quot;                                                                                   
+[11] &quot;Skipping web check... [ --noweb ] &quot;                                                 
+[12] &quot;Writing this text to log file [ /tmp/ssh-9610/out.log ]&quot;                            
+[13] &quot;Analysis started: Thu Apr 30 13:36:46 2020&quot;                                         
+[14] &quot;&quot;                                                                                   
+[15] &quot;Options in effect:&quot;                                                                 
+[16] &quot;\t--bfile brge&quot;                                                                      
+[17] &quot;\t--logistic&quot;                                                                        
+[18] &quot;\t--covar brge.phe&quot;                                                                  
+[19] &quot;\t--covar-name gender,age&quot;                                                           
+[20] &quot;\t--noweb&quot;                                                                           
+[21] &quot;\t--out /tmp/ssh-9610/out&quot;                                                           
+[22] &quot;&quot;                                                                                   
+[23] &quot;Reading map (extended format) from [ brge.bim ] &quot;                                   
+[24] &quot;100000 markers to be included from [ brge.bim ]&quot;                                    
+[25] &quot;Reading pedigree information from [ brge.fam ] &quot;                                    
+[26] &quot;2312 individuals read from [ brge.fam ] &quot;                                           
+[27] &quot;2312 individuals with nonmissing phenotypes&quot;                                        
+[28] &quot;Assuming a disease phenotype (1=unaff, 2=aff, 0=miss)&quot;                              
+[29] &quot;Missing phenotype value is also -9&quot;                                                 
+[30] &quot;725 cases, 1587 controls and 0 missing&quot;                                             
+[31] &quot;1097 males, 1215 females, and 0 of unspecified sex&quot;                                 
+[32] &quot;Reading genotype bitfile from [ brge.bed ] &quot;                                        
+[33] &quot;Detected that binary PED file is v1.00 SNP-major mode&quot;                              
+[34] &quot;Reading 6 covariates from [ brge.phe ] with nonmissing values for 2199 individuals&quot; 
+[35] &quot;Selected subset of 2 from 6 covariates&quot;                                             
+[36] &quot;For these, nonmissing covariate values for 2312 individuals&quot;                        
+[37] &quot;Before frequency and genotyping pruning, there are 100000 SNPs&quot;                     
+[38] &quot;2312 founders and 0 non-founders found&quot;                                             
+[39] &quot;6009 heterozygous haploid genotypes; set to missing&quot;                                
+[40] &quot;Writing list of heterozygous haploid genotypes to [ /tmp/ssh-9610/out.hh ]&quot;         
+[41] &quot;7 SNPs with no founder genotypes observed&quot;                                          
+[42] &quot;Warning, MAF set to 0 for these SNPs (see --nonfounders)&quot;                           
+[43] &quot;Writing list of these SNPs to [ /tmp/ssh-9610/out.nof ]&quot;                            
+[44] &quot;Total genotyping rate in remaining individuals is 0.994408&quot;                         
+[45] &quot;0 SNPs failed missingness test ( GENO &gt; 1 )&quot;                                        
+[46] &quot;0 SNPs failed frequency test ( MAF &lt; 0 )&quot;                                           
+[47] &quot;After frequency and genotyping pruning, there are 100000 SNPs&quot;                      
+[48] &quot;After filtering, 725 cases, 1587 controls and 0 missing&quot;                            
+[49] &quot;After filtering, 1097 males, 1215 females, and 0 of unspecified sex&quot;                
+[50] &quot;Converting data to Individual-major format&quot;                                         
+[51] &quot;Writing logistic model association results to [ /tmp/ssh-9610/out.assoc.logistic ] &quot;
+[52] &quot;&quot;                                                                                   
+[53] &quot;Analysis finished: Thu Apr 30 13:38:45 2020&quot;                                        
+[54] &quot;&quot;                                                                                   
 
 $error
 character(0)
 
 $command
-[1] &quot;ls&quot;
+[1] &quot;cd /home/master/brge &amp;&amp; plink1 --bfile brge --logistic --covar brge.phe --covar-name gender,age --noweb --out /tmp/ssh-9610/out&quot;
 
 attr(,&quot;class&quot;)
 [1] &quot;resource.exec&quot;</code></pre>
-<p>Then we assign the base output file name</p>
-<pre class="r"><code>baseout &lt;- opal.execute(conns, &quot;assign(&#39;baseout&#39;, file.path(tempdir(), &#39;out&#39;))&quot;)
-baseout</code></pre>
-<pre><code>[1] &quot;/tmp/Rtmp8CtvaK/conn3213/out&quot;</code></pre>
-<p>Now, we are ready to run any PLINK command using the <code>exec</code> element of our client object. Notice that in this case we want to assess association between the genotype data in bed format and use as phenotype the variable ‘obese’ that is in the file ‘obesity.phe’. The sentence in a PLINK command would be (NOTE: <code>baseout</code> encodes for the output folder)</p>
-<pre><code>plink --bfile obesity --assoc --pheno obesity.phe --pheno-name obese --out baseout --noweb</code></pre>
-<p>that translates into R</p>
-<pre class="r"><code>opal.execute(conns, &quot;client$exec(&#39;plink1&#39;, c(&#39;--bfile&#39;, &#39;obesity&#39;, &#39;--assoc&#39;, &#39;--pheno&#39;, &#39;obesity.phe&#39;, &#39;--pheno-name&#39;, &#39;obese&#39;, &#39;--out&#39;, baseout, &#39;--noweb&#39;))&quot;)</code></pre>
-<pre><code>$status
-[1] 0
-
-$output
- [1] &quot;&quot;                                                                                     
- [2] &quot;@----------------------------------------------------------@&quot;                         
- [3] &quot;|        PLINK!       |     v1.07      |   10/Aug/2009     |&quot;                         
- [4] &quot;|----------------------------------------------------------|&quot;                         
- [5] &quot;|  (C) 2009 Shaun Purcell, GNU General Public License, v2  |&quot;                         
- [6] &quot;|----------------------------------------------------------|&quot;                         
- [7] &quot;|  For documentation, citation &amp; bug-report instructions:  |&quot;                         
- [8] &quot;|        http://pngu.mgh.harvard.edu/purcell/plink/        |&quot;                         
- [9] &quot;@----------------------------------------------------------@&quot;                         
-[10] &quot;&quot;                                                                                     
-[11] &quot;Skipping web check... [ --noweb ] &quot;                                                   
-[12] &quot;Writing this text to log file [ /tmp/Rtmp8CtvaK/conn3213/out.log ]&quot;                   
-[13] &quot;Analysis started: Tue Apr 28 17:19:57 2020&quot;                                           
-[14] &quot;&quot;                                                                                     
-[15] &quot;Options in effect:&quot;                                                                   
-[16] &quot;\t--bfile obesity&quot;                                                                     
-[17] &quot;\t--assoc&quot;                                                                             
-[18] &quot;\t--pheno obesity.phe&quot;                                                                 
-[19] &quot;\t--pheno-name obese&quot;                                                                  
-[20] &quot;\t--out /tmp/Rtmp8CtvaK/conn3213/out&quot;                                                  
-[21] &quot;\t--noweb&quot;                                                                             
-[22] &quot;&quot;                                                                                     
-[23] &quot;Reading map (extended format) from [ obesity.bim ] &quot;                                  
-[24] &quot;100000 markers to be included from [ obesity.bim ]&quot;                                   
-[25] &quot;Reading pedigree information from [ obesity.fam ] &quot;                                   
-[26] &quot;2312 individuals read from [ obesity.fam ] &quot;                                          
-[27] &quot;2312 individuals with nonmissing phenotypes&quot;                                          
-[28] &quot;Assuming a disease phenotype (1=unaff, 2=aff, 0=miss)&quot;                                
-[29] &quot;Missing phenotype value is also -9&quot;                                                   
-[30] &quot;725 cases, 1587 controls and 0 missing&quot;                                               
-[31] &quot;1097 males, 1215 females, and 0 of unspecified sex&quot;                                   
-[32] &quot;Reading genotype bitfile from [ obesity.bed ] &quot;                                       
-[33] &quot;Detected that binary PED file is v1.00 SNP-major mode&quot;                                
-[34] &quot;Reading alternate phenotype from [ obesity.phe ] &quot;                                    
-[35] &quot;0 individuals with non-missing alternate phenotype&quot;                                   
-[36] &quot;Assuming a disease phenotype (1=unaff, 2=aff, 0=miss)&quot;                                
-[37] &quot;Missing phenotype value is also -9&quot;                                                   
-[38] &quot;0 cases, 0 controls and 2312 missing&quot;                                                 
-[39] &quot;Before frequency and genotyping pruning, there are 100000 SNPs&quot;                       
-[40] &quot;2312 founders and 0 non-founders found&quot;                                               
-[41] &quot;6009 heterozygous haploid genotypes; set to missing&quot;                                  
-[42] &quot;Writing list of heterozygous haploid genotypes to [ /tmp/Rtmp8CtvaK/conn3213/out.hh ]&quot;
-[43] &quot;7 SNPs with no founder genotypes observed&quot;                                            
-[44] &quot;Warning, MAF set to 0 for these SNPs (see --nonfounders)&quot;                             
-[45] &quot;Writing list of these SNPs to [ /tmp/Rtmp8CtvaK/conn3213/out.nof ]&quot;                   
-[46] &quot;Total genotyping rate in remaining individuals is 0.994408&quot;                           
-[47] &quot;0 SNPs failed missingness test ( GENO &gt; 1 )&quot;                                          
-[48] &quot;0 SNPs failed frequency test ( MAF &lt; 0 )&quot;                                             
-[49] &quot;After frequency and genotyping pruning, there are 100000 SNPs&quot;                        
-[50] &quot;After filtering, 0 cases, 0 controls and 2312 missing&quot;                                
-[51] &quot;After filtering, 1097 males, 1215 females, and 0 of unspecified sex&quot;                  
-[52] &quot;Writing main association results to [ /tmp/Rtmp8CtvaK/conn3213/out.assoc ] &quot;          
-[53] &quot;&quot;                                                                                     
-[54] &quot;Analysis finished: Tue Apr 28 17:20:02 2020&quot;                                          
-[55] &quot;&quot;                                                                                     
-
-$error
-character(0)
-
-$command
-[1] &quot;plink1 --bfile obesity --assoc --pheno obesity.phe --pheno-name obese --out /tmp/Rtmp8CtvaK/conn3213/out --noweb&quot;
-
-attr(,&quot;class&quot;)
-[1] &quot;resource.exec&quot;</code></pre>
-<p>This command shows the output files generated</p>
-<pre class="r"><code>opal.execute(conns, &quot;list.files(tempdir())&quot;)</code></pre>
-<pre><code>[1] &quot;callr-env-c8d55d38ae5&quot; &quot;out.assoc&quot;             &quot;out.hh&quot;               
-[4] &quot;out.log&quot;               &quot;out.nof&quot;              </code></pre>
-<p>Now, we can retrieve the association p-values (note that this is non-disclosive information) by simply reading the file ‘out.assoc’</p>
-<pre class="r"><code>results &lt;- opal.execute(conns, 
-                        &quot;read.table(file.path(tempdir(), &#39;out.assoc&#39;), header=TRUE)&quot;)
-head(results)</code></pre>
-<pre><code>  CHR        SNP   BP A1 F_A F_U A2 CHISQ  P OR
-1   0 MitoC3993T 3993  T  NA  NA  C    NA NA NA
-2   0 MitoG4821A 4821  A  NA  NA  G    NA NA NA
-3   0 MitoG6027A 6027  A  NA  NA  G    NA NA NA
-4   0 MitoT6153C 6153  C  NA  NA  T    NA NA NA
-5   0 MitoC7275T 7275  T  NA  NA  C    NA NA NA
-6   0 MitoT9699C 9699  C  NA  NA  T    NA NA NA</code></pre>
-<pre class="r"><code>opal.execute(conns, &quot;client$exec(&#39;plink1&#39;, c(&#39;--bfile&#39;, &#39;obesity&#39;, &#39;--freq&#39;, &#39;--hardy&#39;, &#39;--pheno&#39;, &#39;obesity.phe&#39;, &#39;--pheno-name&#39;, &#39;obese&#39;, &#39;--out&#39;, baseout, &#39;--noweb&#39;))&quot;)</code></pre>
-<pre><code>$status
-[1] 0
-
-$output
- [1] &quot;&quot;                                                                                     
- [2] &quot;@----------------------------------------------------------@&quot;                         
- [3] &quot;|        PLINK!       |     v1.07      |   10/Aug/2009     |&quot;                         
- [4] &quot;|----------------------------------------------------------|&quot;                         
- [5] &quot;|  (C) 2009 Shaun Purcell, GNU General Public License, v2  |&quot;                         
- [6] &quot;|----------------------------------------------------------|&quot;                         
- [7] &quot;|  For documentation, citation &amp; bug-report instructions:  |&quot;                         
- [8] &quot;|        http://pngu.mgh.harvard.edu/purcell/plink/        |&quot;                         
- [9] &quot;@----------------------------------------------------------@&quot;                         
-[10] &quot;&quot;                                                                                     
-[11] &quot;Skipping web check... [ --noweb ] &quot;                                                   
-[12] &quot;Writing this text to log file [ /tmp/Rtmp8CtvaK/conn3213/out.log ]&quot;                   
-[13] &quot;Analysis started: Tue Apr 28 17:20:07 2020&quot;                                           
-[14] &quot;&quot;                                                                                     
-[15] &quot;Options in effect:&quot;                                                                   
-[16] &quot;\t--bfile obesity&quot;                                                                     
-[17] &quot;\t--freq&quot;                                                                              
-[18] &quot;\t--hardy&quot;                                                                             
-[19] &quot;\t--pheno obesity.phe&quot;                                                                 
-[20] &quot;\t--pheno-name obese&quot;                                                                  
-[21] &quot;\t--out /tmp/Rtmp8CtvaK/conn3213/out&quot;                                                  
-[22] &quot;\t--noweb&quot;                                                                             
-[23] &quot;&quot;                                                                                     
-[24] &quot;Reading map (extended format) from [ obesity.bim ] &quot;                                  
-[25] &quot;100000 markers to be included from [ obesity.bim ]&quot;                                   
-[26] &quot;Reading pedigree information from [ obesity.fam ] &quot;                                   
-[27] &quot;2312 individuals read from [ obesity.fam ] &quot;                                          
-[28] &quot;2312 individuals with nonmissing phenotypes&quot;                                          
-[29] &quot;Assuming a disease phenotype (1=unaff, 2=aff, 0=miss)&quot;                                
-[30] &quot;Missing phenotype value is also -9&quot;                                                   
-[31] &quot;725 cases, 1587 controls and 0 missing&quot;                                               
-[32] &quot;1097 males, 1215 females, and 0 of unspecified sex&quot;                                   
-[33] &quot;Reading genotype bitfile from [ obesity.bed ] &quot;                                       
-[34] &quot;Detected that binary PED file is v1.00 SNP-major mode&quot;                                
-[35] &quot;Reading alternate phenotype from [ obesity.phe ] &quot;                                    
-[36] &quot;0 individuals with non-missing alternate phenotype&quot;                                   
-[37] &quot;Assuming a disease phenotype (1=unaff, 2=aff, 0=miss)&quot;                                
-[38] &quot;Missing phenotype value is also -9&quot;                                                   
-[39] &quot;0 cases, 0 controls and 2312 missing&quot;                                                 
-[40] &quot;Before frequency and genotyping pruning, there are 100000 SNPs&quot;                       
-[41] &quot;2312 founders and 0 non-founders found&quot;                                               
-[42] &quot;6009 heterozygous haploid genotypes; set to missing&quot;                                  
-[43] &quot;Writing list of heterozygous haploid genotypes to [ /tmp/Rtmp8CtvaK/conn3213/out.hh ]&quot;
-[44] &quot;7 SNPs with no founder genotypes observed&quot;                                            
-[45] &quot;Warning, MAF set to 0 for these SNPs (see --nonfounders)&quot;                             
-[46] &quot;Writing list of these SNPs to [ /tmp/Rtmp8CtvaK/conn3213/out.nof ]&quot;                   
-[47] &quot;Writing allele frequencies (founders-only) to [ /tmp/Rtmp8CtvaK/conn3213/out.frq ] &quot;  
-[48] &quot;&quot;                                                                                     
-[49] &quot;Analysis finished: Tue Apr 28 17:20:12 2020&quot;                                          
-[50] &quot;&quot;                                                                                     
-
-$error
-character(0)
-
-$command
-[1] &quot;plink1 --bfile obesity --freq --hardy --pheno obesity.phe --pheno-name obese --out /tmp/Rtmp8CtvaK/conn3213/out --noweb&quot;
-
-attr(,&quot;class&quot;)
-[1] &quot;resource.exec&quot;</code></pre>
-<pre class="r"><code>results2 &lt;- opal.execute(conns, 
-                        &quot;read.table(file.path(tempdir(), &#39;out.frq&#39;), header=TRUE)&quot;)
-head(results2)</code></pre>
-<pre><code>  CHR        SNP A1 A2       MAF NCHROBS
-1   0 MitoC3993T  T  C 0.0148700    4572
-2   0 MitoG4821A  A  G 0.0017530    4564
-3   0 MitoG6027A  A  G 0.0043350    4614
-4   0 MitoT6153C  C  T 0.0106200    4616
-5   0 MitoC7275T  T  C 0.0008662    4618
-6   0 MitoT9699C  C  T 0.0732000    4604</code></pre>
-<p>This close the OPAL session</p>
+<p>This close the DataSHIELD session</p>
 <pre class="r"><code>opal.logout(conns)</code></pre>
 </div>
 </div>

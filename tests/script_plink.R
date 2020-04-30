@@ -1,6 +1,6 @@
 library(opalr)
 o <- opal.login(url="https://opal-test.obiba.org")
-opal.assign.resource(o, "client", "test.obesity_plink_remote")
+opal.assign.resource(o, "client", "test.brge_plink")
 # verify it is a SSH resource
 opal.execute(o, "class(client)")
 # verify allowed commands
@@ -150,6 +150,14 @@ o <- datashield.login(logins = logindata, assign = TRUE,
                           symbol = "client")
 
 ds.ls()
-plink.command <- c("--bfile brge --freq")
-ans <- ds.PLINK("client", plink.command)
+
+plink.arguments <- c("--bfile brge --maf 0.5 --hwe 0.0001 --logistic --covar brge.phe --covar-name gender,age ")
+ans <- ds.PLINK("client", plink.arguments)
+head(ans$study1$results$assoc)
+
+plink.arguments <- c("--bfile brge --hardy")
+ans <- ds.PLINK("client", plink.arguments)
+head(ans$study1$results$hwe)
+
+
 datashield.logout(o)
