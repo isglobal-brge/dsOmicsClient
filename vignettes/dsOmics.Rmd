@@ -243,7 +243,7 @@ The Figure \@ref(fig:opalOmic) describes the different types of omic association
 knitr::include_graphics("fig/dsOmics_A.jpg")
 ```
 
-Then, `dsOmicsClient` package allows different types of analyses: pooled and meta-analysis. Both methods are based on fitting different generalized linear models (GLMs) for each feature when assesing association between omic data and the phenotype/trait/condition of interest. 
+Then, `dsOmicsClient` package allows different types of analyses: pooled and meta-analysis. Both methods are based on fitting different generalized linear models (GLMs) for each feature when assesing association between omic data and the phenotype/trait/condition of interest. Of course non-disclosive omic data analysis from a single study can also be performed.
 
 The **pooled approach** (Figure \@ref(fig:omicAnal1)) is recommended when the user wants to analyze omic data from different sources and obtain results as if the data were located in a single computer. It should be noticed that this can be very time consuming when analyzing multiple features since it calls repeatedly to a base function in DataSHIELD (`ds.glm`) and that it cannot be recommended when data are not properly harmonized (e.g. gene expression normalized using different methods, GWAS data having different platforms, ...). Also when it is necesary to remove unwanted variability (for transcriptomic and epigenomica analysis) or control for population stratification (for GWAS analysis), this approach cannot be used since we need to develop methods to compute surrogate variables (to remove unwanted variability) or PCAs (to to address population stratification) in a non-disclosive way. 
 
