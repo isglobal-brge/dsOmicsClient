@@ -43,7 +43,7 @@ knitr::include_graphics("fig/singleSiteDSInfrastructure.jpg")
 One of the main limitations of DataSHIELD is how to deal with large data given the restrictions of Opal with databases. Nonetheless, the recent development of the `r Githubpkg("obiba/resourcer")` R package allows DataSHIELD developers to overcome this drawback by granting the Opal servers to deal with any type of data (e.g. **resources**). So far, Opal can register access to different types of data resources in different formats (csv, tsv, R data, SQL, tiddy, ..) that can also be located in different places (local, http, ssh, AWS S3 or Mongodb file stores, ...). This is another important advancement since the `r Githubpkg("obiba/resourcer")` addresses another important issue that is having duplicated data in different research centers or hospitals.
 
 
-The `r Githubpkg("obiba/resourcer")` package permits to work with specific R data classes. This is highly important in our setting since it will allow to use [Bioconductor](http://www.bioconductor.org) classes to properly manage omic data using efficient infrastructures such as `ExpressionSet` or `RangedSummarizedExperiment` among others. Another important asset of the `r Githubpkg("obiba/resourcer")` package is that it can be extended to new data types by writting specific functions (see [how to extending resources](https://github.com/obiba/resourcer/#extending-resources). We have used this feature and created some functions for the analysis of [Variant Calling Format](https://en.wikipedia.org/wiki/Variant_Call_Format) (VCF files) that are loaded into R as Genomic Data Storage objects. These functions along with others that allow the managment of Bioconductor classes in DataSHIELD have been included in a new DataSHIELD package, the `r Githubpkg("isglobal-brge/dsOmics")`, which is able to manage different [Bioconductor](http://www.bioconductor.org) data infrastructures that are required to perform omic association analyses. These including `ExpressionSet`, `RangedSummarizedExperiment` or `GDS` among others. Generaly speaking, any data format and storage that can be read by R can be expressed as a **resource**.
+The `r Githubpkg("obiba/resourcer")` package permits to work with specific R data classes. This is highly important in our setting since it will allow to use [Bioconductor](http://www.bioconductor.org) classes to properly manage omic data using efficient infrastructures such as `ExpressionSet` or `RangedSummarizedExperiment` among others. Another important asset of the `r Githubpkg("obiba/resourcer")` package is that it can be extended to new data types by writting specific functions (see [how to extending resources](https://github.com/obiba/resourcer/#extending-resources). We have used this feature and created some functions for the analysis of [Variant Calling Format](https://en.wikipedia.org/wiki/Variant_Call_Format) (VCF files) that are loaded into R as [Genomic Data Storage](https://bioconductor.org/packages/release/bioc/vignettes/gdsfmt/inst/doc/gdsfmt.html#introduction) objects. These functions along with others that allow the managment of Bioconductor classes in DataSHIELD have been included in a new DataSHIELD package, the `r Githubpkg("isglobal-brge/dsOmics")`, which is able to manage different [Bioconductor](http://www.bioconductor.org) data infrastructures that are required to perform omic association analyses. These including `ExpressionSet`, `RangedSummarizedExperiment` or `GDS` among others. Generaly speaking, any data format and storage that can be read by R can be expressed as a **resource**.
 
 In the next sections we first describe how to deal with Opal servers and resources. We illustre how we prepared a test environment to describe how Opal must be setup as well as how to provide the appropiate R/DataSHIELD configuration in both the Opal server and the client side to perform omic association analyses. Then, the different types of omic data analyses that can be performed with the `r Githubpkg("isglobal-brge/dsOmicsClient")` functionality are described and further illustrated using real data examples including epigenome, transcriptome and genomic data analyses.
 
@@ -668,12 +668,6 @@ ds.GenotypeData(x='gds', covars = 'covars', columnId = 1, newobj.name = 'gds.Dat
 ``` 
 
 
-
-
-### Descriptive analysis
-
-To be supplied ... 
-
 ### Association analysis
 
 The association analysis for a given SNP is performed by simply
@@ -699,7 +693,9 @@ datashield.logout(conns)
 
 ## Analysis with PLINK: example of using secure shell programs
 
-GWAS data analysis can also be performed using program that are executed using shell commands. This is the case of [PLINK](http://zzz.bwh.harvard.edu/plink/), one of the state-of-the-art programs to run GWAS and other genomic data analyses such gene-enviroment interactions or polygenic risc score analyses that requires efficient and scalable pipelines. We have allowed the use of SSH service to run programs on a remote server accessible through ssh containing data and analysis tools where R is just used for launching the analyses and aggregating results. Here we illustrate how to perform the same GWAS analyses on the obesity example previously analyzed using `r Githubpkg("isglobal-brge/dsOmicsClient")`. This R code can be used as a guideline to carry out similar analyses using existing analysis tools in genomics such as IMPUTE, SAMtools or BEDtools among many others. 
+GWAS data analysis can also be performed using program that are executed using shell commands. This is the case of [PLINK](http://zzz.bwh.harvard.edu/plink/), one of the state-of-the-art programs to run GWAS and other genomic data analyses such gene-enviroment interactions or polygenic risc score analyses that requires efficient and scalable pipelines. We have allowed the use of secure ssh service to run programs on a remote server accessible through ssh containing data and analysis tools where R is just used for launching the analyses and aggregating results. 
+
+We illustrate how to perform the same GWAS analyses on the asthma example previously analyzed using Bioconductor workflows implemented in `ds.GWAS()` function. It is worth to notice that this workflow and the new R functions implemented in `r Githubpkg("isglobal-brge/dsOmicsClient")` could be used as a guideline to carry out similar analyses using existing analysis tools in genomics such as IMPUTE, SAMtools or BEDtools among many others. 
 
 We start by assigning login resources 
 
@@ -714,18 +710,12 @@ builder$append(server = "study1", url = "https://opal-test.obiba.org",
 logindata <- builder$build()
 ```
 
-Then we assign the resource to a symbol (i.e. R object) called `client` which is  ... 
 
-
-```{r GWAS_shell_2}
-conns <- datashield.login(logins = logindata, assign = TRUE,
-                          symbol = "client")
-```
-
-
-The class object is 
+Then we assign the resource to a symbol (i.e. R object) called `client` which is a ssh resource
 
 ```{r GWAS_shell_3}
+conns <- datashield.login(logins = logindata, assign = TRUE,
+                          symbol = "client")
 ds.class("client")
 ```
 
