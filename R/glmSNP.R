@@ -9,7 +9,6 @@
 #' @param family
 #' @return a vector with effect estimates, standard error and associated p-value
 #' 
-#' @export
 #' @author Gonzalez, JR.
 
 

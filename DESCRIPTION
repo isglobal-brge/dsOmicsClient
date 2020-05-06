@@ -9,10 +9,12 @@ Description: Collection of functions to perform non-disclosive Omics data analys
 Depends: R (>= 3.6.1)
 Imports:
     DSI,
+    tidyverse,
+    metap,
     parallel
 License: MIT
 biocViews: DNAMethylation, Microarray, Software, WholeGenome, GWAS, Non-disclosive
 LazyData: true
 VignetteBuilder: knitr
 RoxygenNote: 7.1.0
-Encoding: UTF-8
+encoding: UTF-8

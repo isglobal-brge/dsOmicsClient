@@ -43,7 +43,7 @@ knitr::include_graphics("fig/singleSiteDSInfrastructure.jpg")
 One of the main limitations of DataSHIELD is how to deal with large data given the restrictions of Opal with databases. Nonetheless, the recent development of the `r Githubpkg("obiba/resourcer")` R package allows DataSHIELD developers to overcome this drawback by granting the Opal servers to deal with any type of data (e.g. **resources**). So far, Opal can register access to different types of data resources in different formats (csv, tsv, R data, SQL, tiddy, ..) that can also be located in different places (local, http, ssh, AWS S3 or Mongodb file stores, ...). This is another important advancement since the `r Githubpkg("obiba/resourcer")` addresses another important issue that is having duplicated data in different research centers or hospitals.
 
 
-The `r Githubpkg("obiba/resourcer")` package permits to work with specific R data classes. This is highly important in our setting since it will allow to use [Bioconductor](http://www.bioconductor.org) classes to properly manage omic data using efficient infrastructures such as `ExpressionSet` or `RangedSummarizedExperiment` among others. Another important asset of the `r Githubpkg("obiba/resourcer")` package is that it can be extended to new data types by writting specific functions (see [how to extending resources](https://github.com/obiba/resourcer/#extending-resources). We have used this feature and created some functions for the analysis of Variant Calling Format (VCF files) that are loaded into R as Genomic Data Storage objects. These functions along with others that allow the managment of Bioconductor classes in DataSHIELD have been included in a new DataSHIELD package, the `r Githubpkg("isglobal-brge/dsOmics")`, which is able to manage different [Bioconductor](http://www.bioconductor.org) data infrastructures that are required to perform omic association analyses. These including `ExpressionSet`, `RangedSummarizedExperiment` or `GDS` among others. Generaly speaking, any data format and storage that can be read by R can be expressed as a **resource**.
+The `r Githubpkg("obiba/resourcer")` package permits to work with specific R data classes. This is highly important in our setting since it will allow to use [Bioconductor](http://www.bioconductor.org) classes to properly manage omic data using efficient infrastructures such as `ExpressionSet` or `RangedSummarizedExperiment` among others. Another important asset of the `r Githubpkg("obiba/resourcer")` package is that it can be extended to new data types by writting specific functions (see [how to extending resources](https://github.com/obiba/resourcer/#extending-resources). We have used this feature and created some functions for the analysis of [Variant Calling Format](https://en.wikipedia.org/wiki/Variant_Call_Format) (VCF files) that are loaded into R as Genomic Data Storage objects. These functions along with others that allow the managment of Bioconductor classes in DataSHIELD have been included in a new DataSHIELD package, the `r Githubpkg("isglobal-brge/dsOmics")`, which is able to manage different [Bioconductor](http://www.bioconductor.org) data infrastructures that are required to perform omic association analyses. These including `ExpressionSet`, `RangedSummarizedExperiment` or `GDS` among others. Generaly speaking, any data format and storage that can be read by R can be expressed as a **resource**.
 
 In the next sections we first describe how to deal with Opal servers and resources. We illustre how we prepared a test environment to describe how Opal must be setup as well as how to provide the appropiate R/DataSHIELD configuration in both the Opal server and the client side to perform omic association analyses. Then, the different types of omic data analyses that can be performed with the `r Githubpkg("isglobal-brge/dsOmicsClient")` functionality are described and further illustrated using real data examples including epigenome, transcriptome and genomic data analyses.
 
@@ -260,7 +260,7 @@ knitr::include_graphics("fig/dsOmics_B.jpg")
 ```
 
 
-- **Meta-analysis:** Figure \@ref(fig:omicAnal2) illustrate how this analysis is performed. This corresponds to perform a genome-wide analysis at each server using functions that are specifically design to that purpose and that are scalable. Then the results of each server can be meta-analyzed using standard R package.
+- **Meta-analysis:** Figure \@ref(fig:omicAnal2) illustrate how this analysis is performed. This corresponds to perform a genome-wide analysis at each server using functions that are specifically design to that purpose and that are scalable. Then the results of each server can be meta-analyzed using method that meta-analyze either effects or p-values.
 
 
 ```{r omicAnal2, echo=FALSE, fig.cap="Non-disclosive omic data analysis with DataSHIELD and Bioconductor. The figure illustrates how to perform anlyses at genome-wide level from one or multiple sources. It runs standard Bioconductor functions at each server independently to speed up the analyses and in the case of having multiple sources, results can be meta-analyzed uning standar R functions.", out.width = '1000%', fig.align='center'}
@@ -270,7 +270,7 @@ knitr::include_graphics("fig/dsOmics_C.jpg")
 
 ### Illustrative example: Epigenome-wide association analysis (EWAS) 
 
-Here we use methylation data but the the same analyses can be performed when having transcriptomic data from multiple studies. However, we should point out that for DGE analysses, the user must be sure that the **pooled analysis** can be performed since data of each study must have different range values. If so, gene expression harmonization should be performed, for instance, by standardizing the data at each study. For EWAS where methylation is measured using beta values (e.g CpG data are in the range 0-1) this is not a problem. In any case, adopting the **meta-analysis** approach could be a safe option.
+EWAS requires basically the same statistical methods as those used in DGE. It should be notice that the **pooled analysis** we are going to illustrate here can also be performed with transcriptomic data since each study must have different range values. If so, gene expression harmonization should be performed, for instance, by standardizing the data at each study. For EWAS where methylation is measured using beta values (e.g CpG data are in the range 0-1) this is not a problem. In any case, adopting the **meta-analysis** approach could be a safe option.
 
 We have downloaded data from [GEO](https://www.ncbi.nlm.nih.gov/geo/) corresponding to the accesion number GSE66351 which includes DNA methylation profiling (Illumina 450K array) of 190 individuals. Data corresponds to CpGs beta values measured in the superior temporal gyrus and prefrontal cortex brain regions of patients with Alzheimer’s. Data have been downloaded using `r Biocpkg("GEOquery")` package that gets GEO data as `ExpressionSet` objects. Researchers who are not familiar with `ExpressionSet`s or for those who have data in other formats, this page (https://kasperdanielhansen.github.io/genbioconductor/html/ExpressionSet.html) can be used as a good starting point to understand how methylation data can be encapsulated in a `ExpressionSet`. Notice that data are encoded as beta-values that ensure data harmonization across studies. 
 
@@ -475,8 +475,28 @@ lapply(ans.limma.annot, head)
 ```
 
 
-Then, the results can be combined by ....
+Then, the last step is to meta-analyze the results. Different methods can be used to this end. We have implemented a method that meta-analyze the p-pvalues of each study as follows:
 
+```{r meta_p}
+ans.meta <- metaPvalues(ans.limma)
+ans.meta
+``` 
+
+This is a genreal method that can be used ... We can verify that the results are pretty similar to those obtained using pooled analyses. Here we compute the association for two of the top-CpGs:
+
+```{r one_cpg_val}
+res1 <- ds.lmFeature(feature = "cg13138089", 
+                    model = ~ diagnosis + Sex, 
+                    Set = "methy",
+                    datasources = conns)
+res1
+
+res2 <- ds.lmFeature(feature = "cg13772815", 
+                    model = ~ diagnosis + Sex, 
+                    Set = "methy",
+                    datasources = conns)
+res2
+```
 
 
 We can create a QQ-plot by using the generic function `plot` (here not showed). In some cases inflation can be observed, so that, correction for cell-type or surrogate variables must be performed. We describe how we can do that in the next two sections.
@@ -546,7 +566,12 @@ ans.sva <- ds.limma(model = ~ diagnosis + Sex,
 ans.sva
 ```
 
-Then, data can be combined using ... 
+Then, data can be combined meta-anlyzed as follows: 
+
+```{r meta_sva}
+ans.meta.sv <- metaPvalues(ans.sva)
+ans.meta.sv
+``` 
 
 
 The DataSHIELD session must by closed by:
@@ -661,7 +686,7 @@ ds.glmSNP(snps.fit = "rs11247693", model = asthma ~ gender + age, genoData='gds.
 The analysis of all available SNPs is performed when the argument `snps.fit` is missing. The function performs the analysis of the selected SNPs in a single repository or in multiple repositories as performing pooled analyses (it uses `ds.glm` DataSHIELD function). As in the case of transcriptomic data, analyzing all the SNPs in the genome (e.g GWAS) will be high time-consuming. We can adopt a similar approach as the one adopted using the `r Biocpkg("limma")` at each server. That is, we run GWAS at each repository using specific and scalable packages available in R/Bioc. In that case we use the `r Biocpkg("GWASTools")` and `r Biocpkg("GENESIS")` packages. The complete pipeline is implemented in this function 
 
 ```{r GWAS}
-ds.GWAS('gds.Data', model=asthma~age+country)
+ans.bioC <- ds.GWAS('gds.Data', model=asthma~age+country)
 ```
 
 
@@ -700,7 +725,7 @@ conns <- datashield.login(logins = logindata, assign = TRUE,
 
 The class object is 
 
-```{r GWAS_sell_3}
+```{r GWAS_shell_3}
 ds.class("client")
 ```
 
@@ -719,24 +744,55 @@ plink.arguments <- "--bfile brge --logistic --covar brge.phe --covar-name gender
 the analyses are then performed by
 
 ```{r GWAS_shell_gwas}
-ans <- ds.PLINK("client", plink.arguments)
+ans.plink <- ds.PLINK("client", plink.arguments)
 ```
 
 The object `ans` contains the PLINK results at each server as well as the outuput provided by PLINK
 
 ```{r GWAS_shell_result1}
-lapply(ans, names)
+lapply(ans.plink, names)
 
-head(ans$study1$results$assoc)
+head(ans.plink$study1$results)
 
-ans$study$plink.out
+ans.plink$study$plink.out
 ```
+
+We can compare the p-values obtained using PLINK with Bioconductor-based packages for the top-10 SNPs as follows:
+
+
+```{r comparison}
+library(tidyverse)
+# get SNP p.values (additive model - ADD)
+res.plink <- ans.plink$study1$results %>% filter(TEST=="ADD") %>%
+  arrange(P)
+# compare top-10 with Biocoductor's results
+snps <- res.plink$SNP[1:10]
+plink <- res.plink %>% filter(SNP%in%snps) %>% select(SNP, P)
+bioC <- ans.bioC$study1 %>% filter(rs%in%snps) %>% select(rs, Score.pval)
+left_join(plink, bioC, by=c("SNP" = "rs"))
+```
+
+
+As expected, the p-values are in the same order of magnitud having little variations due to the implemented methods of each software. 
+
+We can do the same comparions of minor allele frequency (MAF) estimation performed with Bioconductor and PLINK. To this end, we need first to estimate MAF using PLINK
+
+```{r maf_plink}
+plink.arguments <- "--bfile brge --freq"
+ans.plink2 <- ds.PLINK("client", plink.arguments)
+maf.plink <- ans.plink2$study1$results
+
+plink <- maf.plink %>% filter(SNP%in%snps) %>% select(SNP, MAF)
+bioC <- ans.bioC$study1 %>% filter(rs%in%snps) %>% select(rs, freq)
+left_join(plink, bioC, by=c("SNP" = "rs"))
+```
+
 
 
 This close the DataSHIELD session 
 
 ```{r close_conns4}
-opal.logout(conns)
+datashield.logout(conns)
 ```
 
 
