@@ -480,7 +480,6 @@ Then, the last step is to meta-analyze the results. Different methods can be use
 ```{r meta_p}
 ans.meta <- metaPvalues(ans.limma)
 ans.meta
-
 ``` 
 
 This is a genreal method that can be used to meta-analyze p-values We can verify that the results are pretty similar to those obtained using pooled analyses. Here we compute the association for two of the top-CpGs:
@@ -572,6 +571,7 @@ Then, data can be combined meta-anlyzed as follows:
 ```{r meta_sva}
 ans.meta.sv <- metaPvalues(ans.sva)
 ans.meta.sv
+
 ``` 
 
 
@@ -778,6 +778,8 @@ bioC <- ans.bioC$study1 %>% filter(rs%in%snps) %>% select(rs, freq)
 left_join(plink, bioC, by=c("SNP" = "rs"))
 ```
 
+
+PLINK with two studies ..... TO BE SUPPLIED
 
 
 This close the DataSHIELD session 
