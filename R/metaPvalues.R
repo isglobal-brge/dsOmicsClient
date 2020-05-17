@@ -38,7 +38,7 @@ metaPvalues <- function(x,  ...){
   pvals <- Reduce(ff, x)
   colnames(pvals)[-1] <- names(x)
   p.meta <- unlist(apply(pvals[,-1], 1, function(x) sumlog (x)$p))
-  ans <- tibble(pvals, p.meta=p.meta)%>%arrange(p.meta)
+  ans <- add_column(pvals, p.meta=p.meta)%>%arrange(p.meta)
   
   return(ans)
 }
