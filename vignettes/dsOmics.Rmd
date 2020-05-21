@@ -684,6 +684,12 @@ The analysis of all available SNPs is performed when the argument `snps.fit` is 
 ans.bioC <- ds.GWAS('gds.Data', model=asthma~age+country)
 ```
 
+The results can be visualize using
+
+```{r view_GWAS}
+ans.bioC$study1
+```
+
 
 This close the DataSHIELD session 
 
@@ -777,6 +783,18 @@ plink <- maf.plink %>% filter(SNP%in%snps) %>% select(SNP, MAF)
 bioC <- ans.bioC$study1 %>% filter(rs%in%snps) %>% select(rs, freq)
 left_join(plink, bioC, by=c("SNP" = "rs"))
 ```
+
+Finally, Manhattan plots can be created by using this generic function that can be addapted to all situations. That is, DGE, EWAS or GWAS from analyses performed at each server of meta-analyzed
+
+```{r manhattaPlink, fig.cap="Manhattan plot for asthma study. The labelled SNP is the one that passed a p-value threshold equal to 1e-6.", fig.height=4}
+manhattan(ans.bioC$study1, featureCol = 2, chrCol = 3, posCol=4, pvalCol = 11, 
+          threshold = 1e-6)
+```
+
+We can see whether inflation is present in our analyses (due to population stratification in GWAS or to hidden variables accouinting for unwanted variability) by computing $\lambda$ value in a QQ-plot
+
+
+
 
 
 PLINK with two studies ..... TO BE SUPPLIED
