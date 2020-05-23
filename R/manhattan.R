@@ -21,8 +21,7 @@
 #'
 #' @export
 #' @import ggrepel
-#' @import RColorBrewel 
-
+#' @import RColorBrewer
 
 manhattan <- function(x, featureCol, chrCol, posCol, pvalCol, sig= 5e-8,
                       sugg = 1e-6, threshold=NA, hlight=NA, 
