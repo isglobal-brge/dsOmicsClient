@@ -8,6 +8,9 @@ ds.limma(
   model,
   Set,
   type.data = "microarray",
+  contrasts = NULL,
+  levels = "design",
+  coef = 2,
   sva = FALSE,
   annotCols = NULL,
   datasources = NULL

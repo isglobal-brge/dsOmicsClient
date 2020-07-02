@@ -15,7 +15,8 @@
 ##' @examples
 ##' 
 
-ds.limma <- function(model, Set, type.data="microarray", 
+ds.limma <- function(model, Set, type.data="microarray",
+                     contrasts = NULL, levels = "design", coef = 2,
                      sva=FALSE, annotCols=NULL, 
                      datasources=NULL){
   
@@ -37,14 +38,22 @@ ds.limma <- function(model, Set, type.data="microarray",
   if (!is.null(annotCols)){
     annotCols <- paste(annotCols, collapse=",")
   }
+ 
+  if (levels[1] != "design")
+    {
+    levels <- paste(levels, collapse=",")
+  }
+  if (!is.null(contrasts))
+  {
+    contrasts<-paste(contrasts, collapse=",")  
+  }
     
+
   
-  cally <- paste0("limmaDS(", Set, ",", deparse(variable_names), ",", 
-                  deparse(covariable_names), ",", type, ",", sva, ",", deparse(annotCols), ")")
-  ans <- DSI::datashield.aggregate(datasources, as.symbol(cally))
-  
-  class(ans) <- c("dsLimma", class(ans))
-  
-  return(ans)
+  calltext <- call("limmaDS", Set, variable_names,
+                   covariable_names, type, contrasts,
+                   levels,coef, sva, annotCols)
+  output <- datashield.aggregate(datasources, calltext)
+  return(output)
   
 }
