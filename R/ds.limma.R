@@ -28,6 +28,10 @@ ds.limma <- function(model, Set, type.data="microarray",
     datasources <- DSI::datashield.connections_find()
   }
   
+  if(is.null(model)){
+    stop(" Please provide a valid model formula", call.=FALSE)
+  }
+  
   mt <- all.vars(model)
   variable_names <- mt[1] 
   if (length(mt)>1)
