@@ -53,13 +53,21 @@ ds.DESeq2 <- function(model, set, test = "Wald",
     }  
     
     if(!is.null(reduced))
-      {
-       reduced<-attributes(stats::terms(stats::as.formula(reduced)))$intercept
-       reduced<-as.character(reduced)
-      }
+    {
+      reduced.term <- attributes(terms(as.formula(formula)))$term.labels
       
+      if (length(reduced.term)==0){
+        reduced<-attributes(stats::terms(stats::as.formula(reduced)))$intercept
+        reduced<-as.character(reduced)
+        
+      }else{
+        reduced<-all.vars(reduced)
+        reduced<-paste(reduced, collapse=",")
+      }
+    }
     
-    if(!is.null(contrast)){
+    if(!is.null(contrast))
+      {
       contrast <- paste(contrast, collapse=",")
     }
     # call the server side function
@@ -68,4 +76,3 @@ ds.DESeq2 <- function(model, set, test = "Wald",
     return(output)
 }
 #ds.DESeq2
-#

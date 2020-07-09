@@ -21,11 +21,11 @@ ds.DESeq2(
 
 \item{set}{a \code{RangedSummarizedExperiment}}
 
-\item{test}{"Wald" or "LRT"}
+\item{test}{\code{"Wald"} or \code{"LRT"}}
 
-\item{fitType}{"parametric", "local", or "mean"}
+\item{fitType}{\code{"parametric"}, \code{"local"}, or \code{"mean"}}
 
-\item{sfType}{"ratio", "poscounts", or "iterate"}
+\item{sfType}{\code{"ratio"}, \code{"poscounts"}, or \code{"iterate"}}
 
 \item{betaPrior}{TRUE or FALSE}
 
@@ -33,10 +33,12 @@ ds.DESeq2(
 
 \item{contrast}{the comparison to extract from the object to build the results table}
 
-\item{datasources}{specifies the particular 'connection object(s)' to use.}
+\item{datasources}{a list of \code{\link{DSConnection-class}} objects obtained after login. 
+If the \code{datasources} argument is not specified
+the default set of connections will be used: see \code{\link{datashield.connections_default}}.}
 }
 \value{
-Data frame containing the results of the differential expression analysis
+Data frame containing the results of the Differential Gene Expression analysis
 }
 \description{
 This function is similar to Bioconductor's
@@ -47,5 +49,5 @@ Implementation of Bioconductor's \code{DESeq2} in DataSHIELD
 infraestructure.
 }
 \author{
-Abarrategui Leire, for DataSHIELD development team
+L. Abarrategui, for DataSHIELD development team
 }
