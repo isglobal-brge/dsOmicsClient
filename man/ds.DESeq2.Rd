@@ -2,7 +2,7 @@
 % Please edit documentation in R/ds.DESeq2.R
 \name{ds.DESeq2}
 \alias{ds.DESeq2}
-\title{Server-side Differential gene expression analysis using DESeq2}
+\title{Server-side Differential Gene Expression analysis using DESeq2}
 \usage{
 ds.DESeq2(
   model,
@@ -19,13 +19,13 @@ ds.DESeq2(
 \arguments{
 \item{model}{formula indicating the condition and other covariates to be ajusted}
 
-\item{set}{a \code{RangedSummarizedExperiment}}
+\item{set}{a \code{RangedSummarizedExperiment} object.}
 
-\item{test}{\code{"Wald"} or \code{"LRT"}}
+\item{test}{\code{"Wald"} or \code{"LRT"}.}
 
-\item{fitType}{\code{"parametric"}, \code{"local"}, or \code{"mean"}}
+\item{fitType}{\code{"parametric"}, \code{"local"}, or \code{"mean"}.}
 
-\item{sfType}{\code{"ratio"}, \code{"poscounts"}, or \code{"iterate"}}
+\item{sfType}{\code{"ratio"}, \code{"poscounts"}, or \code{"iterate"}.}
 
 \item{betaPrior}{TRUE or FALSE}
 
@@ -41,12 +41,16 @@ the default set of connections will be used: see \code{\link{datashield.connecti
 Data frame containing the results of the Differential Gene Expression analysis
 }
 \description{
-This function is similar to Bioconductor's
-\code{DESeq2} package \code{DESeq} function.
+This function performs a non-disclosive
+Differential Gene Expression Analysis using \code{DESeq2} package
+from Bioconductor.
 }
 \details{
 Implementation of Bioconductor's \code{DESeq2} in DataSHIELD 
-infraestructure.
+infraestructure. 
+
+This function is similar to Bioconductor's 
+\code{DESeq2} package \code{DESeq} function.
 }
 \author{
 L. Abarrategui, for DataSHIELD development team

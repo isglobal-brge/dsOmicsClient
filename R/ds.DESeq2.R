@@ -1,15 +1,19 @@
 #'
-#' @title Server-side Differential gene expression analysis using DESeq2
-#' @description This function is similar to Bioconductor's
-#' \code{DESeq2} package \code{DESeq} function. 
+#' @title Server-side Differential Gene Expression analysis using DESeq2
+#' @description  This function performs a non-disclosive
+#' Differential Gene Expression Analysis using \code{DESeq2} package
+#' from Bioconductor.
+#' 
 #' @details Implementation of Bioconductor's \code{DESeq2} in DataSHIELD 
 #' infraestructure. 
+#' 
+#' This function is similar to Bioconductor's 
+#' \code{DESeq2} package \code{DESeq} function.
 #' @param model formula indicating the condition and other covariates to be ajusted
-#' @param set a \code{RangedSummarizedExperiment} 
-#' @param test \code{"Wald"} or \code{"LRT"}
-#' @param fitType \code{"parametric"}, \code{"local"}, or \code{"mean"}
-#' @param sfType 	\code{"ratio"}, \code{"poscounts"}, or \code{"iterate"}
-#' @param betaPrior TRUE or FALSE
+#' @param set a \code{RangedSummarizedExperiment} object.  
+#' @param test \code{"Wald"} or \code{"LRT"}.
+#' @param fitType \code{"parametric"}, \code{"local"}, or \code{"mean"}.
+#' @param sfType 	\code{"ratio"}, \code{"poscounts"}, or \code{"iterate"}.
 #' @param reduced a reduced formula for \code{test="LRT"}
 #' @param contrast the comparison to extract from the object to build the results table 
 #' @param datasources a list of \code{\link{DSConnection-class}} objects obtained after login. 
@@ -22,7 +26,7 @@
 
 ds.DESeq2 <- function(model, set, test = "Wald",
                     fitType = "parametric", sfType = "ratio",
-                    betaPrior = FALSE, reduced = NULL, 
+                    reduced = NULL, 
                     contrast = NULL, datasources=NULL)
 {   
     if (is.null(datasources))
@@ -54,7 +58,7 @@ ds.DESeq2 <- function(model, set, test = "Wald",
     
     if(!is.null(reduced))
     {
-      reduced.term <- attributes(terms(as.formula(formula)))$term.labels
+      reduced.term <- attributes(terms(as.formula(reduced)))$term.labels
       
       if (length(reduced.term)==0){
         reduced<-attributes(stats::terms(stats::as.formula(reduced)))$intercept
@@ -71,7 +75,7 @@ ds.DESeq2 <- function(model, set, test = "Wald",
       contrast <- paste(contrast, collapse=",")
     }
     # call the server side function
-    calltext <- call("DESeq2DS",vars, set, test, fitType, sfType, betaPrior, reduced, contrast)
+    calltext <- call("DESeq2DS",vars, set, test, fitType, sfType, reduced, contrast)
     output <- datashield.aggregate(datasources, calltext)
     return(output)
 }
