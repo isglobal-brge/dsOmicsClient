@@ -10,7 +10,6 @@ ds.DESeq2(
   test = "Wald",
   fitType = "parametric",
   sfType = "ratio",
-  betaPrior = FALSE,
   reduced = NULL,
   contrast = NULL,
   datasources = NULL
@@ -26,8 +25,6 @@ ds.DESeq2(
 \item{fitType}{\code{"parametric"}, \code{"local"}, or \code{"mean"}.}
 
 \item{sfType}{\code{"ratio"}, \code{"poscounts"}, or \code{"iterate"}.}
-
-\item{betaPrior}{TRUE or FALSE}
 
 \item{reduced}{a reduced formula for \code{test="LRT"}}
 
