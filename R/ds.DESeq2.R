@@ -76,7 +76,7 @@ ds.DESeq2 <- function(model, set, test = "Wald",
     }
     # call the server side function
     calltext <- call("DESeq2DS",vars, set, test, fitType, sfType, reduced, contrast)
-    output <- datashield.aggregate(datasources, calltext)
-    return(output)
+    ans <- datashield.aggregate(datasources, calltext)
+    return(ans)
 }
 #ds.DESeq2

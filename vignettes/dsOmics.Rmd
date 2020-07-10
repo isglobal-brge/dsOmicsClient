@@ -31,7 +31,7 @@ knitr::opts_chunk$set(comment="", warning=FALSE, message=FALSE, cache=TRUE)
 
 # Purpose
 
-The purpose of the `r Githubpkg("isglobal-brge/dsOmicsClient")` package is to provide a set of functions to perform omic association analyses when data are stored on federated databases or, more generally, in different repositories. In particular the package utilizes DataSHIELD infrastructure which is a software solution that allows simultaneous co-analysis of data from multiple studies stored on different servers without the need to physically pool data or disclose sensitive information [@wilson_datashield_2017]. DataSHIELD uses [Opal servers](http://opaldoc.obiba.org/en/latest/) to properly perform such analyses. 
+The purpose of the `r Githubpkg("isglobal-brge/dsOmicsClient")` package is to provide a set of functions to perform omic association analyses when data are stored on federated databases or, more generally, in different repositories. In particular the package utilizes DataSHIELD infrastructure which is a software solution that allows simultaneous co-analysis of data from multiple studies stored on different servers without the need to physically pool data or disclose sensitive information [@wilson_datashield_2017]. DataSHIELD uses [Opal servers](http://opaldoc.obiba.org/en/latest/) to properly perform such analyses. [Our bookdown](https://isglobal-brge.github.io/resource_bookdown/dslite-datashield-implementation-on-local-datasets.html) introduces Opal, DaaSHIELD and other related features. Here, we describe the most relevant ones to be able to reproduce this document.
 
 At a high level DataSHIELD is set up as a client-server model which houses the data for a particular study. A request is made from the client to run specific functions on the remote servers where the analysis is performed. Non-sensitive and pre-approved summary statistics are returned from each study to the client where they can be combined for an overall analysis. An overview of what a single-site DataSHIELD architecture would look like is illustrated in Figure \@ref(fig:dsArchitec). 
 
@@ -91,9 +91,9 @@ In order to achive this `resourcer` extension, two `R6` classes have been implem
 * `GDSFileResourceResolver` class which handles file-base resources with data in GDS or VCF formats. This class is responsible for creating a `GDSFileResourceClient` object instance from an assigned resource.
 * `GDSFileResourceClient` class which is responsible for getting the referenced file and making a connection (created by `GWASTools`) to the GDS file (will also convert the VCF file to a GDS file on the fly, using `SNPRelate`). For the subsequent analysis, it's this connection handle to the GDS file that will be used.
 
-We have prepared a test environment, with the Opal implementation of Resources and an appropriate R/DataSHIELD configuration that is available at: [opal-test.obiba.org](https://opal-test.obiba.org). This figure illustrate the resources which are available for the `test` project:
+We have prepared a test environment, with the Opal implementation of Resources and an appropriate R/DataSHIELD configuration that is available at: [opal-demo.obiba.org](https://opal-demo.obiba.org). This figure illustrate the resources which are available for the `RSRC` project:
 
-```{r testResources, echo=FALSE, fig.cap="Resources from a test enviroment available at https://opal-test.obiba.org", fig.align='center', out.height='120%'}
+```{r testResources, echo=FALSE, fig.cap="Resources from a test enviroment available at https://opal-demo.obiba.org", fig.align='center', out.height='120%'}
 knitr::include_graphics("fig/opal_resources.png", dpi=NA)
 ```
 
@@ -108,7 +108,7 @@ knitr::include_graphics("fig/opal_resources_API.png")
 
 ## Required DataSHIELD packages in the opal server
 
-Required DataSHIELD packages must be uploaded in the opal server through the Administration site by accessing to DataSHIELD tab. In our case, both `dsBase` and `dsOmics` packages must be installed as is illustrated in the figure. 
+Required DataSHIELD packages must be uploaded in the opal server through the Administration site by accessing to DataSHIELD tab. In our case, both `dsBase` and `dsOmics` and `resourcer` packages must be installed as is illustrated in the figure (NOTE: `dsGeo` is uploaded for other type of analyses and it is not necesary for omics). 
 
 ```{r installPackagesOpal, echo=FALSE, fig.cap="Installed packages in the test opal server", fig.align='center'}
 knitr::include_graphics("fig/add_packages_opal.png")
@@ -123,20 +123,18 @@ knitr::include_graphics("fig/add_packages_opal_2.png")
 ```
 ## Required R Packages in the client site (e.g. local machine)
 
-In order to use the functions contained within this package the following R packages must be installed (in their development version):
+In order to use the functions contained within this package the following R packages must be installed in the client side:
 
 ```{r install_all, eval=FALSE}
-devtools::install_github("datashield/DSI", dependencies = TRUE)
-devtools::install_github("obiba/opalr", dependencies = TRUE)
-devtools::install_github("datashield/DSOpal", dependencies = TRUE)
-devtools::install_github("datashield/dsBaseClient", ref = "v6.0-dev", dependencies = TRUE)
+install.packages("DSIOpal")
+install.packages('dsBaseClient', repos=c(getOption('repos'), 
+                                         'http://cran.obiba.org'), dependencies=TRUE)
 devtools::install_github("isglobal-brge/dsOmicsClient", dependencies = TRUE)
 ```
 
 The package dependencies are then loaded as follows:
 
 ```{r requiredRPackages}
-library(DSI)
 library(DSOpal)
 library(dsBaseClient)
 library(dsOmicsClient)
@@ -147,12 +145,12 @@ library(dsOmicsClient)
 For advanced users willing to use `DSLite`, the server side packages needs to be installed as well:
 
 ```{r install_resourcer, eval=FALSE}
-install.packages("resourcer", dependencies = TRUE)
-devtools::install_github("datashield/DSLite", dependencies = TRUE)
-devtools::install_github("isglobal-brge/dsOmics", dependencies = TRUE)
-devtools::install_github("datashield/dsBase", ref = "v6.0-dev", dependencies = TRUE)
+install.packages(c("resourcer", "DSLite"), dependencies = TRUE)
+install.packages("dsBase", repos = c("https://cloud.r-project.org", 
+                                     "https://cran.obiba.org"), dependencies = TRUE)
 ```
 
+We refer to [this chapter](https://isglobal-brge.github.io/resource_bookdown/dslite-datashield-implementation-on-local-datasets.html) of our bookdown to a more detail description about how to work with DataSHIELD in a serverless environment.
 
 # Transcriptomic and Epigenomic data analysis
 
@@ -168,9 +166,9 @@ Let us start by creating the connection to the opal server:
 
 ```{r pipeline_gene_expr}
 builder <- newDSLoginBuilder()
-builder$append(server = "study1", url = "https://opal-test.obiba.org", 
+builder$append(server = "study1", url = "https://opal-demo.obiba.org", 
                user = "dsuser", password = "password", 
-               resource = "test.tcga_liver", driver = "OpalDriver")
+               resource = "RSRC.tcga_liver", driver = "OpalDriver")
 
 logindata <- builder$build()
 
@@ -209,7 +207,7 @@ lapply(name.vars, head, n=15)
 We can visualize the levels of the variable having gender information
 
 ```{r table_gender}
-ds.table1D("rse$gdc_cases.demographic.gender")
+ds.table("rse$gdc_cases.demographic.gender")
 ```
 
 
@@ -224,7 +222,18 @@ ans.gender <- ds.limma(model =  ~ gdc_cases.demographic.gender,
 
 Notice that we have set `type.data='RNAseq'` to consider that our data are counts obtained from a RNA-seq experiment. By indicating so, the differential analysis is performed by using  `voom` + `limma` as previously mention.
 
-As usual, we close the DataSHIELD session by:
+The top differentially expressed genes can be visualized by:
+
+```{r show_ans.gender}
+ans.gender
+```
+
+We can also use other method to analyzed RNA-seq data such as `r Biocpkg("DSEq2")` or `r Biocpkg("edgeR")`. This is the R code used to that purpose:
+
+....
+
+
+We close the DataSHIELD session by:
   
 ```{r close_ds2}
 datashield.logout(conns)
@@ -268,112 +277,25 @@ knitr::include_graphics("fig/dsOmics_C.jpg")
 ```
 
 
-### Illustrative example: Epigenome-wide association analysis (EWAS) 
+## Illustrative example: Epigenome-wide association analysis (EWAS) 
 
-EWAS requires basically the same statistical methods as those used in DGE. It should be notice that the **virtually pooled analysis** we are going to illustrate here can also be performed with transcriptomic data since each study must have different range values. If so, gene expression harmonization should be performed, for instance, by standardizing the data at each study. For EWAS where methylation is measured using beta values (e.g CpG data are in the range 0-1) this is not a problem. In any case, adopting the **federated meta-analysis** approach could be a safe option.
+EWAS requires basically the same statistical methods as those used in DGE. It should be notice that the **pooled analysis** we are going to illustrate here can also be performed with transcriptomic data since each study must have different range values. If so, gene expression harmonization should be performed, for instance, by standardizing the data at each study. For EWAS where methylation is measured using beta values (e.g CpG data are in the range 0-1) this is not a problem. In any case, adopting the **meta-analysis** approach could be a safe option.
 
-We have downloaded data from [GEO](https://www.ncbi.nlm.nih.gov/geo/) corresponding to the accesion number GSE66351 which includes DNA methylation profiling (Illumina 450K array) of 190 individuals. Data corresponds to CpGs beta values measured in the superior temporal gyrus and prefrontal cortex brain regions of patients with Alzheimer’s. Data have been downloaded using `r Biocpkg("GEOquery")` package that gets GEO data as `ExpressionSet` objects. Researchers who are not familiar with `ExpressionSet`s or for those who have data in other formats, this page (https://kasperdanielhansen.github.io/genbioconductor/html/ExpressionSet.html) can be used as a good starting point to understand how methylation data can be encapsulated in a `ExpressionSet`. Notice that data are encoded as beta-values that ensure data harmonization across studies. 
+We have downloaded data from [GEO](https://www.ncbi.nlm.nih.gov/geo/) corresponding to the accesion number GSE66351 which includes DNA methylation profiling (Illumina 450K array) of 190 individuals. Data corresponds to CpGs beta values measured in the superior temporal gyrus and prefrontal cortex brain regions of patients with Alzheimer’s. Data have been downloaded using `r BiocStyle::Biocpkg("GEOquery")` package that gets GEO data as `ExpressionSet` objects. Researchers who are not familiar with `ExpressionSet`s can read [this Section](#BioC). Notice that data are encoded as beta-values that ensure data harmonization across studies. 
 
 
 In order to illustrate how to perform data analyses using federated data, we have split the data into two `ExpressionSet`s having 100 and 90 samples as if they were two different studies. Figure \@ref(fig:testResources) shows the two resources defined for both studies (GSE66351_1 and GSE66351_2)
 
-In order to perform omic data analyses, we need first to login and assign resources to DataSHIELD
-
-```{r login_assign}
-builder <- DSI::newDSLoginBuilder()
-builder$append(server = "study1", url = "https://opal-test.obiba.org", 
-               user = "dsuser", password = "password", 
-               resource = "test.GSE66351_1", driver = "OpalDriver")
-builder$append(server = "study2", url = "https://opal-test.obiba.org", 
-               user = "dsuser", password = "password", 
-               resource = "test.GSE66351_2", driver = "OpalDriver")
-
-logindata <- builder$build()
-
-conns <- DSI::datashield.login(logins = logindata, assign = TRUE, 
-                               symbol = "res")
-```
-
-After that, we check whether the opal server has the assigned resources. This can be performed by using a function from `dsBaseClient` package.
-
-```{r show_assign}
-ds.ls()
-```
-
-
-## Analysis having methylation data as a `data.frame`
-
-The `ExpressionSet` object (accessed by the resource client) could be coerced to a data frame by
-
-```{r coerce_df}
-datashield.assign.expr(conns, symbol = "methyl_df", 
-                       expr = quote(as.resource.data.frame(res)))
-ds.class("methyl_df")
-```
-
-
-This may help those users who are not familiar with Bioconductor. There are many researchers who have methylation (or gene expression) data in a tabular form. If so, data could be available in the OPAL server as a data.frame and then the following analyses could also be performed. 
-
-We verify that each server has their own data and that the total sample size is the sum of both studies
-
-```{r dim}
-ds.dim("methyl_df")
-```
-
-
-The coercion creates a data frame with CpGs and covariables in columns. We do not recommend to work with data frames for omic data since Bioconductor has efficient classes to deal with this type of data. We just illustrate that this coercion is possible and then DataSHIELD functions can be used to perform different statistical analyses. For instance, a data frame can be inspected, using `dsBaseClient` functions. 
-
-The coercion of an `ExpressionSet` to a `data.frame` put the features (in that case CpGs) in the first columns and covariables afterwards as is depicted here:
-
-```{r colnamesEset}
-varNames <- ds.colnames("methyl_df")
-
-# CpGs
-lapply(varNames, head)
-
-# covariables
-lapply(varNames, tail, n=20)
-```
-
-
-We also can, for instance, see the number of individuals that are cases and controls (diagnosis) or knowing their gender status (Sex)
-
-```{r inspect}
-ds.table1D("methyl_df$diagnosis")
-ds.table1D("methyl_df$Sex")
-```
-
-Notice that we have the results as if we had pooled data (this is one of the DataSHIELD main assets!). Another type of data analyses we can do using DataSHIELD functions is fitting a glm model in the multiple studies using an approach that is similar to analyze pooled data
-
-```{r glm}
-ds.glm(cg07363416 ~ diagnosis + Sex, data="methyl_df",
-       family="binomial")
-```
-
-We close the session by:
-
-```{r close_glm, echo=FALSE}
-datashield.logout(conns)
-```
-
-
-## Analysis having methylation data as an `ExpressionSet`
-
-As we have previously mentioned, it is recomended to work with the data encapsulated as an `ExpressionSet` due to two main reasons: 
-
-- Omic data are properly managed into R
-- We can use existing R/Bioc functions to perform downstream analyses
-
-In that case, the resources having the `ExpressionSet`s can be assigned into the R server by using the `as.resource.object()` function
+In order to perform omic data analyses, we need first to login and assign resources to DataSHIELD. This can be performed using the `as.resource.object()` function
 
 ```{r login_assign_eSet}
 builder <- DSI::newDSLoginBuilder()
-builder$append(server = "study1", url = "https://opal-test.obiba.org", 
+builder$append(server = "study1", url = "https://opal-demo.obiba.org", 
                user = "dsuser", password = "password", 
-               resource = "test.GSE66351_1", driver = "OpalDriver")
-builder$append(server = "study2", url = "https://opal-test.obiba.org", 
+               resource = "RSRC.GSE66351_1", driver = "OpalDriver")
+builder$append(server = "study2", url = "https://opal-demo.obiba.org", 
                user = "dsuser", password = "password", 
-               resource = "test.GSE66351_2", driver = "OpalDriver")
+               resource = "RSRC.GSE66351_2", driver = "OpalDriver")
 
 logindata <- builder$build()
 
@@ -408,7 +330,7 @@ Experimental phenotypes variables can be obtained by
 ds.varLabels("methy")
 ```
 
-### Single CpG analysis
+## Single CpG analysis
 
 Once the methylation data have been loaded into the opal server, we can perform different type of analyses using functions from the `dsOmicsClient` package. Let us start by illustrating how to analyze a single CpG from two studies by using an approach that is mathematically equivalent to placing all individual-level.
 
@@ -420,7 +342,7 @@ ans <- ds.lmFeature(feature = "cg07363416",
 ans
 ```
 
-### Multiple CpG analysis
+## Multiple CpG analysis
 
 The same analysis can be performed for all features (e.g. CpGs) just avoiding the `feature` argument. This process can be parallelized using `mclapply` function from the `multicore` package.
 
@@ -433,7 +355,7 @@ ans <- ds.lmFeature(model = ~ diagnosis + Sex,
 ```
 
 
-This method corresponds to the **virtually pooled analysis** approach and can be very time consiming since the function repeatedly calls the DataSHIELD function `ds.glm()`. We can adopt another strategy that is to run a glm of each feature independently at each study using `limma` package (which is really fast) and then combine the results (i.e. **federated meta-analysis** approach). 
+This method corresponds to the **pooled analysis** approach and can be very time consiming since the function repeatedly calls the DataSHIELD function `ds.glm()`. We can adopt another strategy that is to run a glm of each feature independently at each study using `limma` package (which is really fast) and then combine the results (i.e. **meta-analysis** approach). 
 
 
 ```{r limma_methy}
@@ -482,7 +404,7 @@ ans.meta <- metaPvalues(ans.limma)
 ans.meta
 ``` 
 
-This is a genreal method that can be used to meta-analyze p-values We can verify that the results are pretty similar to those obtained using pooled analyses. Here we compute the association for two of the top-CpGs:
+This is a genreal method that can be used ... We can verify that the results are pretty similar to those obtained using pooled analyses. Here we compute the association for two of the top-CpGs:
 
 ```{r one_cpg_val}
 res1 <- ds.lmFeature(feature = "cg13138089", 
@@ -502,33 +424,9 @@ res2
 We can create a QQ-plot by using the generic function `plot` (here not showed). In some cases inflation can be observed, so that, correction for cell-type or surrogate variables must be performed. We describe how we can do that in the next two sections.
 
 
-## Adjusting for cell-type
-The vast majority of studies on DNA methylation are based on blood samples. This is required to adjust for variability in cell-type mixture proportions. There are several methods to address this issue. Here, we adopt the methods proposed in the `meffill` package implemented through the `meffil.estimate.cell.counts.from.betas()` function. The function `ds.lmFeature()` can fit a model adjusted for cell-type composition by setting the argument `cellCountsAdjust=TRUE`.  
-
-- **implementation description to be provided**
-- **get error if required CpGs are not available**
-
-
-```{r remove_ans_limma_annot, echo=FALSE}
-ds.rm("ans.limma.annot")
-```
-
-
-
-```{r one_cpg_cellCount, eval=FALSE}
-ans.cell <- ds.lmFeature(feature = "cg07363416", 
-                    model = ~ diagnosis + Sex, 
-                    Set = "methy", 
-                    cellCountsAdjust = TRUE,
-                    datasources = conns)
-```
-
-By doing that, a new object ...
-
-
 
 ## Adjusting for Surrogate Variables
-The vast majority of omic studies require to control for unwanted variability. The surrogate variable analysis (SVA) can address this issue by estimating some hidden covariates that capture differences across individuals due to some artifacts such as batch effects or sample quality sam among others. The method is implemented in `r Biocpkg("SVA")` package.
+The vast majority of omic studies require to control for unwanted variability. The surrogate variable analysis (SVA) can address this issue by estimating some hidden covariates that capture differences across individuals due to some artifacts such as batch effects or sample quality sam among others. The method is implemented in `r BiocStyle::Biocpkg("SVA")` package.
 
 
 Performing this type of analysis using the `ds.lmFeature` function is not allowed since estimating SVA would require to implement a non-disclosive method that computes SVA from the different servers. This will be a future topic of the `dsOmicsClient`. NOTE that, estimating SVA separately at each server would not be a good idea since the aim of SVA is to capture differences mainly due to experimental issues among ALL individuals. What we can do instead is to use the `ds.limma` function to perform the analyses adjusted for SVA at each study. 
@@ -538,12 +436,12 @@ Performing this type of analysis using the `ds.lmFeature` function is not allowe
 ```{r login_assign_eSet_new, echo=FALSE}
 datashield.logout(conns)
 builder <- DSI::newDSLoginBuilder()
-builder$append(server = "study1", url = "https://opal-test.obiba.org", 
+builder$append(server = "study1", url = "https://opal-demo.obiba.org", 
                user = "dsuser", password = "password", 
-               resource = "test.GSE66351_1", driver = "OpalDriver")
-builder$append(server = "study2", url = "https://opal-test.obiba.org", 
+               resource = "RSRC.GSE66351_1", driver = "OpalDriver")
+builder$append(server = "study2", url = "https://opal-demo.obiba.org", 
                user = "dsuser", password = "password", 
-               resource = "test.GSE66351_2", driver = "OpalDriver")
+               resource = "RSRC.GSE66351_2", driver = "OpalDriver")
 
 logindata <- builder$build()
 
@@ -571,9 +469,7 @@ Then, data can be combined meta-anlyzed as follows:
 ```{r meta_sva}
 ans.meta.sv <- metaPvalues(ans.sva)
 ans.meta.sv
-
 ``` 
-
 
 The DataSHIELD session must by closed by:
 
@@ -590,9 +486,9 @@ Genomic data can be stored in different formats. [PLINK](http://zzz.bwh.harvard.
 
 ## Analysis with Bioconductor packages: example how to extend the resources
 
-In order to deal with this type of data, we have extended the resources available at the `r Githubpkg("obiba/resourcer")` package to VCF files. **NOTE**: PLINK files can be translated into VCF files using different pipelines. In R you can use `r Biocpkg("SeqArray")` to get VCF files. 
+In order to deal with this type of data, we have extended the resources available at the `r CRANpkg("resourcer")` package to VCF files. **NOTE**: PLINK files can be translated into VCF files using different pipelines. In R you can use `r Biocpkg("SeqArray")` to get VCF files. 
 
-We use the Genomic Data Storage (GDS) format which efficiently manage VCF files into the R environment. This extension requires to create a Client and a Resolver function that are located into the `r Biocpkg("dsOmics")` package. The client function uses `snpgdsVCF2GDS` function implemented in `r Biocpkg("SNPrelate")` to coerce the VCF file to a GDS object. Then the GDS object is loaded into R as an object of class `GdsGenotypeReader` from `r Biocpkg("GWASTools")` package that facilitates downstream analyses.
+We use the Genomic Data Storage (GDS) format which efficiently manage VCF files into the R environment. This extension requires to create a Client and a Resolver function that are located into the `r Githupkg("isglobal-brge", "dsOmics")` package. The client function uses `snpgdsVCF2GDS` function implemented in `r Biocpkg("SNPrelate")` to coerce the VCF file to a GDS object. Then the GDS object is loaded into R as an object of class `GdsGenotypeReader` from `r Biocpkg("GWASTools")` package that facilitates downstream analyses.
 
 The opal API server allows to incorporate this new type of resource as illustrated in Figure \@ref(fig:resourceVCF).
 
@@ -618,27 +514,27 @@ We first start by preparing login data
 
 ```{r add_resources_vcf}
 builder <- newDSLoginBuilder()
-builder$append(server = "study1", url = "https://opal-test.obiba.org",
+builder$append(server = "study1", url = "https://opal-demo.obiba.org",
                user = "dsuser", password = "password",
-               resource = "test.brge_vcf", driver = "OpalDriver")
+               resource = "RSRC.brge_vcf", driver = "OpalDriver")
 logindata <- builder$build()
 
 conns <- datashield.login(logins = logindata, assign = TRUE,
                           symbol = "res")
 ```
 
-In this case we have to assign to different resources. One for the VCF (obesity_vcf) and another one for the phenotypic data (obesity). To this end, the `datashield.assign.resource` function is required before assigning any object to the specific resource
+In this case we have to assign to different resources. One for the VCF (obesity_vcf) and another one for the phenotypic data (obesity). To this end, the `datashield.assign.resource` function is required before assigning any object to the specific resource. Notice that the VCF resource can be load into R as a GDS thanks to [our extension](#ext_VCF) of existing resources in the `r BiocStyle::CRANpkg("reourcer")` 
 
 
 ```{r assign_vcf}
 datashield.assign.resource(conns, symbol = "vcf.res", 
-                           resource = list(study1 = "test.brge_vcf"))
+                           resource = list(study1 = "RSRC.brge_vcf"))
 datashield.assign.expr(conns, symbol = "gds", 
                        expr = quote(as.resource.object(vcf.res)))
 
 
 datashield.assign.resource(conns, symbol = "covars.res", 
-                           resource = list(study1 = "test.brge"))
+                           resource = list(study1 = "RSRC.brge"))
 datashield.assign.expr(conns, symbol = "covars", 
                        expr = quote(as.resource.data.frame(covars.res)))
 ```
@@ -659,7 +555,7 @@ ds.colnames("covars")
 The `asthma` variable has this number of individuals at each level (1: controls, 2: cases)
 
 ```{r show_group}
-ds.table1D("covars$asthma")
+ds.table("covars$asthma")
 ```
 
 Then, an object of class `GenotypeData` must be created at the server side to perform genetic data analyses. This is a container defined in the `r Biocpkg("GWASTools")` package for storing genotype and phenotypic data from genetic association studies. By doing that we will also verify whether individuals in the GDS (e.g VCF) and covariates files have the same individuals and are in the same order. This can be performed by
@@ -667,9 +563,6 @@ Then, an object of class `GenotypeData` must be created at the server side to pe
 ```{r createGenoData}
 ds.GenotypeData(x='gds', covars = 'covars', columnId = 1, newobj.name = 'gds.Data')
 ``` 
-
-
-### Association analysis
 
 The association analysis for a given SNP is performed by simply
 
@@ -684,12 +577,6 @@ The analysis of all available SNPs is performed when the argument `snps.fit` is 
 ans.bioC <- ds.GWAS('gds.Data', model=asthma~age+country)
 ```
 
-The results can be visualize using
-
-```{r view_GWAS}
-ans.bioC$study1
-```
-
 
 This close the DataSHIELD session 
 
@@ -698,11 +585,12 @@ datashield.logout(conns)
 ```
 
 
-## Analysis with PLINK: example of using secure shell programs
 
-GWAS data analysis can also be performed using program that are executed using shell commands. This is the case of [PLINK](http://zzz.bwh.harvard.edu/plink/), one of the state-of-the-art programs to run GWAS and other genomic data analyses such gene-enviroment interactions or polygenic risc score analyses that requires efficient and scalable pipelines. We have allowed the use of secure ssh service to run programs on a remote server accessible through ssh containing data and analysis tools where R is just used for launching the analyses and aggregating results. 
+## GWAS with PLINK
 
-We illustrate how to perform the same GWAS analyses on the asthma example previously analyzed using Bioconductor workflows implemented in `ds.GWAS()` function. It is worth to notice that this workflow and the new R functions implemented in `r Githubpkg("isglobal-brge/dsOmicsClient")` could be used as a guideline to carry out similar analyses using existing analysis tools in genomics such as IMPUTE, SAMtools or BEDtools among many others. 
+Here we illustrate how to perform the same GWAS analyses on the asthma using PLINK secure shell commands. This can be performed thanks to the posibility of having ssh resources as described [here](#shell_extension).
+
+It is worth to notice that this workflow and the new R functions implemented in `r Githubpkg("isglobal-brge/dsOmicsClient")` could be used as a guideline to carry out similar analyses using existing analysis tools in genomics such as IMPUTE, SAMtools or BEDtools among many others. 
 
 We start by assigning login resources 
 
@@ -711,12 +599,11 @@ library(DSOpal)
 library(dsBaseClient)
 library(dsOmicsClient)
 builder <- newDSLoginBuilder()
-builder$append(server = "study1", url = "https://opal-test.obiba.org",
+builder$append(server = "study1", url = "https://opal-demo.obiba.org",
                user = "dsuser", password = "password",
-               resource = "test.brge_plink", driver = "OpalDriver")
+               resource = "RSRC.brge_plink", driver = "OpalDriver")
 logindata <- builder$build()
 ```
-
 
 Then we assign the resource to a symbol (i.e. R object) called `client` which is a ssh resource
 
@@ -764,8 +651,8 @@ res.plink <- ans.plink$study1$results %>% filter(TEST=="ADD") %>%
   arrange(P)
 # compare top-10 with Biocoductor's results
 snps <- res.plink$SNP[1:10]
-plink <- res.plink %>% filter(SNP%in%snps) %>% select(SNP, P)
-bioC <- ans.bioC$study1 %>% filter(rs%in%snps) %>% select(rs, Score.pval)
+plink <- res.plink %>% filter(SNP%in%snps) %>% dplyr::select(SNP, P)
+bioC <- ans.bioC$study1 %>% filter(rs%in%snps) %>% dplyr::select(rs, Score.pval)
 left_join(plink, bioC, by=c("SNP" = "rs"))
 ```
 
@@ -779,25 +666,11 @@ plink.arguments <- "--bfile brge --freq"
 ans.plink2 <- ds.PLINK("client", plink.arguments)
 maf.plink <- ans.plink2$study1$results
 
-plink <- maf.plink %>% filter(SNP%in%snps) %>% select(SNP, MAF)
-bioC <- ans.bioC$study1 %>% filter(rs%in%snps) %>% select(rs, freq)
+plink <- maf.plink %>% filter(SNP%in%snps) %>% dplyr::select(SNP, MAF)
+bioC <- ans.bioC$study1 %>% filter(rs%in%snps) %>% dplyr::select(rs, freq)
 left_join(plink, bioC, by=c("SNP" = "rs"))
 ```
 
-Finally, Manhattan plots can be created by using this generic function that can be addapted to all situations. That is, DGE, EWAS or GWAS from analyses performed at each server of meta-analyzed
-
-```{r manhattaPlink, fig.cap="Manhattan plot for asthma study. The labelled SNP is the one that passed a p-value threshold equal to 1e-6.", fig.height=4}
-manhattan(ans.bioC$study1, featureCol = 2, chrCol = 3, posCol=4, pvalCol = 11, 
-          threshold = 1e-6)
-```
-
-We can see whether inflation is present in our analyses (due to population stratification in GWAS or to hidden variables accouinting for unwanted variability) by computing $\lambda$ value in a QQ-plot
-
-
-
-
-
-PLINK with two studies ..... TO BE SUPPLIED
 
 
 This close the DataSHIELD session 
@@ -808,6 +681,6 @@ datashield.logout(conns)
 
 
 # Acknowledgments
-JRG want to thank Deroshan Padotan for having worked on a preliminary version of `dsOmicsClient` package developed before the `resourcer` package was created. We also thank Demetris Avraam for his feedback while programming DataSHIELD functions and writing the vignette. 
+JRG want to thank Deroshan Padotan for having worked on a preliminary version of `dsOmicsClient` package developed before the `resourcer` package was created. We also thank Demetris Avraam for his feedback while programming DataSHIELD functions and writing the vignette. Leire Abarrategui is acknowledged for implementing RNA-seq data analysis using DESeq2 and edgeR.
 
 # References

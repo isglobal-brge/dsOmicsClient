@@ -1,15 +1,20 @@
-##' Performing differential expression analysis using limma 
+#'
+##' @title Server-side Differential Gene Expression analysis using limma
 ##' 
-##' The function  ...
-##' Outputs a matrix containing ...
-##' @title Differential expression using limma
+##' @description  This function performs a non-disclosive
+##' Differential Gene Expression Analysis using \code{limma} package from Bioconductor.
+#' 
+##' @details Implementation of Bioconductor's \code{limma} in DataSHIELD using \code{MEAL} package
+#' 
 ##' @param model formula indicating the condition (left side) and other covariates to be adjusted for 
 ##' (i.e. condition ~ covar1 + ... + covar2). The fitted model is: feature ~ condition + covar1 + ... + covarN
 ##' @param Set name of the DataSHIELD object to which the ExpresionSet or RangedSummarizedExperiment has been assigned
 ##' @param type.data optional parameter that allows the user to specify the number of CPU cores to use during 
 ##' @param sva logical value 
-##' @param annotCols ...
-##' @param datasources ....
+##' @param annotCols the column names of the annotation available in the ExpresionSet or RangedSummarizedExperiment (see fData() function)
+##' @param datasources a list of \code{\link{DSConnection-class}} objects obtained after login. 
+#' If the \code{datasources} argument is not specified
+#' the default set of connections will be used: see \code{\link{datashield.connections_default}}.
 ##' 
 ##' @export
 ##' @examples
@@ -52,12 +57,11 @@ ds.limma <- function(model, Set, type.data="microarray",
     contrasts<-paste(contrasts, collapse=",")  
   }
     
-
-  
   calltext <- call("limmaDS", Set, variable_names,
                    covariable_names, type, contrasts,
                    levels,coef, sva, annotCols)
-  output <- datashield.aggregate(datasources, calltext)
-  return(output)
+  ans <- datashield.aggregate(datasources, calltext)
+  class(ans) <- c("dsLimma", class(ans))
+  return(ans)
   
 }
