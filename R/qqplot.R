@@ -1,8 +1,10 @@
-#' Create a quantile-quantile plot with ggplot2.
-#'
+#' 
+#' @title Create a quantile-quantile plot with ggplot2.
+#' @description 
 #' Assumptions:
-#'   - Expected P values are uniformly distributed.
-#'   - Confidence intervals assume independence between tests.
+#' 
+#'   - Expected P values are uniformly distributed.\cr
+#'   - Confidence intervals assume independence between tests.\cr
 #'     We expect deviations past the confidence intervals if the tests are
 #'     not independent.
 #'     For example, in a genome-wide association study, the genotype at any
@@ -10,11 +12,14 @@
 #'     will result in similar test statistics.
 #'
 #' @param ps Vector of p-values.
-#' @param ci Size of the confidence interval, 95% by default.
+#' @param ci Size of the confidence interval, 95\% by default.
 #' @return A ggplot2 plot.
 #' @examples
 #' library(ggplot2)
 #' gg_qqplot(runif(1e2)) + theme_grey(base_size = 24)
+#' 
+#' @export
+#' 
 
 qqplot <- function(ps, ci = 0.95) {
   
