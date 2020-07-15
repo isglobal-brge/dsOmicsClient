@@ -40,15 +40,21 @@ ds.edgeR <- function(model, set, test = "QLF", dispersion = "both",
   intercept <- model.terms$intercept
   
   
-  if(test != "QLF" & test != "LRT")
+  test <- charmatch(test, c("QLF", "LRT"))
+  if(is.na(test))
   {
-    stop("Function argument 'test' has to be either 'QLF' or  'LRT'", call.=FALSE)
-  }   
+    stop("Function argument 'test' has to be either 'QLF' or  'LRT'", call.=FALSE) 
+  }
+    
   
-  if(dispersion != "both" & dispersion != "common" & fitType != "tagwise")
+  
+  dispersion <- charmatch(dispersion, c("both", "common","tagwise"))
+  
+  if(is.na(dispersion))
   {
-    stop("Function argument 'fitType' has to be either 'both','common' or 'tagwise'", call.=FALSE)
-  }  
+    stop("Function argument 'fitType' has to be either 'both','common' or 'tagwise'", call.=FALSE)  
+  }
+    
   
   if (levels[1] != "design")
   {
@@ -60,7 +66,7 @@ ds.edgeR <- function(model, set, test = "QLF", dispersion = "both",
     contrast <- paste(contrast, collapse=",")
   }
   # call the server side function
-  calltext <- call("edgeRDS",variable_names, set, test, dispersion, contrast, levels,coef)
+  calltext <- call("edgeRDS",set, variable_names, intercept, dispersion, contrast, levels, test, coef)
   output <- datashield.aggregate(datasources, calltext)
   return(output)
 }
