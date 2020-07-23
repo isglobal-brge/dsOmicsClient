@@ -3,7 +3,7 @@
 #' @description Creates a QQ-plot to visualize inflation
 #' 
 #' @param ps Vector of p-values.
-#' @param ci Size of the confidence interval, 95% by default.
+#' @param ci Size of the confidence interval, 95\% by default.
 #' @return A ggplot2 plot.
 #' @export
 #' @import ggplot2

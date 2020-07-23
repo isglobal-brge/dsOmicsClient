@@ -9,7 +9,7 @@ qqplot(ps, ci = 0.95)
 \arguments{
 \item{ps}{Vector of p-values.}
 
-\item{ci}{Size of the confidence interval, 95% by default.}
+\item{ci}{Size of the confidence interval, 95\% by default.}
 }
 \value{
 A ggplot2 plot.
