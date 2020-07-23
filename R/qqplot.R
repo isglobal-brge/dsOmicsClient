@@ -18,9 +18,11 @@ qqplot <- function(ps, ci = 0.95) {
   }
   
   n  <- length(ps)
+  observed <- -log10(sort(ps))
+  expected <- -log10(ppoints(n))
   df <- data.frame(
-    observed = -log10(sort(ps)),
-    expected = -log10(ppoints(n)),
+    observed = observed,
+    expected = expected,
     clower   = -log10(qbeta(p = (1 - ci) / 2, shape1 = 1:n, shape2 = n:1)),
     cupper   = -log10(qbeta(p = (1 + ci) / 2, shape1 = 1:n, shape2 = n:1))
   )
@@ -36,7 +38,7 @@ qqplot <- function(ps, ci = 0.95) {
     # geom_line(aes(expected, cupper), linetype = 2, size = 0.5) +
     # geom_line(aes(expected, clower), linetype = 2, size = 0.5) +
     xlab(log10Pe) + ylab(log10Po) + 
-    annotate(geom = "text", x = min(expected), y = max(observed), hjust = 1, 
-             label = sprintf("λ = %.2f", inflation(x$Score.pval)),
+    annotate(geom = "text", x = min(expected), y = max(observed), hjust = 0, 
+             label = sprintf("λ = %.2f", inflation(ps)),
              size = 4)
 }

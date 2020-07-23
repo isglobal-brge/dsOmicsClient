@@ -404,7 +404,7 @@ ans.meta <- metaPvalues(ans.limma)
 ans.meta
 ``` 
 
-This is a genreal method that can be used ... We can verify that the results are pretty similar to those obtained using pooled analyses. Here we compute the association for two of the top-CpGs:
+We can verify that the results are pretty similar to those obtained using pooled analyses. Here we compute the association for two of the top-CpGs:
 
 ```{r one_cpg_val}
 res1 <- ds.lmFeature(feature = "cg13138089", 
@@ -421,7 +421,13 @@ res2
 ```
 
 
-We can create a QQ-plot by using the function `plot` (here not showed). In some cases inflation can be observed, so that, correction for cell-type or surrogate variables must be performed. We describe how we can do that in the next two sections.
+We can create a QQ-plot by using the function `qqplot` available in our package.
+
+```{r qqplot}
+qqplot(ans.meta$p.meta)
+```
+
+Here In some cases inflation can be observed, so that, correction for cell-type or surrogate variables must be performed. We describe how we can do that in the next two sections.
 
 
 
