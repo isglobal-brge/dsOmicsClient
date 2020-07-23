@@ -2,7 +2,7 @@
 % Please edit documentation in R/ds.limma.R
 \name{ds.limma}
 \alias{ds.limma}
-\title{Differential expression using limma}
+\title{Server-side Differential Gene Expression analysis using limma}
 \usage{
 ds.limma(
   model,
@@ -26,16 +26,18 @@ ds.limma(
 
 \item{sva}{logical value}
 
-\item{annotCols}{...}
+\item{annotCols}{the column names of the annotation available in the ExpresionSet or RangedSummarizedExperiment (see fData() function)}
 
-\item{datasources}{....}
+\item{datasources}{a list of \code{\link{DSConnection-class}} objects obtained after login. 
+If the \code{datasources} argument is not specified
+the default set of connections will be used: see \code{\link{datashield.connections_default}}.}
 }
 \description{
-Performing differential expression analysis using limma
+This function performs a non-disclosive
+Differential Gene Expression Analysis using \code{limma} package from Bioconductor.
 }
 \details{
-The function  ...
-Outputs a matrix containing ...
+Implementation of Bioconductor's \code{limma} in DataSHIELD using \code{MEAL} package
 }
 \examples{
 

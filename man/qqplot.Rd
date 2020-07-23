@@ -2,7 +2,7 @@
 % Please edit documentation in R/qqplot.R
 \name{qqplot}
 \alias{qqplot}
-\title{Create a quantile-quantile plot with ggplot2.}
+\title{Quantile-quantile plot}
 \usage{
 qqplot(ps, ci = 0.95)
 }
@@ -15,14 +15,7 @@ qqplot(ps, ci = 0.95)
 A ggplot2 plot.
 }
 \description{
-Assumptions:
-  - Expected P values are uniformly distributed.
-  - Confidence intervals assume independence between tests.
-    We expect deviations past the confidence intervals if the tests are
-    not independent.
-    For example, in a genome-wide association study, the genotype at any
-    position is correlated to nearby positions. Tests of nearby genotypes
-    will result in similar test statistics.
+Creates a QQ-plot to visualize inflation
 }
 \examples{
 library(ggplot2)
