@@ -17,7 +17,3 @@ A ggplot2 plot.
 \description{
 Creates a QQ-plot to visualize inflation
 }
-\examples{
-library(ggplot2)
-gg_qqplot(runif(1e2)) + theme_grey(base_size = 24)
-}

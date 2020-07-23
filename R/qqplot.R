@@ -5,9 +5,9 @@
 #' @param ps Vector of p-values.
 #' @param ci Size of the confidence interval, 95% by default.
 #' @return A ggplot2 plot.
-#' @examples
-#' library(ggplot2)
-#' gg_qqplot(runif(1e2)) + theme_grey(base_size = 24)
+#' @export
+#' @import ggplot2
+#' 
 
 qqplot <- function(ps, ci = 0.95) {
   
