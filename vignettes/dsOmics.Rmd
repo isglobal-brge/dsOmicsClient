@@ -570,12 +570,31 @@ Then, an object of class `GenotypeData` must be created at the server side to pe
 ds.GenotypeData(x='gds', covars = 'covars', columnId = 1, newobj.name = 'gds.Data')
 ``` 
 
+Prior to performing the association analysis, a Hardy-Weinberg Equilibrium test and an allele frequency study can be performed on the loaded data. The only requirement to do so is to have a gender column on the covariates table, which on this example is true. The information needed to perform those two analysis is the name of the gender column as well as the names used for describing males and females. The name of the gender column has been retrieved before with the use of `ds.colnames("covars")`, the names to describe the gender can be obtained with
+
+```{r}
+ds.table1D("covars$gender")$counts
+```
+
+On this example is `1/2`. To perform the Hardy-Weinberg Equilibrium test do
+
+```{r}
+head(ds.exactHWE("gds.Data", sexcol = "gender", male = "1", female = "2", snpStart = 1000, snpEnd = 2000)[[1]])
+```
+
+Please note that on the previous example a SNP window had to be specified to avoid including SNPs from the Y chromosome, as quoting the documentation of the function: "*Y and M and chromsome SNPs are not permitted in the SNP selection, since the HWE test is not valid for these SNPs*".
+
+To get the allele frequencies do 
+
+```{r}
+head(ds.alleleFrequency("gds.Data", sexcol = "gender", male = "1", female = "2")[[1]])
+```
+
 The association analysis for a given SNP is performed by simply
 
 ```{r snp_analysis}
 ds.glmSNP(snps.fit = "rs11247693", model = asthma ~ gender + age, genoData='gds.Data')
 ```
-
 
 The analysis of all available SNPs is performed when the argument `snps.fit` is missing. The function performs the analysis of the selected SNPs in a single repository or in multiple repositories as performing pooled analyses (it uses `ds.glm` DataSHIELD function). As in the case of transcriptomic data, analyzing all the SNPs in the genome (e.g GWAS) will be high time-consuming. We can adopt a similar approach as the one adopted using the `r Biocpkg("limma")` at each server. That is, we run GWAS at each repository using specific and scalable packages available in R/Bioc. In that case we use the `r Biocpkg("GWASTools")` and `r Biocpkg("GENESIS")` packages. The complete pipeline is implemented in this function 
 
