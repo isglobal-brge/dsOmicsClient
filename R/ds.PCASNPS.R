@@ -1,13 +1,15 @@
-#' Title
+#' @title Principal Component Analysis (PCA) on SNP genotype data
+#' 
+#' @description PCA for genotype data on the study server
 #'
-#' @param gds 
-#' @param ld.threshold 
-#' @param datasources 
+#' @param gds \code{character} Name of the \code{GDS} object
+#' @param prune \code{bool} (default \code{TRUE}) \code{TRUE} to prune the GDS file using \code{SNPRelate::snpgdsLDpruning}
+#' @param ld.threshold Threshold for the pruning (see \code{\link{snpgdsLDpruning}})
+#' @param datasources a list of \code{\link{DSConnection-class}} objects obtained after login. 
 #'
-#' @return
+#' @return \code{ggplot} object with PCA plot (x axis First principal component; y axis Second principal component)
 #' @export
-#'
-#' @examples
+
 ds.PCASNPS <- function(gds, prune = TRUE, ld.threshold = 0.2, datasources = NULL){
   
   if (is.null(datasources)) {

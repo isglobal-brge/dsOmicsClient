@@ -2,20 +2,22 @@
 % Please edit documentation in R/ds.PCASNPS.R
 \name{ds.PCASNPS}
 \alias{ds.PCASNPS}
-\title{Title}
+\title{Principal Component Analysis (PCA) on SNP genotype data}
 \usage{
 ds.PCASNPS(gds, prune = TRUE, ld.threshold = 0.2, datasources = NULL)
 }
 \arguments{
-\item{gds}{}
+\item{gds}{\code{character} Name of the \code{GDS} object}
 
-\item{ld.threshold}{}
+\item{prune}{\code{bool} (default \code{TRUE}) \code{TRUE} to prune the GDS file using \code{SNPRelate::snpgdsLDpruning}}
 
-\item{datasources}{}
+\item{ld.threshold}{Threshold for the pruning (see \code{\link{snpgdsLDpruning}})}
+
+\item{datasources}{a list of \code{\link{DSConnection-class}} objects obtained after login.}
 }
 \value{
-
+\code{ggplot} object with PCA plot (x axis First principal component; y axis Second principal component)
 }
 \description{
-Title
+PCA for genotype data on the study server
 }
