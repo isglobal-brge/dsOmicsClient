@@ -558,7 +558,7 @@ We can use `r Githubpkg("datashield/dsBaseClient")` functions to inspect the var
 ds.colnames("covars")
 ```
 
-The `asthma` variable has this number of individuals at each level (1: controls, 2: cases)
+The `asthma` variable has this number of individuals at each level (0: controls, 1: cases)
 
 ```{r show_group}
 ds.table("covars$asthma")
@@ -570,27 +570,29 @@ Then, an object of class `GenotypeData` must be created at the server side to pe
 ds.GenotypeData(x='gds', covars = 'covars', columnId = 1, newobj.name = 'gds.Data')
 ``` 
 
-Prior to performing the association analysis, a Hardy-Weinberg Equilibrium test and an allele frequency study can be performed on the loaded data. The only requirement to do so is to have a gender column on the covariates table, which on this example is true. The information needed to perform those two analysis is the name of the gender column as well as the names used for describing males and females. The name of the gender column has been retrieved before with the use of `ds.colnames("covars")`, the names to describe the gender can be obtained with
+Before performing association analyses, a Hardy-Weinberg Equilibrium test (HWE) and allele frequency estimates can be obtained. Tho this end, a variable providing gender information on the covariates table is required. Remember that we can visualize the names of the variables from our data by executing `ds.colnames("covars")`. In our case, this variable is called "gender", and the levels of this variable are 1 for male and 2 for female as we can see here (NOTE: we cannot use `ds.levels` since gender variable is not a factor): 
 
-```{r}
-ds.table1D("covars$gender")$counts
+```{r tableCovar}
+ds.table1D("covars$gender")
 ```
 
-On this example is `1/2`. To perform the Hardy-Weinberg Equilibrium test do
+Therefore, HWE can be performed by:
 
-```{r}
-head(ds.exactHWE("gds.Data", sexcol = "gender", male = "1", female = "2", snpStart = 1000, snpEnd = 2000)[[1]])
+```{r exactHWE}
+ds.exactHWE("gds.Data", sexcol = "gender", male = "1", female = "2", snpStart = 1000, snpEnd = 2000)
 ```
 
 Please note that on the previous example a SNP window had to be specified to avoid including SNPs from the Y chromosome, as quoting the documentation of the function: "*Y and M and chromsome SNPs are not permitted in the SNP selection, since the HWE test is not valid for these SNPs*".
 
-To get the allele frequencies do 
+Similarly, allele frequencies estimates can be estimate by:
 
-```{r}
-head(ds.alleleFrequency("gds.Data", sexcol = "gender", male = "1", female = "2")[[1]])
+```{r alleleFreq}
+ds.alleleFrequency("gds.Data", sexcol = "gender", male = "1", female = "2")
 ```
 
-The association analysis for a given SNP is performed by simply
+In the future, more functions will be created to perform quality control (QC) for both, SNPs and inviduals. 
+
+Association analysis for a given SNP is performed by simply
 
 ```{r snp_analysis}
 ds.glmSNP(snps.fit = "rs11247693", model = asthma ~ gender + age, genoData='gds.Data')
@@ -706,6 +708,6 @@ datashield.logout(conns)
 
 
 # Acknowledgments
-JRG want to thank Deroshan Padotan for having worked on a preliminary version of `dsOmicsClient` package developed before the `resourcer` package was created. We also thank Demetris Avraam for his feedback while programming DataSHIELD functions and writing the vignette. Leire Abarrategui is acknowledged for implementing RNA-seq data analysis using DESeq2 and edgeR.
+JRG want to thank Deroshan Padotan for having worked on a preliminary version of `dsOmicsClient` package developed before the `resourcer` package was created. We also thank Demetris Avraam for his feedback while programming DataSHIELD functions and writing the vignette. Leire Abarrategui is acknowledged for implementing RNA-seq data analysis using DESeq2 and edgeR. Xavier Escribà is also acknowledged for the implementation of several functions to summarize and perform quality control of SNP data.
 
 # References
