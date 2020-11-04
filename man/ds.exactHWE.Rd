@@ -9,9 +9,8 @@ ds.exactHWE(
   sexcol = "sex",
   male = "M",
   female = "F",
+  chromosome = "all",
   geno.counts = TRUE,
-  snpStart = NULL,
-  snpEnd = NULL,
   block.size = 5000,
   permute = FALSE,
   datasources = NULL
@@ -29,11 +28,10 @@ ds.exactHWE(
 \item{female}{\code{character} (default \code{"M"}) Name of the female indicator of the sex column on the covariates file used to create the 
 \code{\link{GenotypeData}} object. (Note that it is case sensitive so it's not the same \code{female} than \code{Female})}
 
+\item{chromosome}{\code{character} Chromosome to study. \code{"all"} to study all available chromosomes. Use
+\code{ds.getChromosomeNames(genoData)} to retrieve the name encodings of the chromosomes.}
+
 \item{geno.counts}{\code{bool} (default \code{TRUE}) if \code{TRUE}, genotype counts are returned in the output data.frame}
-
-\item{snpStart}{\code{numeric} (default \code{NULL}) index of the first SNP to analyze, defaults to first SNP (\code{NULL})}
-
-\item{snpEnd}{\code{numeric} (default \code{NULL}) index of the last SNP to analyze, defaults to last SNP (\code{NULL})}
 
 \item{block.size}{\code{numeric} (default \code{5000}) number of SNPs to read in at once}
 

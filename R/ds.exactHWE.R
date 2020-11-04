@@ -21,9 +21,9 @@
 #' \code{\link{GenotypeData}} object. (Note that it is case sensitive so it's not the same \code{male} than \code{Male})
 #' @param female \code{character} (default \code{"M"}) Name of the female indicator of the sex column on the covariates file used to create the 
 #' \code{\link{GenotypeData}} object. (Note that it is case sensitive so it's not the same \code{female} than \code{Female})
+#' @param chromosome \code{character} Chromosome to study. \code{"all"} to study all available chromosomes. Use
+#' \code{ds.getChromosomeNames(genoData)} to retrieve the name encodings of the chromosomes.
 #' @param geno.counts \code{bool} (default \code{TRUE}) if \code{TRUE}, genotype counts are returned in the output data.frame
-#' @param snpStart \code{numeric} (default \code{NULL}) index of the first SNP to analyze, defaults to first SNP (\code{NULL})
-#' @param snpEnd \code{numeric} (default \code{NULL}) index of the last SNP to analyze, defaults to last SNP (\code{NULL})
 #' @param block.size \code{numeric} (default \code{5000}) number of SNPs to read in at once
 #' @param permute \code{bool} (default \code{FALSE}) logical indicator for whether to permute alleles before calculations
 #' @param datasources a list of \code{\link{DSConnection-class}} objects obtained after login. 
@@ -44,7 +44,7 @@
 #' 
 #' @export
 
-ds.exactHWE <- function(genoData, sexcol = "sex", male = "M", female = "F", geno.counts = TRUE, snpStart = NULL, snpEnd = NULL,
+ds.exactHWE <- function(genoData, sexcol = "sex", male = "M", female = "F", chromosome = "all", geno.counts = TRUE,
                         block.size = 5000, permute = FALSE, datasources = NULL){
   
   if (is.null(datasources)) {
@@ -53,8 +53,7 @@ ds.exactHWE <- function(genoData, sexcol = "sex", male = "M", female = "F", geno
   
   cally <- paste0("exactHWEDS(", genoData, ", '", sexcol, "', '", male, "', '", female,
                   "', geno.counts = ", if(!is.null(geno.counts)){geno.counts}else{"NULL"}, 
-                  ", snpStart = ", if(!is.null(snpStart)){snpStart}else{"NULL"}, ", snpEnd = ",
-                  if(!is.null(snpEnd)){snpEnd}else{"NULL"}, ", block.size = ", block.size, ", permute = ",
+                  ", chromosome = '", chromosome, "', block.size = ", block.size, ", permute = ",
                   permute, ")"
                   )
   ans <- datashield.aggregate(datasources, as.symbol(cally))
