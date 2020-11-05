@@ -1,0 +1,52 @@
+
+The vast majority of omic studies require to control for unwanted variability. The surrogate variable analysis (SVA) can address this issue by estimating some hidden covariates that capture differences across individuals due to some artifacts such as batch effects or sample quality sam among others. The method is implemented in `r BiocStyle::Biocpkg("SVA")` package.
+
+
+Performing this type of analysis using the `ds.lmFeature` function is not allowed since estimating SVA would require to implement a non-disclosive method that computes SVA from the different servers. This will be a future topic of the `dsOmicsClient`. NOTE that, estimating SVA separately at each server would not be a good idea since the aim of SVA is to capture differences mainly due to experimental issues among ALL individuals. What we can do instead is to use the `ds.limma` function to perform the analyses adjusted for SVA at each study. 
+
+
+
+```{r login_assign_eSet_new, echo=FALSE}
+datashield.logout(conns)
+builder <- DSI::newDSLoginBuilder()
+builder$append(server = "study1", url = "https://opal-demo.obiba.org", 
+               user = "dsuser", password = "password", 
+               resource = "RSRC.GSE66351_1", driver = "OpalDriver")
+builder$append(server = "study2", url = "https://opal-demo.obiba.org", 
+               user = "dsuser", password = "password", 
+               resource = "RSRC.GSE66351_2", driver = "OpalDriver")
+
+logindata <- builder$build()
+
+conns <- DSI::datashield.login(logins = logindata, assign = TRUE, 
+                               symbol = "res")
+
+
+# Assign to the original R class (e.g ExpressionSet)
+datashield.assign.expr(conns, symbol = "methy", 
+                       expr = quote(as.resource.object(res)))
+
+```
+
+
+
+```{r all_cpg_sva}
+ans.sva <- ds.limma(model = ~ diagnosis + Sex, 
+                    Set = "methy",
+                    sva = TRUE, annotCols = c("CHR", "UCSC_RefGene_Name"))
+ans.sva
+```
+
+Then, data can be combined meta-anlyzed as follows: 
+  
+```{r meta_sva}
+ans.meta.sv <- metaPvalues(ans.sva)
+ans.meta.sv
+``` 
+
+The DataSHIELD session must by closed by:
+  
+```{r close_ds}
+datashield.logout(conns)
+```
+

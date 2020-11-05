@@ -1,0 +1,12 @@
+Once the methylation data have been loaded into the opal server, we can perform different type of analyses using functions from the `dsOmicsClient` package. Let us start by illustrating how to analyze a single CpG from two studies by using an approach that is mathematically equivalent to placing all individual-level.
+
+```{r one_cpg}
+ans <- ds.lmFeature(feature = "cg07363416", 
+                    model = ~ diagnosis + Sex, 
+                    Set = "methy",
+                    datasources = conns)
+ans
+```
+
+
+

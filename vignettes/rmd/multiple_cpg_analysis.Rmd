@@ -1,0 +1,84 @@
+The same analysis can be performed for all features (e.g. CpGs) just avoiding the `feature` argument. This process can be parallelized using `mclapply` function from the `multicore` package.
+
+
+```{r multiple_cpg, eval=FALSE}
+ans <- ds.lmFeature(model = ~ diagnosis + Sex, 
+                    Set = "methy",
+                    datasources = conns,
+                    mc.cores = 20)
+```
+
+
+This method corresponds to the **pooled analysis** approach and can be very time consiming since the function repeatedly calls the DataSHIELD function `ds.glm()`. We can adopt another strategy that is to run a glm of each feature independently at each study using `limma` package (which is really fast) and then combine the results (i.e. **meta-analysis** approach). 
+
+
+```{r limma_methy}
+ans.limma <- ds.limma(model = ~ diagnosis + Sex,
+                      Set = "methy", 
+                      datasources = conns)
+```
+
+Then, we can visualize the top genes at each study (i.e server) by 
+
+```{r show_limma_methy}
+lapply(ans.limma, head)
+```
+
+The annotation can be added by using the argument `annotCols`. It should be a vector with the columns of the annotation available in the `ExpressionSet` or `RangedSummarizedExperiment` that want to be showed. The columns of the annotation can be obtained by
+
+```{r show_annot_cols}
+ds.fvarLabels("methy")
+```
+
+Then we can run the analysis and obtain the output with the chromosome and gene symbol by:
+  
+  
+```{r remove_ans_limma, eval=FALSE, echo=FALSE}
+ds.rm("ans.limma")
+```
+
+
+
+```{r limma_methy_annot}
+ans.limma.annot <- ds.limma(model = ~ diagnosis + Sex,
+                            Set = "methy", 
+                            annotCols = c("CHR", "UCSC_RefGene_Name"),
+                            datasources = conns)
+```
+
+```{r show_limma_methy_annot}
+lapply(ans.limma.annot, head)
+```
+
+
+Then, the last step is to meta-analyze the results. Different methods can be used to this end. We have implemented a method that meta-analyze the p-pvalues of each study as follows:
+  
+```{r meta_p}
+ans.meta <- metaPvalues(ans.limma)
+ans.meta
+``` 
+
+We can verify that the results are pretty similar to those obtained using pooled analyses. Here we compute the association for two of the top-CpGs:
+  
+```{r one_cpg_val}
+res1 <- ds.lmFeature(feature = "cg13138089", 
+                     model = ~ diagnosis + Sex, 
+                     Set = "methy",
+                     datasources = conns)
+res1
+
+res2 <- ds.lmFeature(feature = "cg13772815", 
+                     model = ~ diagnosis + Sex, 
+                     Set = "methy",
+                     datasources = conns)
+res2
+```
+
+
+We can create a QQ-plot by using the function `qqplot` available in our package.
+
+```{r qqplot}
+qqplot(ans.meta$p.meta)
+```
+
+Here In some cases inflation can be observed, so that, correction for cell-type or surrogate variables must be performed. We describe how we can do that in the next two sections.
