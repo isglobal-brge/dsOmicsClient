@@ -15,5 +15,17 @@ qqplot(ps, ci = 0.95)
 A ggplot2 plot.
 }
 \description{
-Creates a QQ-plot to visualize inflation
+Assumptions:
+
+  - Expected P values are uniformly distributed.\cr
+  - Confidence intervals assume independence between tests.\cr
+    We expect deviations past the confidence intervals if the tests are
+    not independent.
+    For example, in a genome-wide association study, the genotype at any
+    position is correlated to nearby positions. Tests of nearby genotypes
+    will result in similar test statistics.
+}
+\examples{
+library(ggplot2)
+gg_qqplot(runif(1e2)) + theme_grey(base_size = 24)
 }

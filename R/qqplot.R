@@ -1,4 +1,15 @@
-#' @title Quantile-quantile plot 
+#' 
+#' @title Create a quantile-quantile plot with ggplot2.
+#' @description 
+#' Assumptions:
+#' 
+#'   - Expected P values are uniformly distributed.\cr
+#'   - Confidence intervals assume independence between tests.\cr
+#'     We expect deviations past the confidence intervals if the tests are
+#'     not independent.
+#'     For example, in a genome-wide association study, the genotype at any
+#'     position is correlated to nearby positions. Tests of nearby genotypes
+#'     will result in similar test statistics.
 #'
 #' @description Creates a QQ-plot to visualize inflation
 #' 
