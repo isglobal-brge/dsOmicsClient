@@ -16,59 +16,59 @@ conns <- datashield.login(logins = logindata, assign = TRUE,
 In this case we have to assign to different resources. One for the VCF (obesity_vcf) and another one for the phenotypic data (obesity). To this end, the `datashield.assign.resource` function is required before assigning any object to the specific resource. Notice that the VCF resource can be load into R as a GDS thanks to [our extension](#ext_VCF) of existing resources in the `r BiocStyle::CRANpkg("reourcer")` 
   
   
-  ```{r assign_vcf}
-  datashield.assign.resource(conns, symbol = "vcf.res", 
-                             resource = list(study1 = "RSRC.brge_vcf"))
-  datashield.assign.expr(conns, symbol = "gds", 
-                         expr = quote(as.resource.object(vcf.res)))
+```{r assign_vcf}
+datashield.assign.resource(conns, symbol = "vcf.res", 
+                           resource = list(study1 = "RSRC.brge_vcf"))
+datashield.assign.expr(conns, symbol = "gds", 
+                       expr = quote(as.resource.object(vcf.res)))
+
+
+datashield.assign.resource(conns, symbol = "covars.res", 
+                           resource = list(study1 = "RSRC.brge"))
+datashield.assign.expr(conns, symbol = "covars", 
+                       expr = quote(as.resource.data.frame(covars.res)))
+```
   
+These are the objects available in the Opal server
   
-  datashield.assign.resource(conns, symbol = "covars.res", 
-                             resource = list(study1 = "RSRC.brge"))
-  datashield.assign.expr(conns, symbol = "covars", 
-                         expr = quote(as.resource.data.frame(covars.res)))
-  ```
-  
-  These are the objects available in the Opal server
-  
-  ```{r ls_vcf}
-  ds.ls()
-  ```
+```{r ls_vcf}
+ds.ls()
+```
   
   We can use `r Githubpkg("datashield/dsBaseClient")` functions to inspect the variables that are in the `covars` data.frame. The variables are
   
   
-  ```{r show_covars}
-  ds.colnames("covars")
-  ```
+```{r show_covars}
+ds.colnames("covars")
+```
   
-  The `asthma` variable has this number of individuals at each level (0: controls, 1: cases)
+The `asthma` variable has this number of individuals at each level (0: controls, 1: cases)
   
-  ```{r show_group}
-  ds.table("covars$asthma")
-  ```
+```{r show_group}
+ds.table("covars$asthma")
+```
   
-  There may be interest in only studying certain genes, for that matter, the loaded VCF resource can be subsetting as follows
+There may be interest in only studying certain genes, for that matter, the loaded VCF resource can be subsetting as follows
   
-  ```{r gene_subset_1, eval=FALSE}
-  genes <- c("A1BG","A2MP1")
-  ds.getSNPSbyGen("gds", genes)
-  ```
+```{r gene_subset_1, eval=FALSE}
+genes <- c("A1BG","A2MP1")
+ds.getSNPSbyGen("gds", genes)
+```
+
+The previous code will over-write the VCF with the SNPs corresponding to the selected genes, if the intention is to perform studies with both the complete VCF and a subsetted one, the argument `name` can be used to create a new object on the server with the subsetted VCF, preserving the complete one.
   
-  The previous code will over-write the VCF with the SNPs corresponding to the selected genes, if the intention is to perform studies with both the complete VCF and a subsetted one, the argument `name` can be used to create a new object on the server with the subsetted VCF, preserving the complete one.
+```{r gene_subset_2}
+genes <- c("A1BG","A2MP1")
+ds.getSNPSbyGen("gds", genes = genes, name = "subset.vcf")
+```
   
-  ```{r gene_subset_2}
-  genes <- c("A1BG","A2MP1")
-  ds.getSNPSbyGen("gds", genes = genes, name = "subset.vcf")
-  ```
+Then, an object of class `GenotypeData` must be created at the server side to perform genetic data analyses. This is a container defined in the `r Biocpkg("GWASTools")` package for storing genotype and phenotypic data from genetic association studies. By doing that we will also verify whether individuals in the GDS (e.g VCF) and covariates files have the same individuals and are in the same order. This can be performed by
   
-  Then, an object of class `GenotypeData` must be created at the server side to perform genetic data analyses. This is a container defined in the `r Biocpkg("GWASTools")` package for storing genotype and phenotypic data from genetic association studies. By doing that we will also verify whether individuals in the GDS (e.g VCF) and covariates files have the same individuals and are in the same order. This can be performed by
+```{r createGenoData}
+ds.GenotypeData(x='gds', covars = 'covars', columnId = 1, newobj.name = 'gds.Data')
+``` 
   
-  ```{r createGenoData}
-  ds.GenotypeData(x='gds', covars = 'covars', columnId = 1, newobj.name = 'gds.Data')
-  ``` 
-  
-  Before performing the association analyses, quality control (QC) can be performed to the loaded data. Three methodologies are available; 1) Principal Component Analysis (PCA) of the genomic data, 2) Hardy-Weinberg Equilibrium (HWE) testing and 3) Allelic frequency estimates. The QC methods 2 and 3 have as inputs a *GenotypeData* object, created with a covariates file that has a gender column; while method 1 has as input a *VCF*.
+Before performing the association analyses, quality control (QC) can be performed to the loaded data. Three methodologies are available; 1) Principal Component Analysis (PCA) of the genomic data, 2) Hardy-Weinberg Equilibrium (HWE) testing and 3) Allelic frequency estimates. The QC methods 2 and 3 have as inputs a *GenotypeData* object, created with a covariates file that has a gender column; while method 1 has as input a *VCF*.
 
 To perform the PCA, a pruning functionality is built inside so that redundant SNPs are discarted (there is an extra argument `ld.threshold` which controls the pruning, more information about it at the [SNPRelate documentation](https://rdrr.io/bioc/SNPRelate/man/snpgdsLDpruning.html)), speeding up the execution time
 
@@ -78,7 +78,7 @@ ds.PCASNPS("gds", prune = TRUE)
 
 To perform QC methodologies 2 and 3, the name of the gender column as well as the keys to describe male or female have to be provided. Remember that we can visualize the names of the variables from our data by executing `ds.colnames("covars")`. In our case, this variable is called "gender", and the levels of this variable are 1 for male and 2 for female as we can see here (NOTE: we cannot use `ds.levels` since gender variable is not a factor): 
   
-  ```{r tableCovar}
+```{r tableCovar}
 ds.table1D("covars$gender")$counts
 ```
 
@@ -90,13 +90,13 @@ ds.getChromosomeNames("gds.Data")$autosomes
 
 Therefore, HWE can be performed by:
   
-  ```{r HWEtest}
+```{r HWEtest}
 ds.exactHWE("gds.Data", sexcol = "gender", male = "1", female = "2", chromosome = "22")
 ```
 
 Similarly, allele frequencies estimates can be estimated by:
   
-  ```{r alleleFreq}
+```{r alleleFreq}
 ds.alleleFrequency("gds.Data", sexcol = "gender", male = "1", female = "2")
 ```
 

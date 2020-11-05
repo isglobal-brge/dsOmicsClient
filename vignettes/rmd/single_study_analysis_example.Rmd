@@ -69,7 +69,7 @@ ans.gender
 
 We have also implemented two other functions `ds.DESeq2` and `ds.edgeR` that perform DGE analysis using [DESeq2](https://www.bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html) and [edgeR](https://www.bioconductor.org/packages/release/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf) methods. This is the R code used to that purpose:
   
-  ....  **To be supplied**
+**To be supplied**
 
 
 We close the DataSHIELD session by:
