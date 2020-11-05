@@ -31,80 +31,79 @@ knitr::opts_chunk$set(comment="", warning=FALSE, message=FALSE, cache=FALSE)
 
 # Purpose
 
-```{r child='files/purpose.Rmd', include=TRUE}
+```{r child='rmd/purpose.Rmd', include=TRUE}
 ```
 
 # Setup
 
-```{r child='files/setup.Rmd', include=TRUE}
+```{r child='rmd/setup.Rmd', include=TRUE}
 ```
 
 ## Required Opal server with resources
 
-```{r child='files/required_opal_servers.Rmd', include=TRUE}
+```{r child='rmd/required_opal_servers.Rmd', include=TRUE}
 ```
 
 ## Required DataSHIELD packages in the opal server
 
-```{r child='files/required_datashield_packages.Rmd', include=TRUE}
+```{r child='rmd/required_datashield_packages.Rmd', include=TRUE}
 ```
 
 ## Required R Packages in the client site (e.g. local machine)
 
-```{r child='files/required_r_packages.Rmd', include=TRUE}
+```{r child='rmd/required_r_packages.Rmd', include=TRUE}
 ```
 
 # Transcriptomic and Epigenomic data analysis
 
 ## Single study analysis
 
-```{r child='files/single_study_analysis.Rmd', include=TRUE}
+```{r child='rmd/single_study_analysis.Rmd', include=TRUE}
 ```
 
 ### Illustrative example: differential gene expression (DGE) analysis
 
-```{r child='files/single_study_analysis_example.Rmd', include=TRUE}
+```{r child='rmd/single_study_analysis_example.Rmd', include=TRUE}
 ```
 
 ## Analysis from multiple studies
 
-```{r child='files/multiple_study_analysis.Rmd', include=TRUE}
+```{r child='rmd/multiple_study_analysis.Rmd', include=TRUE}
 ```
 
 ### Illustrative example: Epigenome-wide association analysis (EWAS)
 
-```{r child='files/multiple_study_analysis_example.Rmd', include=TRUE}
+```{r child='rmd/multiple_study_analysis_example.Rmd', include=TRUE}
 ```
 
 ## Single CpG analysis
 
-```{r child='files/single_cpg_analysis.Rmd', include=TRUE}
+```{r child='rmd/single_cpg_analysis.Rmd', include=TRUE}
 ```
 
 ## Multiple CpG analysis
 
-```{r child='files/multiple_cpg_analysis.Rmd', include=TRUE}
+```{r child='rmd/multiple_cpg_analysis.Rmd', include=TRUE}
 ```
 
 ## Adjusting for Surrogate Variables
 
-```{r child='files/surrogate_variables.Rmd', include=TRUE}
+```{r child='rmd/surrogate_variables.Rmd', include=TRUE}
 ```
 
 # Genomic data analysis: GWAS
 
-```{r child='files/gwas.Rmd', include=TRUE}
+```{r child='rmd/gwas.Rmd', include=TRUE}
 ```
 
 ## Analysis with Bioconductor packages: example how to extend the resources
 
-```{r child='files/example_resources.Rmd', include=TRUE}
+```{r child='rmd/example_resources.Rmd', include=TRUE}
 ```
-
 
 ## GWAS with PLINK
 
-```{r child='files/plink.Rmd', include=TRUE}
+```{r child='rmd/plink.Rmd', include=TRUE}
 ```
 
 # Acknowledgments
