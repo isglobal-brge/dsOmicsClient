@@ -2,7 +2,7 @@
 % Please edit documentation in R/qqplot.R
 \name{qqplot}
 \alias{qqplot}
-\title{Create a quantile-quantile plot with ggplot2.}
+\title{Quantile-quantile plot}
 \usage{
 qqplot(ps, ci = 0.95)
 }
@@ -28,5 +28,4 @@ Assumptions:
 \examples{
 library(ggplot2)
 gg_qqplot(runif(1e2)) + theme_grey(base_size = 24)
-
 }
