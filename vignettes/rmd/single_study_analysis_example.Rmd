@@ -66,9 +66,10 @@ The top differentially expressed genes can be visualized by:
 ans.gender
 ```
 
-We can also use other method to analyzed RNA-seq data such as `r Biocpkg("DSEq2")` or `r Biocpkg("edgeR")`. This is the R code used to that purpose:
+
+We have also implemented two other functions `ds.DESeq2` and `ds.edgeR` that perform DGE analysis using [DESeq2](https://www.bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html) and [edgeR](https://www.bioconductor.org/packages/release/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf) methods. This is the R code used to that purpose:
   
-  ....
+  ....  **To be supplied**
 
 
 We close the DataSHIELD session by:

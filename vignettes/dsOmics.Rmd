@@ -198,7 +198,10 @@ We refer to [this chapter](https://isglobal-brge.github.io/resource_bookdown/dsl
 
 ## Analysis with Bioconductor packages: example how to extend the resources
 
-```{r child='rmd/example_resources.Rmd', include=TRUE}
+```{r child='rmd/extend_resources_vcf.Rmd', include=TRUE}
+```
+
+```{r child='rmd/gwas_BioC.Rmd', include=TRUE}
 ```
 
 ## GWAS with PLINK
