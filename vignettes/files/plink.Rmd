@@ -1,0 +1,92 @@
+Here we illustrate how to perform the same GWAS analyses on the asthma using PLINK secure shell commands. This can be performed thanks to the posibility of having ssh resources as described [here](#shell_extension).
+  
+It is worth to notice that this workflow and the new R functions implemented in `r Githubpkg("isglobal-brge/dsOmicsClient")` could be used as a guideline to carry out similar analyses using existing analysis tools in genomics such as IMPUTE, SAMtools or BEDtools among many others. 
+  
+We start by assigning login resources 
+  
+```{r GWAS_shell_1}
+  library(DSOpal)
+  library(dsBaseClient)
+  library(dsOmicsClient)
+  builder <- newDSLoginBuilder()
+  builder$append(server = "study1", url = "https://opal-demo.obiba.org",
+                 user = "dsuser", password = "password",
+                 resource = "RSRC.brge_plink", driver = "OpalDriver")
+  logindata <- builder$build()
+```
+  
+Then we assign the resource to a symbol (i.e. R object) called `client` which is a ssh resource
+  
+```{r GWAS_shell_3}
+  conns <- datashield.login(logins = logindata, assign = TRUE,
+                            symbol = "client")
+  ds.class("client")
+```
+  
+Now, we are ready to run any PLINK command from the client site. Notice that in this case we want to assess association between the genotype data in bed format and use as phenotype the variable 'obese' that is in the file 'obesity.phe'. The sentence in a PLINK command would be (NOTE: we avoid --out to indicate the output file since the file will be available in R as a tibble).
+  
+```
+  plink --bfile obesity --assoc --pheno obesity.phe --pheno-name obese 
+```
+  
+The arguments musth be encapsulated in a single character without the command 'plink'
+  
+```{r GWAS_shell_4}
+  plink.arguments <- "--bfile brge --logistic --covar brge.phe --covar-name gender,age"
+```
+  
+the analyses are then performed by
+  
+```{r GWAS_shell_gwas}
+  ans.plink <- ds.PLINK("client", plink.arguments)
+```
+  
+The object `ans` contains the PLINK results at each server as well as the outuput provided by PLINK
+  
+```{r GWAS_shell_result1}
+  lapply(ans.plink, names)
+  
+  head(ans.plink$study1$results)
+  
+  ans.plink$study$plink.out
+```
+  
+  We can compare the p-values obtained using PLINK with Bioconductor-based packages for the top-10 SNPs as follows:
+    
+    
+```{r comparison}
+  library(tidyverse)
+  # get SNP p.values (additive model - ADD)
+  res.plink <- ans.plink$study1$results %>% filter(TEST=="ADD") %>%
+    arrange(P)
+  # compare top-10 with Biocoductor's results
+  snps <- res.plink$SNP[1:10]
+  plink <- res.plink %>% filter(SNP%in%snps) %>% dplyr::select(SNP, P)
+  bioC <- ans.bioC$study1 %>% filter(rs%in%snps) %>% dplyr::select(rs, Score.pval)
+  left_join(plink, bioC, by=c("SNP" = "rs"))
+```
+  
+  
+As expected, the p-values are in the same order of magnitud having little variations due to the implemented methods of each software. 
+  
+We can do the same comparions of minor allele frequency (MAF) estimation performed with Bioconductor and PLINK. To this end, we need first to estimate MAF using PLINK
+  
+```{r maf_plink}
+  plink.arguments <- "--bfile brge --freq"
+  ans.plink2 <- ds.PLINK("client", plink.arguments)
+  maf.plink <- ans.plink2$study1$results
+  
+  plink <- maf.plink %>% filter(SNP%in%snps) %>% dplyr::select(SNP, MAF)
+  bioC <- ans.bioC$study1 %>% filter(rs%in%snps) %>% dplyr::select(rs, freq)
+  left_join(plink, bioC, by=c("SNP" = "rs"))
+```
+  
+  
+  
+This close the DataSHIELD session 
+  
+```{r close_conns4}
+  datashield.logout(conns)
+```
+  
+  

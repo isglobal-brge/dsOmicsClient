@@ -1,0 +1,50 @@
+EWAS requires basically the same statistical methods as those used in DGE. It should be notice that the **pooled analysis** we are going to illustrate here can also be performed with transcriptomic data since each study must have different range values. If so, gene expression harmonization should be performed, for instance, by standardizing the data at each study. For EWAS where methylation is measured using beta values (e.g CpG data are in the range 0-1) this is not a problem. In any case, adopting the **meta-analysis** approach could be a safe option.
+
+We have downloaded data from [GEO](https://www.ncbi.nlm.nih.gov/geo/) corresponding to the accesion number GSE66351 which includes DNA methylation profiling (Illumina 450K array) of 190 individuals. Data corresponds to CpGs beta values measured in the superior temporal gyrus and prefrontal cortex brain regions of patients with Alzheimer’s. Data have been downloaded using `r BiocStyle::Biocpkg("GEOquery")` package that gets GEO data as `ExpressionSet` objects. Researchers who are not familiar with `ExpressionSet`s can read [this Section](#BioC). Notice that data are encoded as beta-values that ensure data harmonization across studies. 
+
+
+In order to illustrate how to perform data analyses using federated data, we have split the data into two `ExpressionSet`s having 100 and 90 samples as if they were two different studies. Figure \@ref(fig:testResources) shows the two resources defined for both studies (GSE66351_1 and GSE66351_2)
+
+In order to perform omic data analyses, we need first to login and assign resources to DataSHIELD. This can be performed using the `as.resource.object()` function
+
+```{r login_assign_eSet}
+builder <- DSI::newDSLoginBuilder()
+builder$append(server = "study1", url = "https://opal-demo.obiba.org", 
+               user = "dsuser", password = "password", 
+               resource = "RSRC.GSE66351_1", driver = "OpalDriver")
+builder$append(server = "study2", url = "https://opal-demo.obiba.org", 
+               user = "dsuser", password = "password", 
+               resource = "RSRC.GSE66351_2", driver = "OpalDriver")
+
+logindata <- builder$build()
+
+conns <- DSI::datashield.login(logins = logindata, assign = TRUE, 
+                               symbol = "res")
+
+
+# Assign to the original R class (e.g ExpressionSet)
+datashield.assign.expr(conns, symbol = "methy", 
+                       expr = quote(as.resource.object(res)))
+
+```
+
+
+Now, we can see that the resources are actually loaded into the R servers as their original class
+
+```{r assign_es}
+ds.class("methy")
+```
+
+Then, some Bioconductor-type functions can be use to return non-disclosive information of `ExpressionSet`s from each server to the client, using similar functions as those defined in the `dsBaseClient` package. For example, feature names can be returned by 
+
+```{r show_featureNames}
+fn <- ds.featureNames("methy")
+lapply(fn, head)
+```
+
+Experimental phenotypes variables can be obtained by
+
+
+```{r show_phenoNames}
+ds.varLabels("methy")
+```

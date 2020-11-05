@@ -2,22 +2,23 @@
 % Please edit documentation in R/ds.getSNPSbyGen.R
 \name{ds.getSNPSbyGen}
 \alias{ds.getSNPSbyGen}
-\title{Title}
+\title{Subset GDS with gene(s)}
 \usage{
 ds.getSNPSbyGen(gdsFile, genes, name = NULL, datasources = NULL)
 }
 \arguments{
-\item{gdsFile}{}
+\item{gdsFile}{\code{character} Name of the GDS on the server}
 
-\item{genes}{}
+\item{genes}{\code{character vector} Name of the gene(s) to select (HGCN nomenclature)}
 
-\item{name}{}
+\item{name}{\code{character} (default \code{NULL}) Name of the subsetted GDS, if \code{NULL} 
+entry file will be over-written.}
 
-\item{datasources}{}
+\item{datasources}{a list of \code{\link{DSConnection-class}} objects obtained after login.}
 }
 \value{
-
+This function does not have an output. It creates (or overwrites) a GDS object on the study server.
 }
 \description{
-Title
+Subset a server side GDS with the SNPs from selected gene(s)
 }

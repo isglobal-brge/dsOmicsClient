@@ -1,0 +1,79 @@
+Let us illustrate how to perform transcriptomic data analysis using data from [TCGA project](https://www.cancer.gov/about-nci/organization/ccg/research/structural-genomics/tcga). We have uploaded to the opal server a resource called `tcga_liver` whose URL is http://duffel.rail.bio/recount/TCGA/rse_gene_liver.Rdata which is available through the [recount project](https://jhubiostatistics.shinyapps.io/recount/). This resource contains the `RangeSummarizedExperiment` with the RNAseq profiling of liver cancer data from TCGA. Next, we illustrate how a differential expression analysis to compare RNAseq profiling of women vs men (variable `gdc_cases.demographic.gender`). The DGE analysis is normally performed using `r Biocpkg("limma")` package. In that case, as we are analyzing RNA-seq data, `limma + voom` method will be required. 
+
+Let us start by creating the connection to the opal server:
+  
+```{r pipeline_gene_expr}
+builder <- newDSLoginBuilder()
+builder$append(server = "study1", url = "https://opal-demo.obiba.org", 
+               user = "dsuser", password = "password", 
+               resource = "RSRC.tcga_liver", driver = "OpalDriver")
+
+logindata <- builder$build()
+
+conns <- datashield.login(logins = logindata, assign = TRUE, 
+                          symbol = "res")
+```
+
+Then, let us coerce the resource to a `RangedSummarizedExperiment` which is the type of object that is available in the [recount project](https://jhubiostatistics.shinyapps.io/recount/).
+
+```{r get_rse}
+datashield.assign.expr(conns, symbol = "rse", 
+                       expr = quote(as.resource.object(res)))
+ds.class("rse")
+```
+
+The number of features and samples can be inspected by
+
+```{r dim_rse}
+ds.dim("rse")
+```
+
+And the names of the features using the same function used in the case of analyzing an `ExpressionSet`
+
+```{r name_feature_rse}
+name.features <- ds.featureNames("rse")
+lapply(name.features, head)
+```
+
+Also the covariate names can be inspected by
+
+```{r name_covar_rse}
+name.vars <- ds.featureData("rse")
+lapply(name.vars, head, n=15)
+```
+
+We can visualize the levels of the variable having gender information
+
+```{r table_gender}
+ds.table("rse$gdc_cases.demographic.gender")
+```
+
+
+The differential expression analysis is then performed by:
+  
+  
+```{r voom_gender}
+ans.gender <- ds.limma(model =  ~ gdc_cases.demographic.gender, 
+                       Set = "rse", type.data = "RNAseq", 
+                       sva = FALSE)
+```
+
+Notice that we have set `type.data='RNAseq'` to consider that our data are counts obtained from a RNA-seq experiment. By indicating so, the differential analysis is performed by using  `voom` + `limma` as previously mention.
+
+The top differentially expressed genes can be visualized by:
+  
+```{r show_ans.gender}
+ans.gender
+```
+
+We can also use other method to analyzed RNA-seq data such as `r Biocpkg("DSEq2")` or `r Biocpkg("edgeR")`. This is the R code used to that purpose:
+  
+  ....
+
+
+We close the DataSHIELD session by:
+  
+```{r close_ds2}
+datashield.logout(conns)
+```
+

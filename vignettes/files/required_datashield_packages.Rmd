@@ -1,0 +1,13 @@
+Required DataSHIELD packages must be uploaded in the opal server through the Administration site by accessing to DataSHIELD tab. In our case, both `dsBase` and `dsOmics` and `resourcer` packages must be installed as is illustrated in the figure (NOTE: `dsGeo` is uploaded for other type of analyses and it is not necesary for omics). 
+
+```{r installPackagesOpal, echo=FALSE, fig.cap="Installed packages in the test opal server", fig.align='center'}
+knitr::include_graphics(tools::file_path_as_absolute("../fig/add_packages_opal.png"))
+```
+
+
+The tab **+Add package** can be used to install a new package. The figure depicts how `dsOmics` was intalled into the opal server
+
+
+```{r installPackagesOpal2, echo=FALSE, fig.cap="Description how `dsOmics` package was intalled into the test opal server", out.width = '90%', fig.align='center'}
+knitr::include_graphics(tools::file_path_as_absolute("../fig/add_packages_opal_2.png"))
+```

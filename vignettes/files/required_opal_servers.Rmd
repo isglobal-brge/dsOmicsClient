@@ -1,0 +1,27 @@
+Resources are datasets or computation units which are located under a URL and their access is protected by some credentials. When resources are assigned to a R/DataSHIELD server session, remote big/complex datasets or high performance computers are being accessible to data analysts.
+
+Instead of storing the data in Opal databases, only the way to access them needs to be defined: the datasets are kept in their original format and location (e.g., an R object, a SQL database, a SPSS file, etc.) and are read directly from the R/DataSHIELD server-side session. Then as soon as there is a R reader for the dataset or a connector for the analysis services, a resource can be defined. Opal takes care of the DataSHIELD permissions (a DataSHIELD user cannot see the resource’s credentials) and of the resources assignment to a R/DataSHIELD session (see Figure \@ref(fig:resources))
+
+```{r resources, echo=FALSE, fig.cap="Resources: a new DataSHIELD infrastructure", out.width = '90%', fig.align='center'}
+knitr::include_graphics(tools::file_path_as_absolute("../fig/resourcer_fig.jpg"))
+```
+
+As previously mentioned, the `resourcer` R package allows to deal with the main data sources (using tidyverse, DBI, dplyr, sparklyr, MongoDB, AWS S3, SSH etc.) and is easily extensible to new ones including specific data infrastructure in R or Bioconductor. So far `ExpressionSet` and `RangedSummarizedExperiment` objects saved in `.rdata` files are accesible through the `resourcer` package. The `dsOmics` package contains a new extension that deals with VCF (Variant Calling Format) files which are coerced to a GDS (Genomic Data Storage) format (VCF2GDS). 
+
+In order to achive this `resourcer` extension, two `R6` classes have been implemented:
+  
+  * `GDSFileResourceResolver` class which handles file-base resources with data in GDS or VCF formats. This class is responsible for creating a `GDSFileResourceClient` object instance from an assigned resource.
+* `GDSFileResourceClient` class which is responsible for getting the referenced file and making a connection (created by `GWASTools`) to the GDS file (will also convert the VCF file to a GDS file on the fly, using `SNPRelate`). For the subsequent analysis, it's this connection handle to the GDS file that will be used.
+
+We have prepared a test environment, with the Opal implementation of Resources and an appropriate R/DataSHIELD configuration that is available at: [opal-demo.obiba.org](https://opal-demo.obiba.org). This figure illustrate the resources which are available for the `RSRC` project:
+
+```{r testResources, echo=FALSE, fig.cap="Resources from a test enviroment available at https://opal-demo.obiba.org", fig.align='center', out.height='120%'}
+knitr::include_graphics(tools::file_path_as_absolute("../fig/opal_resources.png"), dpi=NA)
+```
+
+
+It is possible to declare a resource that is to be resolved by an R package that uses the `resourcer` API 
+
+```{r testDeclaration, echo=FALSE, fig.cap="Declaration of a resource corresponding to a VCF2GDS format", fig.align='center'}
+knitr::include_graphics(tools::file_path_as_absolute("../fig/opal_resources_API.png"))
+```
