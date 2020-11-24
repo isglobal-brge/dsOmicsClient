@@ -2,7 +2,7 @@
 % Please edit documentation in R/qqplot.R
 \name{qqplot}
 \alias{qqplot}
-\title{Quantile-quantile plot}
+\title{Create a quantile-quantile plot with ggplot2.}
 \usage{
 qqplot(ps, ci = 0.95)
 }
@@ -24,8 +24,6 @@ Assumptions:
     For example, in a genome-wide association study, the genotype at any
     position is correlated to nearby positions. Tests of nearby genotypes
     will result in similar test statistics.
-}
-\examples{
-library(ggplot2)
-gg_qqplot(runif(1e2)) + theme_grey(base_size = 24)
+
+Creates a QQ-plot to visualize inflation
 }
