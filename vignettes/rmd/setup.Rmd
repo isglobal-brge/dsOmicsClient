@@ -1,0 +1,24 @@
+In this section we describe how to configure the Opal server and the needed packages to carry out omic association analyses from the client side. Basically, the resources must be defined in the Opal along with the required information that includes the url where data is located, the format (e.g., SPSS, R class, GDS ...) and the credentials which are not visible to the DataSHIELD users (Figure \@ref(fig:tableResource)). The permission to use a resource for DataSHIELD operations is granted (to a user or a group of users) in Opal.
+
+
+```{r tableResource, echo=FALSE, fig.cap="Information required for Resources.", out.width = '90%', fig.align='center'}
+knitr::include_graphics(tools::file_path_as_absolute("../fig/Table_resources.jpg"))
+```
+
+
+A description of the pre-requisites can be found [here](https://datashield.discourse.group/t/datashield-resources/152). At the time of the writing of this vignette, the resource capabilities of Opal, DataSHIELD and related R packages have not been released yet. Basically, what is needed is:
+  
+  - `r Githubpkg("obiba/DSI")`
+- `r Githubpkg("obiba/DSOpal")`
+- `r Githubpkg("obiba/opalr")`
+- OPTIONAL (used for development): `r Githubpkg("obiba/DSLite")`
+
+- `r Githubpkg("datashield/dsBaseClient")` in the v6.0-dev branch
+- `r Githubpkg("isglobal-brge/dsOmicsClient")`
+
+and in the server side: 
+  - `r Githubpkg("obiba/resourcer")`
+- `r Githubpkg("isglobal-brge/dsOmics")`
+- `r Githubpkg("datashield/dsBase")` in the v6.0-dev branch
+
+Notice that the `r Githubpkg("isglobal-brge/dsOmics")` package includes new extensions of the `r Githubpkg("obiba/resourcer")` package to deal with new types of resources such as file in VCF format to converted to a file in GDS format (VCF2GDS). Next subsections further describe what is required along with some examples. 

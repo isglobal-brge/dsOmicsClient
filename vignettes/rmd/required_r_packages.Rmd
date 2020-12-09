@@ -1,0 +1,28 @@
+In order to use the functions contained within this package the following R packages must be installed in the client side:
+  
+```{r install_all, eval=FALSE}
+install.packages("DSIOpal")
+install.packages('dsBaseClient', repos=c(getOption('repos'), 
+                                         'http://cran.obiba.org'), dependencies=TRUE)
+devtools::install_github("isglobal-brge/dsOmicsClient", dependencies = TRUE)
+```
+
+The package dependencies are then loaded as follows:
+  
+```{r requiredRPackages}
+library(DSOpal)
+library(dsBaseClient)
+library(dsOmicsClient)
+```
+
+**Notes**:
+  
+  For advanced users willing to use `DSLite`, the server side packages needs to be installed as well:
+  
+```{r install_resourcer, eval=FALSE}
+install.packages(c("resourcer", "DSLite"), dependencies = TRUE)
+install.packages("dsBase", repos = c("https://cloud.r-project.org", 
+                                     "https://cran.obiba.org"), dependencies = TRUE)
+```
+
+We refer to [this chapter](https://isglobal-brge.github.io/resource_bookdown/dslite-datashield-implementation-on-local-datasets.html) of our bookdown to a more detail description about how to work with DataSHIELD in a serverless environment.
