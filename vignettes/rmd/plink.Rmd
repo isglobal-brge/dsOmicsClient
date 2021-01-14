@@ -23,16 +23,18 @@ Then we assign the resource to a symbol (i.e. R object) called `client` which is
   ds.class("client")
 ```
   
-Now, we are ready to run any PLINK command from the client site. Notice that in this case we want to assess association between the genotype data in bed format and use as phenotype the variable 'obese' that is in the file 'obesity.phe'. The sentence in a PLINK command would be (NOTE: we avoid --out to indicate the output file since the file will be available in R as a tibble).
+
+  
+Now, we are ready to run any PLINK command from the client site. Notice that in this case we want to assess association between the genotype data in bed format and use as phenotype the variable 'asthma' that is in the file 'brge.phe' in the 6th column. The sentence in a PLINK command would be (NOTE: we avoid --out to indicate the output file since the file will be available in R as a tibble).
   
 ```
-  plink --bfile obesity --assoc --pheno obesity.phe --pheno-name obese 
+  plink --bfile brge --logistic --pheno brge.phe --mpheno 6 --covar brge.phe --covar-name gender,age 
 ```
   
-The arguments musth be encapsulated in a single character without the command 'plink'
+The arguments must be encapsulated in a single character without the command 'plink'
   
 ```{r GWAS_shell_4}
-  plink.arguments <- "--bfile brge --logistic --covar brge.phe --covar-name gender,age"
+  plink.arguments <- "--bfile brge --logistic --pheno brge.phe --mpheno 6 --covar brge.phe --covar-name gender,age"
 ```
   
 the analyses are then performed by
@@ -40,8 +42,9 @@ the analyses are then performed by
 ```{r GWAS_shell_gwas}
   ans.plink <- ds.PLINK("client", plink.arguments)
 ```
+
   
-The object `ans` contains the PLINK results at each server as well as the outuput provided by PLINK
+The object `ans.plink` contains the PLINK results at each server as well as the outuput provided by PLINK
   
 ```{r GWAS_shell_result1}
   lapply(ans.plink, names)
