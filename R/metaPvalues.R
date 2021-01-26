@@ -11,34 +11,35 @@
 #'
 #' @export
 #' @importFrom magrittr %>%
-#' @importFrom tibble add_column
+#' @importFrom tibble add.column
 #' @import dplyr
 #' @import metap 
 
 metaPvalues <- function(x,  ...){
   
   if(length(x)==1)
-    stop("Nothing to be meta-analyzed. There is only a single study")
-  
-  if (inherits(x, "dsLimma")){
+    stop('Nothing to be meta-analyzed. There is only a single study')
+
+
+  if (inherits(x, 'dsLimma')){
     ff <- function(x, y){
-      inner_join(x%>%select("id", "P.Value"), 
-                 y%>%select("id", "P.Value"), 
-                 by="id")
+      inner_join(x, y, 
+                 by='id')
     }
-  } else if (inherits(x, "dsGWAS")){
+  } else if (inherits(x, 'dsGWAS')){
     ff <- function(x, y){
-      inner_join(x%>%select("variant.id", "Score.pval"), 
-                 y%>%select("variant.id", "Score.pval"), 
-                 by="id")
+      inner_join(x, y, 
+                 by='variant.id')
     }
   } else{
-      stop("Object should be of class 'dsLimma', 'dsOmics' or 'dsPLINK'")
+      stop("Object should be of class 'dsLimma', 'dsOmics' or 'dsPLINK' ")
   }
   
   pvals <- Reduce(ff, x)
+  ii <- grep("id|P.Value", colnames(pvals))
+  pvals <- pvals[,ii]
   colnames(pvals)[-1] <- names(x)
-  p.meta <- unlist(apply(pvals[,-1], 1, function(x) sumlog (x)$p))
+  p.meta <- unlist(apply(pvals[,-1], 1, function(x) metap::sumlog (x)$p))
   ans <- tibble::add_column(pvals, p.meta=p.meta)%>%arrange(p.meta)
   
   return(ans)
