@@ -12,6 +12,8 @@
 ##' @param type.data optional parameter that allows the user to specify the number of CPU cores to use during 
 ##' @param sva logical value 
 ##' @param annotCols the column names of the annotation available in the ExpresionSet or RangedSummarizedExperiment (see fData() function)
+##' @param method String indicating the method used in the regression: "ls" or 
+#' "robust". (Default: "ls")
 ##' @param datasources a list of \code{\link{DSConnection-class}} objects obtained after login. 
 #' If the \code{datasources} argument is not specified
 #' the default set of connections will be used: see \code{\link{datashield.connections_default}}.
