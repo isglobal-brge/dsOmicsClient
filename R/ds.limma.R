@@ -22,7 +22,7 @@
 
 ds.limma <- function(model, Set, type.data="microarray",
                      contrasts = NULL, levels = "design", coef = 2,
-                     sva=FALSE, annotCols=NULL, 
+                     sva=FALSE, annotCols=NULL, method = "ls",
                      datasources=NULL){
   
   type <- charmatch(type.data, c("microarray", "RNAseq"))
@@ -59,7 +59,7 @@ ds.limma <- function(model, Set, type.data="microarray",
     
   calltext <- call("limmaDS", Set, variable_names,
                    covariable_names, type, contrasts,
-                   levels,coef, sva, annotCols)
+                   levels,coef, sva, annotCols, method)
   ans <- datashield.aggregate(datasources, calltext)
   class(ans) <- c("dsLimma", class(ans))
   return(ans)
