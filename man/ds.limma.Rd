@@ -13,6 +13,7 @@ ds.limma(
   coef = 2,
   sva = FALSE,
   annotCols = NULL,
+  method = "ls",
   datasources = NULL
 )
 }
@@ -27,6 +28,9 @@ ds.limma(
 \item{sva}{logical value}
 
 \item{annotCols}{the column names of the annotation available in the ExpresionSet or RangedSummarizedExperiment (see fData() function)}
+
+\item{method}{String indicating the method used in the regression: "ls" or 
+"robust". (Default: "ls")}
 
 \item{datasources}{a list of \code{\link{DSConnection-class}} objects obtained after login. 
 If the \code{datasources} argument is not specified

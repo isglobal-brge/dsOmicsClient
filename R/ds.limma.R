@@ -12,6 +12,8 @@
 ##' @param type.data optional parameter that allows the user to specify the number of CPU cores to use during 
 ##' @param sva logical value 
 ##' @param annotCols the column names of the annotation available in the ExpresionSet or RangedSummarizedExperiment (see fData() function)
+##' @param method String indicating the method used in the regression: "ls" or 
+#' "robust". (Default: "ls")
 ##' @param datasources a list of \code{\link{DSConnection-class}} objects obtained after login. 
 #' If the \code{datasources} argument is not specified
 #' the default set of connections will be used: see \code{\link{datashield.connections_default}}.
@@ -22,7 +24,7 @@
 
 ds.limma <- function(model, Set, type.data="microarray",
                      contrasts = NULL, levels = "design", coef = 2,
-                     sva=FALSE, annotCols=NULL, 
+                     sva=FALSE, annotCols=NULL, method = "ls",
                      datasources=NULL){
   
   type <- charmatch(type.data, c("microarray", "RNAseq"))
@@ -59,7 +61,7 @@ ds.limma <- function(model, Set, type.data="microarray",
     
   calltext <- call("limmaDS", Set, variable_names,
                    covariable_names, type, contrasts,
-                   levels,coef, sva, annotCols)
+                   levels,coef, sva, annotCols, method)
   ans <- datashield.aggregate(datasources, calltext)
   class(ans) <- c("dsLimma", class(ans))
   return(ans)
