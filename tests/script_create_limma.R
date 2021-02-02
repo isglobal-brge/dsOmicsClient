@@ -1,9 +1,8 @@
 #### Create new
 library(resourcer)
 library(DSLite)
-library(dsBaseClient)
-library(dsBase)
 library(dsOmics)
+library(dsOmicsClient)
 
 
 # make a DSLite server with resources inside
@@ -24,6 +23,24 @@ conns <- datashield.login(logins = logindata, assign = TRUE, symbol = "res")# R 
 datashield.assign.expr(conns, symbol = "methy", expr = quote(as.resource.object(res)))
 
 
+#
+# Another example
+#
+
+dslite.server <- newDSLiteServer(resources = list(
+  rse = resourcer::newResource(name = "rse", url = "https://github.com/isglobal-brge/brgedata/raw/master/data/rse_gene_liver.Rdata", format = "RangedSummarizedExperiment")
+))
+
+builder <- DSI::newDSLoginBuilder()
+builder$append(server = "study1", url = "dslite.server", resource = "rse", driver = "DSLiteDriver")
+logindata <- builder$build()# login and assign resources
+conns <- datashield.login(logins = logindata, assign = TRUE, symbol = "res")# R data file resource
+datashield.assign.expr(conns, symbol = "rse", expr = quote(as.resource.object(res)))
+
+ds.nFeatures("rse")
+ds.nSamples("rse")
+
+##########
 
 ans.limma <- ds.limma(model = ~ diagnosis + Sex,
                       Set = "methy", 
