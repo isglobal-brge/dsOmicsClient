@@ -24,7 +24,7 @@ ds.snptest <- function(client, snptest.arguments, datasources=NULL){
   args <- strsplit(snptest.arguments, " ")[[1]]
   
   cally <- paste0("snptestDS(", client, ", '", paste0(args, collapse = "', '"), "')")
-  
+ 
   ans <- DSI::datashield.aggregate(datasources, as.symbol(cally))
   
   class(ans) <- c("dssnptest", class(ans))
