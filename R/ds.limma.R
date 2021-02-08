@@ -38,6 +38,10 @@ ds.limma <- function(model, Set, type.data="microarray",
   if(is.null(model)){
     stop(" Please provide a valid model formula", call.=FALSE)
   }
+  method <- charmatch(method, c("ls", "robust"))
+  if(is.null(method)){
+    stop("method must be 'ls' or 'robust'")
+  }
   
   mt <- all.vars(model)
   variable_names <- mt[1] 
