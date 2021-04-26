@@ -11,7 +11,7 @@
 #' @param pheno \code{character} Name of the data.frame with the new phenotypes on the 
 #' study server
 #' @param identifier \code{character} (default \code{"ID"}) Name of the ID column on the phenotypes data.frame
-#' @param name \code{character} (default \code{NULL}) If \code{NULL}, the original ExpressionSet will be overwritten,
+#' @param newobj.name \code{character} (default \code{NULL}) If \code{NULL}, the original ExpressionSet will be overwritten,
 #' otherwise the new ExpressionSet will be assigned to a variable named after this argument
 #' @param complete_cases \code{bool} (default \code{TRUE}) If \code{TRUE} only the matching individuals 
 #' between the ExpressionSet and the phenotypes table will be included on the resulting ExpressionSet. If 
@@ -21,14 +21,14 @@
 #' @return This function does not have an output. It creates (or overwrites) a data frame on the study server.
 #' @export
 
-ds.addPhenoData <- function(x, pheno, identifier = "ID", name = NULL, complete_cases = TRUE, datasources = NULL){
+ds.addPhenoData <- function(x, pheno, identifier = "ID", newobj.name = NULL, complete_cases = TRUE, datasources = NULL){
   
   if(is.null(datasources)){
     datasources <- datashield.connections_find()
   }
   
-  if(is.null(name)){
-    name <- x
+  if(is.null(newobj.name)){
+    newobj.name <- x
   }
   
   dsBaseClient:::isDefined(datasources, x)
@@ -43,6 +43,6 @@ ds.addPhenoData <- function(x, pheno, identifier = "ID", name = NULL, complete_c
   }
   
   cally <- paste0("addPhenoDataDS(", x, ", ", pheno, ", '", identifier, "', ", complete_cases, ")")
-  DSI::datashield.assign.expr(datasources, name, as.symbol(cally))
+  DSI::datashield.assign.expr(datasources, newobj.name, as.symbol(cally))
   
 }

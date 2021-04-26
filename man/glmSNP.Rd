@@ -4,7 +4,12 @@
 \alias{glmSNP}
 \title{Fits a GLM to assess association between the outcome (binary variable) and a given SNP}
 \usage{
-glmSNP(snp, snps, genoData, vars, datasources, family = "binomial")
+glmSNP(snp, snps, genoData, vars, strata, datasources, family = "binomial")
+}
+\arguments{
+\item{strata}{\code{character} Categorical variable to perform a stratified glm}
+
+\item{family}{}
 }
 \value{
 a vector with effect estimates, standard error and associated p-value

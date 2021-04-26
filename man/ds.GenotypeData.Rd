@@ -4,21 +4,66 @@
 \alias{ds.GenotypeData}
 \title{Creates a GenotypeData object at each server}
 \usage{
-ds.GenotypeData(x, covars, columnId, newobj.name = NULL, datasources = NULL)
+ds.GenotypeData(
+  x,
+  covars,
+  columnId,
+  sexId = NULL,
+  male_encoding = "male",
+  female_encoding = "female",
+  case_control_column = NULL,
+  case = NULL,
+  control = NULL,
+  na_string = NULL,
+  newobj.name = NULL,
+  datasources = NULL
+)
 }
 \arguments{
-\item{x}{a \code{GdsGenotypeReader} object (see GWASTools). It is the object that is obtained in the opal servers
+\item{x}{a \code{GdsGenotypeReader} object (see GWASTools). It is the object that is
+obtained in the opal servers
 from a resource of type VCF2GDS}
 
 \item{covars}{a data.frame or a tibble having the metadata of samples (i.e. phenotypes and/or covariates)}
 
-\item{datasources}{a list of \code{DSConnection-class} objects obtained after login. If the <datasources> the default set of connections will be used: see \code{datashield.connections_default}.}
+\item{columnId}{\code{numeric} Column of the covars that contains the IDs}
 
-\item{data}{name of the DataSHIELD object to which the genotype (snpMatrix) and phenotypic data (data.frame) has been assigned}
+\item{sexId}{\code{numeric} (default \code{NULL}) Column of the covars that contains the sex phenotype}
+
+\item{male_encoding}{\code{character} (default \code{"male"}) String used to encode the male sex
+phenotype on the covars table}
+
+\item{female_encoding}{\code{character} (default \code{"female"}) String used to encode the female sex
+phenotype on the covars table}
+
+\item{case_control_column}{\code{character} (default \code{NULL}) Name of the column that holds the
+case/control to relevel to 0/1}
+
+\item{case}{\code{character} (default \code{NULL}) Encoding of the case of the \code{case_control_column}}
+
+\item{control}{\code{character} (default \code{NULL}) Encoding of the control of the \code{case_control_column}}
+
+\item{na_string}{\code{character vector} (default \code{NULL}) Encoding to be
+put to NA of the \code{case_control_column}}
+
+\item{newobj.name}{\code{character} (default \code{NULL})}
+
+\item{datasources}{a list of \code{DSConnection-class} objects obtained after login. If the <datasources> the default set of connections will be used: see \code{datashield.connections_default}.}
 }
 \description{
-The GenotypeData class is a container for storing genotype data from a GWAS 
-together with the metadata associated with the subjects (i.e. phenotypes and covariates) and SNPs involved in the study.
+The GenotypeData class is a container for storing genotype data from a GWAS
+together with the metadata associated with the subjects (i.e. phenotypes and covariates)
+and SNPs involved in the study.
+}
+\details{
+This function contains the functionality of re-encoding a column of the covars
+table from a binomial (plus optional strings to be set to NA) to 0/1 encoding. This is
+due because the subsequent analysis functionalities such as \code{ds.GWaS()} and \code{ds.glmSNP()}
+require this encoding to study binomial outcomes. To use this funcionality, input the arguments
+\code{case_control_column}, \code{case} and \code{control} (optionally \code{na_string} can be
+used to specify strings that will be set as NA, this is useful for phenotypes that are encoded as:
+Yes/No/Don戼㸴t know/Don't answer/...). Input \code{NULL} to this arguments if this functionality is 
+not to be used.
 }
 \examples{
 

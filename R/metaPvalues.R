@@ -11,7 +11,7 @@
 #'
 #' @export
 #' @importFrom magrittr %>%
-#' @importFrom tibble add.column
+#' @importFrom tibble add_column
 #' @import dplyr
 #' @import metap 
 

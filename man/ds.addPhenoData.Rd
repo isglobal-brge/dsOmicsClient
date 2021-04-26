@@ -8,7 +8,7 @@ ds.addPhenoData(
   x,
   pheno,
   identifier = "ID",
-  name = NULL,
+  newobj.name = NULL,
   complete_cases = TRUE,
   datasources = NULL
 )
@@ -21,7 +21,7 @@ study server}
 
 \item{identifier}{\code{character} (default \code{"ID"}) Name of the ID column on the phenotypes data.frame}
 
-\item{name}{\code{character} (default \code{NULL}) If \code{NULL}, the original ExpressionSet will be overwritten,
+\item{newobj.name}{\code{character} (default \code{NULL}) If \code{NULL}, the original ExpressionSet will be overwritten,
 otherwise the new ExpressionSet will be assigned to a variable named after this argument}
 
 \item{complete_cases}{\code{bool} (default \code{TRUE}) If \code{TRUE} only the matching individuals 

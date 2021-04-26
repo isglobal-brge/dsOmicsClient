@@ -43,6 +43,12 @@ ds.GWAS <- function(genoData, model, family="binomial", snpBlock=10000, datasour
   else
     covariable_names <- NULL
   
+  vars <- unlist(ds.varLabels(genoData))
+  if(!all(c(variable_name, covariable_names) %in% vars)){
+    stop('[',c(variable_name, covariable_names)[which(!(c(variable_name, covariable_names) %in% vars))],
+         '] Not a variable(s) name of [', genoData,']')
+  }
+  
   cally <- paste0("GWASDS(", genoData, "," , deparse(variable_name), ",", deparse(covariable_names), 
                   ",", deparse(family.ini), ",", snpBlock, ")")
   ans <- DSI::datashield.aggregate(datasources, as.symbol(cally))

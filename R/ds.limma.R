@@ -66,6 +66,7 @@ ds.limma <- function(model, Set, type.data="microarray",
   calltext <- call("limmaDS", Set, variable_names,
                    covariable_names, type, contrasts,
                    levels,coef, sva, annotCols, method)
+  
   ans <- datashield.aggregate(datasources, calltext)
   class(ans) <- c("dsLimma", class(ans))
   return(ans)

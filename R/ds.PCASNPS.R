@@ -18,8 +18,6 @@ ds.PCASNPS <- function(gds, prune = TRUE, ld.threshold = 0.2, datasources = NULL
   
   cally <- paste0("PCASNPSDS(", gds, ", ", as.character(prune), ", ", ld.threshold, ")")
   res <- DSI::datashield.aggregate(datasources, as.symbol(cally))
-  
-  plt <- ggplot2::ggplot(res[[1]]) +  # Does plot with results from first study server!
-    ggplot2::geom_point(aes(x = EV1, y = EV2))
-  plt
+  class(res) <- c(class(res), "PCASNPS")
+  return(res)
 }

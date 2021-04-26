@@ -73,7 +73,8 @@ Before performing the association analyses, quality control (QC) can be performe
 To perform the PCA, a pruning functionality is built inside so that redundant SNPs are discarted (there is an extra argument `ld.threshold` which controls the pruning, more information about it at the [SNPRelate documentation](https://rdrr.io/bioc/SNPRelate/man/snpgdsLDpruning.html)), speeding up the execution time
 
 ```{r PCASNPs}
-ds.PCASNPS("gds", prune = TRUE)
+pca <- ds.PCASNPS("gds", prune = TRUE)
+plotPCASNPS(pca)
 ```
 
 To perform QC methodologies 2 and 3, the name of the gender column as well as the keys to describe male or female have to be provided. Remember that we can visualize the names of the variables from our data by executing `ds.colnames("covars")`. In our case, this variable is called "gender", and the levels of this variable are 1 for male and 2 for female as we can see here (NOTE: we cannot use `ds.levels` since gender variable is not a factor): 
