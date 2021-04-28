@@ -15,5 +15,6 @@ ds.getSNPs <- function(genoData, datasources = NULL){
   
   cally <- paste0("getVariable(", genoData, ", 'snp.rs.id')")
   snps <- unlist(DSI::datashield.aggregate(datasources,  cally))
+  names(snps) <- NULL
   return(snps)
 }

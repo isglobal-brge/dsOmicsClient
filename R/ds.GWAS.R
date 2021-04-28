@@ -42,10 +42,10 @@ ds.GWAS <- function(genoData, model, family="binomial", snpBlock=10000, datasour
     covariable_names <- paste(mt[-1], collapse=",")
   else
     covariable_names <- NULL
-  
+
   vars <- unlist(ds.varLabels(genoData))
-  if(!all(c(variable_name, covariable_names) %in% vars)){
-    stop('[',c(variable_name, covariable_names)[which(!(c(variable_name, covariable_names) %in% vars))],
+  if(!all(mt %in% vars)){
+    stop('[',mt[which(!(mt %in% vars))],
          '] Not a variable(s) name of [', genoData,']')
   }
   
