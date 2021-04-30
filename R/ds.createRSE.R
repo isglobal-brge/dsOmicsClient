@@ -34,7 +34,7 @@ ds.createRSE <- function(rnaseq, phe, newobj.name = NULL, datasources = NULL){
   dsBaseClient:::isDefined(datasources, phe)
   cls <- dsBaseClient:::checkClass(datasources, rnaseq)
   cls2 <- dsBaseClient:::checkClass(datasources, phe)
-  if(!(cls %in% c("data.frame"))){
+  if(!any((cls %in% c("data.frame")))){
     stop("[",rnaseq,"] is not a 'data.frame'")
   }
   if(!any((cls2 %in% c("data.frame")))){
