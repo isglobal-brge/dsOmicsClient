@@ -1,0 +1,261 @@
+---
+title: "Federated privacy-protected bioinformatic analysis of EGA studies using `DataSHIELD + Opal` infrastructure"
+author:
+- name: Xavier Escriba-Montagut
+  affiliation:
+  - &isglobal Bioinformatics Research Group in Epidemiolgy (BRGE), Barcelona Insitute for Global Health (ISGlobal)
+- name: Juan R. Gonzalez
+  affiliation:
+  - &isglobal Bioinformatics Research Group in Epidemiolgy (BRGE), Barcelona Insitute for Global Health (ISGlobal)
+  - &uab Department of Mathematics, Autonomous University of Barcelona (UAB)
+  email: juanr.gonzalez@isglobal.org
+date: "`r Sys.Date()`"
+output:
+  BiocStyle::html_document:
+    number_sections: true
+    toc: yes
+    fig_caption: yes
+    toc_float: true
+vignette: >
+  %\VignetteIndexEntry{Federated data analysis of EGA studies using `DataSHIELD + Opal` infrastructure}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(comment="", warning=FALSE, message=FALSE, cache=TRUE)
+```
+
+# Introduction: Federated EGA
+
+
+# Purpose
+
+The purpose of this vignette is to illustrate how to perform `omic` data analyses of data hosted at European Genome Archive (EGA) avoiding problems with data management and having advance bioinformatic knowledge (i.e knowing Bioconductor packages to perform GWAS, RNA-seq or Epigenetic data analyses). Researchers who are interested in analyzing an EGA dataset must (roughly) follow these steps:
+
+- Asking permission for a given study
+- Receiving credentials to manage datasets in such study
+- Download (and decrypt) required datasets into local machines
+- Run the analyses
+
+Some of these steps may be difficult for labs without strong knowledge in bioinformatics or good computer infrastructure. In order to circumvent these limitations, we have set up an infrastructure using [DataSHILED](https://www.datashield.org/) and [Opal](https://www.obiba.org/pages/products/opal/) that extremely facilitate omics data analyses. 
+
+Briefly, DataSHIELD is an infrastructure and series of R packages that enables the remote and non-disclosive analysis of sensitive research data. Users are not required to have prior knowledge of R. DataSHIELD uses Opal as the server application that provides all the necessary tools to import, transform and describe data. Data analysts using our proposed infrastructure do not need to know how data is stored in the Opal servers or advanced knowledge of DataSHIELD. However, those users interested in learning how they work can read our [bookdown](https://isglobal-brge.github.io/resource_bookdown/).
+
+
+In order to illustrate how to achieve this goal, let us graphically illustrate our proposal. Let us assume we are interested in performing a GWAS meta-analysis to find new susceptibility variants for hypertension. Let us also assume that there are three studies in EGA that contain information we can use to that purpose (WTCCC, GENOA, ELSA). What we propose, is that the access to these studies is made available trough an Opal server where the three studies are accessed as three different resources (see Figure\@ref(fig:ega)). 
+
+
+```{r ega, echo=FALSE, fig.cap="Proposed infrastructure to perform federated non-disclosive data analysis of EGA studies. Example of three studies having datasets on hypertension", out.width = '130%', fig.align='center'}
+knitr::include_graphics("fig/ega_ds.png")
+```
+
+
+Then, the user can ask permission to EGA and have access to these three resources as DataSHIELD user. These users have a limited access to EGA data implies that the data analyst can only perform non-diclosive analyses (e.g, summary statistics, p-values, meta-analyses, ...)
+
+Regarding omic data analyses, the typical workflow in EGA using existing infrastructure would include: 
+
+1. To download data (e.g VCF/PLINK/BAM files and metadata) in local machine, and 
+2. To perform bioinformatic analyses (wrote pipelines). 
+
+The analysis of a GWAS data can be carried out using several Bioconductor packages such as [snpStats]() or [GWAStools]() among others. However, it requires to know how to deal with `snpMatrix` or `GDS` objects in R/Bioconductor and some advances skills in R. [PLINK](https://zzz.bwh.harvard.edu/plink/plink2.shtml) can also be used to run GWAS. Using our approach the user must only:
+
+1. Logging to the Opal server and load the resources having the data of each required study
+2. Run DataSHIELD functions (in a local R Studio) to perform the desired bioinformatic analysis
+
+The functions to be executed in the local side (i.e. data analyst machine) will extremely facilitate the bioinformatic analyses by running simple R sentences for each of the required genomic data analysis. These functions are implemented in the [dsOmicsClient](https://rpubs.com/jrgonzalezISGlobal/tutorial_DSomics) package that includes:
+
+- Principal component analyses (population stratification)
+- Allele frequency
+- Hardy-Weinberg equillibrium test
+- Single association analyses (meta-analysis and mega-analysis, e.g pooled data)
+- GWAS (meta-analysis)
+
+The package also allows to perform:
+
+- Differential expression analyses (microarray and RNAseq) using:
+     - limma
+     - DESeq2
+     - edgeR
+- Epigenome-wide association analyses
+- Meta-analyses
+- Post-omic data analyses (e.g. pathway/enrichment)
+
+
+# Getting started
+
+In order to reproduce this vignette the following packages are required:
+
+```{r install_req, eval=FALSE}
+install.packages(c("ssh", "resourcer", "DSOpal"))
+install.packages("dsBaseClient", repos = c("https://cran.obiba.org"))
+devtools::install_github("isglobal-brge/dsOmicsClient")
+```
+
+Other dependencies may also be needed:
+
+```{r install_dep, eval=FALSE}
+install.packages(c("readr", "dplyr", "fields","metafor","ggplot2",
+                   "gridExtra", "data.table", "ggrepel"))
+```
+
+
+# Loading the resources (EGA dataset) into the R server
+
+Let us start by loading the required packages:
+
+```{r load_packages}
+library(DSOpal)
+library(dsBaseClient)
+library(dsOmicsClient)
+```
+
+Then, let us load EGA dataset EGAS00001005042 which is a test study for EGA using data from 1000 Genomes Project - Phase 3. It was specifically created to add more diversity to the existing dataset EGAD00001003338. This Test Study should not be confused with the real study of 1000 Genomes Project - Phase 3. 
+
+
+We start by logging to the Opal server
+
+```{r load_ega_1000g_1}
+builder <- newDSLoginBuilder()
+builder$append(server = "study1", url = "https://opal-demo.obiba.org",
+               user = "dsuser", password = "password",
+               resource = "RSRC.ga4gh_1000g")
+logindata <- builder$build()
+```
+
+
+>
+> **IMPORTANT IMPROVEMENT:** We should notice here that the credentials (user = "dsuser", password = "password") are the ones that EGA can send to the user to have permission as DataSHIELD user. That is, only to have access to non-disclosive information (e.g. summary statistics, p-values, ...). This completely different to de credentials that EGA normally provides to the researchers that gives full control to the data. The DataSHIELD user is allowed to run functions that are available at DataSHIELD packages, mainly `dsBaseClient` and `dsOmicsClient` that have been created to guarantee privacy-protected data analyses.
+>
+
+Now we establish the connection and assign the resource (e.g. the EGA dataset stored as VCF file) to an object called `ega_gds` which is of class `GdsGenotypeReader` that is specific to reading genotype data stored in GDS files (**NOTE**: here we provide the first help to the data analyst by getting the VCF file into a GDS file which is required in Bioconductor to run GWAS analyses using `GWASTools`). 
+
+```{r load_ega_1000g_2}
+conns <- datashield.login(logins = logindata, assign = TRUE,
+                          symbol = "ega")
+datashield.assign.expr(conns, symbol = "ega_gds", 
+                       expr = quote(as.resource.object(ega)))
+```
+
+Now we can see what type of object we have in our R server using standard DataSHIELD commands
+
+```{r class_ega_1000G}
+ds.class("ega_gds")
+```
+
+We can verify that we have loaded into the R server the proper number of snps, individuals and chromosomes
+
+```{r dimensions}
+ds.genoDimensions("ega_gds")
+```
+
+
+Once we have the genomic data (original VCF file in EGA) into the R server, we proceed to get the metadata which is a .tsv file having different covariates:
+
+- Sample: 1000 Genomes ID
+- Family.ID: Family ID
+- Population: 1000 Genome sub-population
+- Population.Description: Description of the Population
+- Gender: male, female
+- Relationship: familiar relathionship (Family ID)          
+- casco: simulated case/control status (0:control, 1:case)          
+
+
+```{r load_ega_1000g_3}
+datashield.assign.resource(conns, symbol = "metadata", 
+                           resource = list(study1 = "RSRC.ega_metadata_1000G"))
+datashield.assign.expr(conns, symbol = "covars", 
+                       expr = quote(as.resource.data.frame(metadata)))
+```
+
+Let us verify that metadata contains our covariates
+
+```{r check_covars}
+ds.colnames("covars")
+```
+
+Now, before starting to run the desired analyses we need to create a `DDD` object that links both genomic data and metadata as follows:
+
+
+```{r create}
+ds.GenotypeData(x='ega_gds', covars = 'covars', columnId = 1, 
+                sexId = 5, male_encoding = 'male', female_encoding = 'female',
+                newobj.name = 'geno')
+```
+
+Now, there is another object called `geno` having 
+
+
+which is of class 
+
+```{r check_geno}
+ds.class('geno')
+```
+
+# Genomic Data Analysis
+
+We can start to see whether there is population stratification and compute PCAs just simply by:
+
+```{r pca}
+pca <- ds.PCASNPS("ega_gds", prune = TRUE)
+plotPCASNPS(pca, group = 'Population', 'covars', feno_id = 1)
+```
+
+The object `pca` contains the variables ....
+
+Then, we can estimate allele frequency by executing:
+
+```{r allele}
+ds.alleleFrequency('geno')
+```
+
+Hardy-Weinberg equilibrium can be tested by
+
+```{r hwe}
+ds.exactHWE("geno")
+```
+
+We can run some single association analyses by
+
+```{r single_snp}
+ds.glmSNP(snps.fit = "rs58108140", 
+          model = casco ~  Gender + Population, 
+          genoData='geno')
+```
+
+And the same can be performed for a set of SNPs
+
+```{r set_snps}
+ds.glmSNP(snps.fit = c("rs58108140", "rs189107123", "rs180734498"), 
+          model = casco ~ Gender + Population, genoData='geno')
+```
+
+
+Finally, a GWAS can be run by
+
+```{r gwas}
+ds.GWAS('geno', model = casco ~ Gender + Population)
+```
+
+# Subset of genes: Replication of our results in EGA studies
+
+Analyzing EGA data can help to validate the results we have obtained in out project. Let us imagine that we performed a transcriptomic analysis and that we found that _OR4F5_ and _WASH7P_ genes were diferentially expressed. Now we aim to investigate whether SNPs located in those genes have any variant associated hypertension. We can easily do that by 
+
+
+```{r subset_genes}
+genes <- c("OR4F5","WASH7P")
+ds.getSNPSbyGen("ega_gds", genes, name = "ega_gds_subset")
+ds.GenotypeData(x='ega_gds_subset', covars = 'covars', columnId = 1, 
+                sexId = 5, male_encoding = 'male', female_encoding = 'female',
+                newobj.name = 'geno_subset')
+ds.GWAS('geno_subset', model = casco ~ Gender + Population)
+```
+
+
+We finish the session by closing the connection
+
+```{r close}
+datashield.logout(conns) 
+```
+
+
