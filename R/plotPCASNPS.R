@@ -3,19 +3,21 @@
 #' @param res \code{PCASNPS} Object returned from \code{ds.PCASNPS()}
 #' @param xcomp \code{numeric} Principal component to plot on the X axis
 #' @param ycomp \code{numeric} Principal component to plot on the Y axis
+#' @param group 
+#' @param geno 
+#' @param datasources 
 #'
 #' @return \code{ggplot} object
 #' @export
 
-plotPCASNPS <- function(res, group = NULL, feno = NULL, feno_id = NULL,
+plotPCASNPS <- function(res, group = NULL, geno = NULL, 
                         xcomp = 1, ycomp = 2, datasources = NULL){
   
   if(!is.null(group)){
     if (is.null(datasources)) {
       datasources <- DSI::datashield.connections_find()
     }
-    cally <- paste0('plotPCASNPSDS(', res$set, ', ', feno, ', ', feno_id,
-                    ', "', group, '")')
+    cally <- paste0('plotPCASNPSDS(', res$set, ', ', geno, ', "', group, '")')
     grouping <- DSI::datashield.aggregate(datasources, as.symbol(cally))[[1]]
   }
   plt <- ggplot2::ggplot(res[[1]][[1]]) +  # Does plot with results from first study server!
