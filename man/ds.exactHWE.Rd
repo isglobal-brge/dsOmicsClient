@@ -6,27 +6,17 @@
 \usage{
 ds.exactHWE(
   genoData,
-  sexcol = "sex",
-  male = "M",
-  female = "F",
   chromosome = "all",
   geno.counts = TRUE,
   block.size = 5000,
   permute = FALSE,
+  controls = FALSE,
+  controls_column = NULL,
   datasources = NULL
 )
 }
 \arguments{
 \item{genoData}{\code{character} Name of the \code{\link{GenotypeData}} object on the server}
-
-\item{sexcol}{\code{character} (default \code{"sex"}) Name of the sex column on the covariates file used to create the 
-\code{\link{GenotypeData}} object}
-
-\item{male}{\code{character} (default \code{"M"}) Name of the male indicator of the sex column on the covariates file used to create the 
-\code{\link{GenotypeData}} object. (Note that it is case sensitive so it's not the same \code{male} than \code{Male})}
-
-\item{female}{\code{character} (default \code{"M"}) Name of the female indicator of the sex column on the covariates file used to create the 
-\code{\link{GenotypeData}} object. (Note that it is case sensitive so it's not the same \code{female} than \code{Female})}
 
 \item{chromosome}{\code{character} Chromosome to study. \code{"all"} to study all available chromosomes. Use
 \code{ds.getChromosomeNames(genoData)} to retrieve the name encodings of the chromosomes.}
@@ -36,6 +26,11 @@ ds.exactHWE(
 \item{block.size}{\code{numeric} (default \code{5000}) number of SNPs to read in at once}
 
 \item{permute}{\code{bool} (default \code{FALSE}) logical indicator for whether to permute alleles before calculations}
+
+\item{controls}{\code{bool} (default \code{FALSE}) logical to calculate the HWE test only on the controls}
+
+\item{controls_column}{\code{character} (default \code{NULL}) name of the case/controls column of the covariates 
+used to create the GenotypeData object. Only used if \code{controls = TRUE}}
 
 \item{datasources}{a list of \code{\link{DSConnection-class}} objects obtained after login.}
 }

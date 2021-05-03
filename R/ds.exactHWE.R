@@ -15,17 +15,14 @@
 #' the expected distribution of p-values and corresponding confidence intervals.
 #'
 #' @param genoData \code{character} Name of the \code{\link{GenotypeData}} object on the server
-#' @param sexcol \code{character} (default \code{"sex"}) Name of the sex column on the covariates file used to create the 
-#' \code{\link{GenotypeData}} object
-#' @param male \code{character} (default \code{"M"}) Name of the male indicator of the sex column on the covariates file used to create the 
-#' \code{\link{GenotypeData}} object. (Note that it is case sensitive so it's not the same \code{male} than \code{Male})
-#' @param female \code{character} (default \code{"M"}) Name of the female indicator of the sex column on the covariates file used to create the 
-#' \code{\link{GenotypeData}} object. (Note that it is case sensitive so it's not the same \code{female} than \code{Female})
 #' @param chromosome \code{character} Chromosome to study. \code{"all"} to study all available chromosomes. Use
 #' \code{ds.getChromosomeNames(genoData)} to retrieve the name encodings of the chromosomes.
 #' @param geno.counts \code{bool} (default \code{TRUE}) if \code{TRUE}, genotype counts are returned in the output data.frame
 #' @param block.size \code{numeric} (default \code{5000}) number of SNPs to read in at once
 #' @param permute \code{bool} (default \code{FALSE}) logical indicator for whether to permute alleles before calculations
+#' @param controls \code{bool} (default \code{FALSE}) logical to calculate the HWE test only on the controls
+#' @param controls_column \code{character} (default \code{NULL}) name of the case/controls column of the covariates 
+#' used to create the GenotypeData object. Only used if \code{controls = TRUE}
 #' @param datasources a list of \code{\link{DSConnection-class}} objects obtained after login. 
 #'
 #' @return A \code{data frame} with the following columns: \cr
@@ -44,18 +41,19 @@
 #' 
 #' @export
 
-ds.exactHWE <- function(genoData, sexcol = "sex", male = "M", female = "F", chromosome = "all", geno.counts = TRUE,
-                        block.size = 5000, permute = FALSE, datasources = NULL){
+ds.exactHWE <- function(genoData, chromosome = "all", geno.counts = TRUE,
+                        block.size = 5000, permute = FALSE, controls = FALSE,
+                        controls_column = NULL, datasources = NULL){
   
   if (is.null(datasources)) {
     datasources <- DSI::datashield.connections_find()
   }
   
-  cally <- paste0("exactHWEDS(", genoData, ", '", sexcol, "', '", male, "', '", female,
-                  "', geno.counts = ", if(!is.null(geno.counts)){geno.counts}else{"NULL"}, 
+  cally <- paste0("exactHWEDS(", genoData, ", geno.counts = ", if(!is.null(geno.counts)){geno.counts}else{"NULL"}, 
                   ", chromosome = '", chromosome, "', block.size = ", block.size, ", permute = ",
-                  permute, ")"
-                  )
+                  permute, ", ", controls, ", ", 
+                  if(is.null(controls_column)){NULL}else{paste0("'",controls_column,"'")},
+                  ")")
   ans <- datashield.aggregate(datasources, as.symbol(cally))
   
   class(ans) <- c("dsexactHWE", class(ans))
