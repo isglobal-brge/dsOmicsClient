@@ -14,6 +14,7 @@ ds.limma(
   sva = FALSE,
   annotCols = NULL,
   method = "ls",
+  robust = FALSE,
   datasources = NULL
 )
 }
