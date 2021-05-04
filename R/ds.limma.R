@@ -14,6 +14,10 @@
 ##' @param annotCols the column names of the annotation available in the ExpresionSet or RangedSummarizedExperiment (see fData() function)
 ##' @param method String indicating the method used in the regression: "ls" or 
 #' "robust". (Default: "ls")
+#' @param robust Logical value indicating whether robust method is applied in the eBayes function of limma. Default is FALSE.
+#' @param normalization String indicating the normalize method used when using voom for RNAseq data 
+#' (see normalized.method argument in limma::vomm for possible values)
+#' 
 ##' @param datasources a list of \code{\link{DSConnection-class}} objects obtained after login. 
 #' If the \code{datasources} argument is not specified
 #' the default set of connections will be used: see \code{\link{datashield.connections_default}}.
@@ -25,7 +29,7 @@
 ds.limma <- function(model, Set, type.data="microarray",
                      contrasts = NULL, levels = "design", coef = 2,
                      sva=FALSE, annotCols=NULL, method = "ls", robust = FALSE,
-                     datasources=NULL){
+                     normalization = "none", datasources=NULL){
   
   type <- charmatch(type.data, c("microarray", "RNAseq"))
   if(is.na(type))
@@ -65,8 +69,9 @@ ds.limma <- function(model, Set, type.data="microarray",
     
   calltext <- call("limmaDS", Set, variable_names,
                    covariable_names, type, contrasts,
-                   levels,coef, sva, annotCols, method, robust)
-  
+                   levels, coef, sva, annotCols, method, 
+                   robust, normalization)
+
   ans <- datashield.aggregate(datasources, calltext)
   class(ans) <- c("dsLimma", class(ans))
   return(ans)

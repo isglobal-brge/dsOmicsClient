@@ -18,8 +18,6 @@ pkgs <- c("dsBase", "resourcer", "dsOmics", "SummarizedExperiment", "GenomicRang
 dslite.server <- newDSLiteServer(resources = list(csv=csv, pheno=pheno),
                                  config = DSLite::defaultDSConfiguration(include=pkgs))
 
-dslite.server$aggregateMethod("filteredByExprDS", "filteredByExprDS")
-
 
 builder <- DSI::newDSLoginBuilder()
 builder$append(server = "server1", url = "dslite.server", resource = "csv", driver = "DSLiteDriver")
@@ -36,11 +34,14 @@ ds.dim('pheno')
 ds.dim('rnaseq')
 
 ds.createRSE('rnaseq', 'pheno', newobj.name = 'rse')
-ds.filterByExpr('rse')
+ds.filterByExpr('rse', group=newobj.name = 'rse.filt')
 
 ds.dim('rse')
 ds.dim('rse.filter')
 
-ds.limma( model = FIR ~ Sex, 
-          Set="rse.filter", type.data="RNAseq")
+ds.colnames('pheno')
+
+ds.limma( model = FIR ~ gender, 
+          Set="rse.filt", type.data="RNAseq", annotCols = c("Symbol"),
+          normalization = "quantile", robust = TRUE)
 datashield.errors()
