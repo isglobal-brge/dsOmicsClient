@@ -4,10 +4,12 @@
 \alias{ds.filterByExpr}
 \title{Filter Genes By Expression Level}
 \usage{
-ds.filterByExpr(object, newobj.name = NULL, datasources = NULL)
+ds.filterByExpr(object, group = NULL, newobj.name = NULL, datasources = NULL)
 }
 \arguments{
 \item{object}{\code{character} Name of the \code{eSet}, \code{RangedSummarizedExperiment} on the server}
+
+\item{group}{character indicating the vector or factor giving group membership (optional).}
 
 \item{newobj.name}{\code{character} (default \code{NULL}) Name to be assigned 
 on the server to the RangedSummarizedExperiment. If \code{NULL} the created \code{RangedSummarizedExperiment} will 
@@ -19,5 +21,6 @@ be assigned to a variable named \code{'rse.filter'}}
 This function does not have an output. It creates (or overwrites) a data frame on the study server.
 }
 \description{
-Determine which genes have sufficiently large counts to be retained in a statistical analysis. This is a similar function to \code{edgeR::filterByExpr}
+Determine which genes have sufficiently large counts to be retained in a statistical analysis. 
+This is a similar function to \code{edgeR::filterByExpr}
 }

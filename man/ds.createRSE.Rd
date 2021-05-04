@@ -5,12 +5,22 @@
 \title{Create a RangedSummarizedExperiment from a RNAseq count table and 
 a phenotypes table}
 \usage{
-ds.createRSE(rnaseq, phe, newobj.name = NULL, datasources = NULL)
+ds.createRSE(
+  rnaseq,
+  phe,
+  annotCols = NULL,
+  newobj.name = NULL,
+  datasources = NULL
+)
 }
 \arguments{
 \item{rnaseq}{\code{character} Name of the RNAseq table on the server}
 
 \item{phe}{\code{character} Name of the phenotypes table on the server}
+
+\item{annotCols}{\code{character vector} (default \code{NULL}) Columns of the counts table to be used as 
+annotation when creating the SummarizedExperiment. If \code{NULL}, biomaRt will be used to find 
+annotation using the first column of the counts table (EntrezID)}
 
 \item{newobj.name}{\code{character} (default \code{NULL}) Name to be assigned 
 on the server to the RangedSummarizedExperiment. If \code{NULL} the created RSE will 
@@ -28,8 +38,8 @@ a phenotypes table
 \details{
 The RNAseq count table has to have the following structure: \cr
 - First column: Entrez identificator \cr
-- Second column: Annotated symbol \cr
-- All the remaining columns: One col. per individual \cr
+- All the remaining columns: One col. per individual + annotation columns (no special
+order required, they can even be mixed) \cr
 The phenotypes table has to have the following structure: \cr
 - First column: ID of the individuals. To match with the column names 
 of the RNAseq table \cr

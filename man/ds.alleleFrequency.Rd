@@ -4,25 +4,10 @@
 \alias{ds.alleleFrequency}
 \title{Allelic frequency}
 \usage{
-ds.alleleFrequency(
-  genoData,
-  sexcol = "sex",
-  male = "M",
-  female = "F",
-  datasources = NULL
-)
+ds.alleleFrequency(genoData, datasources = NULL)
 }
 \arguments{
 \item{genoData}{\code{character} Name of the \code{\link{GenotypeData}} object on the server}
-
-\item{sexcol}{\code{character} (default \code{"sex"}) Name of the sex column on the covariates file used to create the 
-\code{\link{GenotypeData}} object}
-
-\item{male}{\code{character} (default \code{"M"}) Name of the male indicator of the sex column on the covariates file used to create the 
-\code{\link{GenotypeData}} object. (Note that it is case sensitive so it's not the same \code{male} than \code{Male})}
-
-\item{female}{\code{character} (default \code{"M"}) Name of the female indicator of the sex column on the covariates file used to create the 
-\code{\link{GenotypeData}} object. (Note that it is case sensitive so it's not the same \code{female} than \code{Female})}
 
 \item{datasources}{a list of \code{\link{DSConnection-class}} objects obtained after login.}
 }

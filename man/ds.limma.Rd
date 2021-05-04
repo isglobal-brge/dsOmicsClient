@@ -15,6 +15,7 @@ ds.limma(
   annotCols = NULL,
   method = "ls",
   robust = FALSE,
+  normalization = "none",
   datasources = NULL
 )
 }
@@ -32,6 +33,11 @@ ds.limma(
 
 \item{method}{String indicating the method used in the regression: "ls" or 
 "robust". (Default: "ls")}
+
+\item{robust}{Logical value indicating whether robust method is applied in the eBayes function of limma. Default is FALSE.}
+
+\item{normalization}{String indicating the normalize method used when using voom for RNAseq data 
+(see normalized.method argument in limma::vomm for possible values)}
 
 \item{datasources}{a list of \code{\link{DSConnection-class}} objects obtained after login. 
 If the \code{datasources} argument is not specified
