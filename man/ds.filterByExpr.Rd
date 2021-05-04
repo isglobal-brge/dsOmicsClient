@@ -4,19 +4,20 @@
 \alias{ds.filterByExpr}
 \title{Filter Genes By Expression Level}
 \usage{
-ds.filterByExpr(object, datasources = NULL)
+ds.filterByExpr(object, newobj.name = NULL, datasources = NULL)
 }
 \arguments{
-\item{object}{name of the DataSHIELD object to which the ExpresionSet, SummarizedExperiment or RangedSummarizedExperiment has been assigned}
+\item{object}{\code{character} Name of the \code{eSet}, \code{RangedSummarizedExperiment} on the server}
 
-\item{datasources}{....}
+\item{newobj.name}{\code{character} (default \code{NULL}) Name to be assigned 
+on the server to the RangedSummarizedExperiment. If \code{NULL} the created \code{RangedSummarizedExperiment} will 
+be assigned to a variable named \code{'rse.filter'}}
+
+\item{datasources}{a list of \code{\link{DSConnection-class}} (default \code{NULL}) objects obtained after login}
 }
 \value{
-initial object having only genes with sufficiently large counts to be retained in a statistical analysis.
+This function does not have an output. It creates (or overwrites) a data frame on the study server.
 }
 \description{
-This function is similar to Bioconductor function \code{edgeR::filterByExpr}
-}
-\examples{
-
+Determine which genes have sufficiently large counts to be retained in a statistical analysis. This is a similar function to \code{edgeR::filterByExpr}
 }

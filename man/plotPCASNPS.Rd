@@ -16,9 +16,15 @@ plotPCASNPS(
 \arguments{
 \item{res}{\code{PCASNPS} Object returned from \code{ds.PCASNPS()}}
 
+\item{group}{}
+
+\item{geno}{}
+
 \item{xcomp}{\code{numeric} Principal component to plot on the X axis}
 
 \item{ycomp}{\code{numeric} Principal component to plot on the Y axis}
+
+\item{datasources}{}
 }
 \value{
 \code{ggplot} object
