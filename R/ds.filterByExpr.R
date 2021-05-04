@@ -1,6 +1,7 @@
 #' @title Filter Genes By Expression Level
 #' 
-#' @description Determine which genes have sufficiently large counts to be retained in a statistical analysis. This is a similar function to \code{edgeR::filterByExpr}
+#' @description Determine which genes have sufficiently large counts to be retained in a statistical analysis. 
+#' This is a similar function to \code{edgeR::filterByExpr}
 #'
 #' @param object \code{character} Name of the \code{eSet}, \code{RangedSummarizedExperiment} on the server
 #' @param group character indicating the vector or factor giving group membership (optional). 
@@ -12,7 +13,7 @@
 #' @return This function does not have an output. It creates (or overwrites) a data frame on the study server.
 #' @export
 
-ds.filterByExpr <- function(object,  group, newobj.name = NULL, datasources = NULL){
+ds.filterByExpr <- function(object,  group = NULL, newobj.name = NULL, datasources = NULL){
   
   if (is.null(datasources)) {
     datasources <- DSI::datashield.connections_find()
@@ -28,6 +29,7 @@ ds.filterByExpr <- function(object,  group, newobj.name = NULL, datasources = NU
     stop("[",object,"] is not a 'data.frame'")
   }
 
-  cally <- paste0("filterByExprDS(", object, ",'", group, "')")
+  cally <- paste0("filterByExprDS(", object, ",", 
+                  if(is.null(group)){"NULL"}else{paste0("'",group,"'")}, ")")
   DSI::datashield.assign.expr(datasources, newobj.name, cally)
 }
