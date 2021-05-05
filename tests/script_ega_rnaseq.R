@@ -42,13 +42,6 @@ ds.colnames('pheno')
 ds.fvarLabels('rse.pre')
 
 ans <- ds.limma( model = FIR ~ gender, 
-          Set="rse.pre", type.data="RNAseq", annotCols = c("Symbol"),
-          normalization = "quantile", robust = TRUE, sva=TRUE)
-
-o <- ans$server1 %>% filter(exp(abs(beta))>log2(1.5)) %>% arrange(desc(beta))
-o
-
-ans <- ds.limma( model = FIR ~ gender, 
                  Set="rse.pre", type.data="RNAseq", annotCols = c("Symbol"),
                  normalization = "quantile", robust = TRUE, sva=TRUE,
                  voomQualityWeights = TRUE)
