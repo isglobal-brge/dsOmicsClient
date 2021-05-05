@@ -16,6 +16,8 @@ ds.limma(
   method = "ls",
   robust = FALSE,
   normalization = "none",
+  voomQualityWeights = FALSE,
+  big = FALSE,
   datasources = NULL
 )
 }
@@ -37,7 +39,9 @@ ds.limma(
 \item{robust}{Logical value indicating whether robust method is applied in the eBayes function of limma. Default is FALSE.}
 
 \item{normalization}{String indicating the normalize method used when using voom for RNAseq data 
-(see normalized.method argument in limma::vomm for possible values)}
+(see normalized.method argument in limma::vomm for possible values)
+#' @param voomQualityWeights Logical value indicating whether limma::voomWithQualityWeights should be used instead of
+limma::voom. Default is FALSE and hence the pipeline uses limma::voom to transform RNAseq data.}
 
 \item{datasources}{a list of \code{\link{DSConnection-class}} objects obtained after login. 
 If the \code{datasources} argument is not specified

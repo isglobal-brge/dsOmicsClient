@@ -13,7 +13,7 @@
 #' @return This function does not have an output. It creates (or overwrites) a data frame on the study server.
 #' @export
 
-ds.filterByExpr <- function(object,  group = NULL, newobj.name = NULL, datasources = NULL){
+ds.RNAseqPreproc <- function(object,  group = NULL, newobj.name = NULL, datasources = NULL){
   
   if (is.null(datasources)) {
     datasources <- DSI::datashield.connections_find()
@@ -29,7 +29,7 @@ ds.filterByExpr <- function(object,  group = NULL, newobj.name = NULL, datasourc
     stop("[",object,"] is not a 'data.frame'")
   }
 
-  cally <- paste0("filterByExprDS(", object, ",", 
+  cally <- paste0("RNAseqPreprocDS(", object, ",", 
                   if(is.null(group)){"NULL"}else{paste0("'",group,"'")}, ")")
   DSI::datashield.assign.expr(datasources, newobj.name, cally)
 }

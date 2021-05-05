@@ -17,7 +17,9 @@
 #' @param robust Logical value indicating whether robust method is applied in the eBayes function of limma. Default is FALSE.
 #' @param normalization String indicating the normalize method used when using voom for RNAseq data 
 #' (see normalized.method argument in limma::vomm for possible values)
-#' 
+#' #' @param voomQualityWeights Logical value indicating whether limma::voomWithQualityWeights should be used instead of
+#' limma::voom. Default is FALSE and hence the pipeline uses limma::voom to transform RNAseq data.
+#'  
 ##' @param datasources a list of \code{\link{DSConnection-class}} objects obtained after login. 
 #' If the \code{datasources} argument is not specified
 #' the default set of connections will be used: see \code{\link{datashield.connections_default}}.
@@ -29,7 +31,8 @@
 ds.limma <- function(model, Set, type.data="microarray",
                      contrasts = NULL, levels = "design", coef = 2,
                      sva=FALSE, annotCols=NULL, method = "ls", robust = FALSE,
-                     normalization = "none", datasources=NULL){
+                     normalization = "none", voomQualityWeights = FALSE, 
+                     big = FALSE, datasources=NULL){
   
   type <- charmatch(type.data, c("microarray", "RNAseq"))
   if(is.na(type))
@@ -70,7 +73,7 @@ ds.limma <- function(model, Set, type.data="microarray",
   calltext <- call("limmaDS", Set, variable_names,
                    covariable_names, type, contrasts,
                    levels, coef, sva, annotCols, method, 
-                   robust, normalization)
+                   robust, normalization, voomQualityWeights, big)
 
   ans <- datashield.aggregate(datasources, calltext)
   class(ans) <- c("dsLimma", class(ans))
