@@ -39,17 +39,15 @@ qqplot <- function(ps, ci = 0.95) {
   )
   log10Pe <- expression(paste("Expected -log"[10], plain((p.value))))
   log10Po <- expression(paste("Observed -log"[10], plain((p.value))))
-  ggplot(df) +
-    geom_ribbon(
+  ggplot2::ggplot(df) +
+    ggplot2::geom_ribbon(
       mapping = aes(x = expected, ymin = clower, ymax = cupper),
       alpha = 0.1
     ) +
-    geom_point(aes(expected, observed), size = 1.2) +
-    geom_abline(intercept = 0, slope = 1, alpha = 0.5) +
-    # geom_line(aes(expected, cupper), linetype = 2, size = 0.5) +
-    # geom_line(aes(expected, clower), linetype = 2, size = 0.5) +
-    xlab(log10Pe) + ylab(log10Po) + 
-    annotate(geom = "text", x = min(expected), y = max(observed), hjust = 0, 
-             label = sprintf("λ = %.2f", inflation(ps)),
-             size = 4)
+    ggplot2::geom_point(aes(expected, observed), size = 1.2) +
+    ggplot2::geom_abline(intercept = 0, slope = 1, alpha = 0.5) +
+    ggplot2::xlab(log10Pe) + ggplot2::ylab(log10Po) + 
+    ggplot2::annotate(geom = "text", x = min(expected), y = max(observed), hjust = 0, 
+              label = paste("lambda == ", round(inflation(ps),2)),
+              size = 4, parse = TRUE)
 }

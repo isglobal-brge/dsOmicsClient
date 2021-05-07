@@ -6,7 +6,7 @@ Let us start by creating the connection to the opal server:
 builder <- newDSLoginBuilder()
 builder$append(server = "study1", url = "https://opal-demo.obiba.org", 
                user = "dsuser", password = "password", 
-               resource = "RSRC.tcga_liver", driver = "OpalDriver")
+               resource = "RSRC.tcga_liver")
 
 logindata <- builder$build()
 
@@ -42,29 +42,107 @@ name.vars <- ds.featureData("rse")
 lapply(name.vars, head, n=15)
 ```
 
-We can visualize the levels of the variable having gender information
+We can visualize the levels of the variable having gender information that will be our condition (i.e., we are interested in obtaining genes that are differentially expressed between males and females)
 
 ```{r table_gender}
 ds.table("rse$gdc_cases.demographic.gender")
 ```
 
+We have implemented a function called `ds.RNAseqPreproc()` to perform RNAseq data pre-processing that includes:
 
-The differential expression analysis is then performed by:
-  
+- transforming data into log2 CPM units
+- filtering lowly-expressed genes
+- data normalization
+
+```{r pre_proc}
+ds.RNAseqPreproc('rse', group= 'gdc_cases.demographic.gender', 
+                 newobj.name = 'rse.pre')
+```
+
+Note that it is recommended to indicate the grouping variable (i.e., condition). Once data have been pre-processed, we can perform differential expression analysis. Notice how dimensions have changed given the fact that we have removed genes with low expression which are expected to do not be differentially expressed. 
+
+```{r check_dim}
+ds.dim('rse')
+ds.dim('rse.pre')
+```
+
+
+The differential expression analysis is ´dsOmicsClient/dsOmics´ is implemented in the funcion `ds.limma()`. This functions runs a limma-pipeline for microarray data and for RNAseq data allows: 
+
+- voom + limma
+- DESeq2
+- edgeR
+
+We recommend to use the `voom + limma` pipeline proposed [here](https://f1000research.com/articles/5-1438/v2) given its versatility and that `limma` is much faster than `DESeq2` and `edgeR`. By default, the function consider that data are obtained from a microarray experiment (`type.data = "microarray"`). Therefore, as we are analyzing RNAseq data, we much indicate that `type.data = "RNAse"`
   
 ```{r voom_gender}
 ans.gender <- ds.limma(model =  ~ gdc_cases.demographic.gender, 
-                       Set = "rse", type.data = "RNAseq", 
-                       sva = FALSE)
+                       Set = "rse.pre", type.data = "RNAseq")
 ```
 
-Notice that we have set `type.data='RNAseq'` to consider that our data are counts obtained from a RNA-seq experiment. By indicating so, the differential analysis is performed by using  `voom` + `limma` as previously mention.
 
 The top differentially expressed genes can be visualized by:
   
 ```{r show_ans.gender}
 ans.gender
 ```
+
+We can verify whether the distribution of the observed p-values are the ones we expect in this type of analyses
+
+```{r plot_hist}
+hist(ans.gender$study1$P.Value, xlab="Raw p-value gender effect",
+     main="", las=1, cex.lab=1.5, cex.axis=1.2, col="gray")
+```
+
+We can also check whether there is inflation just executing 
+
+```{r plotInfl}
+qqplot(ans.gender$study1$P.Value)
+```
+
+So, in that case, the model needs to remove unwanted variability ($\lambda>2$). If so, we can use surrogate variable analysis just changing the argument `sva=TRUE`
+
+```{r voom_gender_sva}
+ans.gender.sva <- ds.limma(model =  ~ gdc_cases.demographic.gender, 
+                       Set = "rse.pre", type.data = "RNAseq",
+                       sva = TRUE)
+```
+
+Now the inflation has dramatically been reduced ($\lambda>1.12$)
+
+```{r plotInfl2}
+qqplot(ans.gender.sva$study1$P.Value)
+```
+
+
+We can add annotation to the output that is available in our RSE object. We can have access to this information by
+
+```{r show_annot}
+ds.fvarLabels('rse.pre')
+``` 
+So, we can run
+
+```{r voom_gender_sva2}
+ans.gender.sva <- ds.limma(model =  ~ gdc_cases.demographic.gender, 
+                       Set = "rse.pre", type.data = "RNAseq",
+                       sva = TRUE, annotCols = c("chromosome"))
+```
+
+The results are: 
+
+```{r show_res}
+ans.gender.sva
+```
+
+The function has another arguments that can be used to fit other type of models:
+
+- sva: estimate surrogate variables 
+- annotCols: to add annotation available in the 
+- method: Linear regression ("ls") or robust regression ("robust") used in limma (`lmFit`)
+- robust: robust method used for outlier sample variances used in limma (`eBayes`)
+- normalization: normalization method used in the `voom` transformation (default "none")
+- voomQualityWeights: should `voomQualityWeights` function be used instead of `voom`? (default FALSE)
+- big: should SmartSVA be used instead of SVA (useful for big sample size or when analyzing epigenome data. Default FALSE)
 
 
 We have also implemented two other functions `ds.DESeq2` and `ds.edgeR` that perform DGE analysis using [DESeq2](https://www.bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html) and [edgeR](https://www.bioconductor.org/packages/release/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf) methods. This is the R code used to that purpose:

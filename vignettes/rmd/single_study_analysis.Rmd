@@ -1,1 +1,1 @@
-Let us start by illustrating a simple example where a researcher may be interested in perfoming differential gene expression anaylis (DGE) having data in a single repository (e.g. one study).
+Let us start by illustrating a simple example where a researcher may be interested in performing differential gene expression analysis (DGE) having data in a single repository (e.g. one study).

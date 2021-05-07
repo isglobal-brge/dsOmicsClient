@@ -11,7 +11,7 @@ We start by assigning login resources
   builder <- newDSLoginBuilder()
   builder$append(server = "study1", url = "https://opal-demo.obiba.org",
                  user = "dsuser", password = "password",
-                 resource = "RSRC.brge_plink", driver = "OpalDriver")
+                 resource = "RSRC.brge_plink")
   logindata <- builder$build()
 ```
   

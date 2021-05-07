@@ -6,7 +6,7 @@ We first start by preparing login data
 builder <- newDSLoginBuilder()
 builder$append(server = "study1", url = "https://opal-demo.obiba.org",
                user = "dsuser", password = "password",
-               resource = "RSRC.brge_vcf", driver = "OpalDriver")
+               resource = "RSRC.brge_vcf")
 logindata <- builder$build()
 
 conns <- datashield.login(logins = logindata, assign = TRUE,

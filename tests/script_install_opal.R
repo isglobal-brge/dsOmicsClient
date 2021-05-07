@@ -3,7 +3,8 @@ library(dsBaseClient)
 library(dsOmics)
 
 builder <- DSI::newDSLoginBuilder()
-builder$append(server = "study1", url = "https://opal-test.obiba.org", user = "dsuser", password = "password", resource = "test.gtex_kidney", driver = "OpalDriver")
+builder$append(server = "study1", url = "https://opal-test.obiba.org", user = "dsuser", 
+               password = "password", resource = "test.gtex_kidney")
 logindata <- builder$build()
 
 conns <- DSI::datashield.login(logins = logindata, assign = TRUE, symbol = "res")

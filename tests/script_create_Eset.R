@@ -116,7 +116,7 @@ ds.ls(conns)
 builder <- DSI::newDSLoginBuilder()
 builder$append(server = "study1", url = "https://opal-test.obiba.org", 
                user = "dsuser", password = "password", 
-               resource = "omicBioC.gwas1", driver = "OpalDriver")
+               resource = "omicBioC.gwas1")
 logindata <- builder$build()
 
 conns <- DSI::datashield.login(logins = logindata, 

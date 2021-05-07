@@ -48,7 +48,7 @@ datashield.logout(conns)
 builder <- DSI::newDSLoginBuilder()
 builder$append(server = "study1", url = "https://opal-test.obiba.org", 
                user = "dsuser", password = "password", 
-               resource = "test.brgeExpo", driver = "OpalDriver")
+               resource = "test.brgeExpo")
 
 logindata <- builder$build()
 
