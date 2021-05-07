@@ -65,14 +65,14 @@ The object `ans.plink` contains the PLINK results at each server as well as the 
   # compare top-10 with Biocoductor's results
   snps <- res.plink$SNP[1:10]
   plink <- res.plink %>% filter(SNP%in%snps) %>% dplyr::select(SNP, P)
-  bioC <- ans.bioC$study1 %>% filter(rs%in%snps) %>% dplyr::select(rs, Score.pval)
+  bioC <- ans.bioC$study1 %>% filter(rs%in%snps) %>% dplyr::select(rs, p.value)
   left_join(plink, bioC, by=c("SNP" = "rs"))
 ```
   
   
 As expected, the p-values are in the same order of magnitud having little variations due to the implemented methods of each software. 
   
-We can do the same comparions of minor allele frequency (MAF) estimation performed with Bioconductor and PLINK. To this end, we need first to estimate MAF using PLINK
+We can do the same comparisons of minor allele frequency (MAF) estimation performed with Bioconductor and PLINK. To this end, we need first to estimate MAF using PLINK
   
 ```{r maf_plink}
   plink.arguments <- "--bfile brge --freq"
