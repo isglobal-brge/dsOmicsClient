@@ -51,8 +51,8 @@ ds.exactHWE <- function(genoData, chromosome = "all", geno.counts = TRUE,
   
   cally <- paste0("exactHWEDS(", genoData, ", geno.counts = ", if(!is.null(geno.counts)){geno.counts}else{"NULL"}, 
                   ", chromosome = '", chromosome, "', block.size = ", block.size, ", permute = ",
-                  permute, ", ", controls, ", ", 
-                  if(is.null(controls_column)){NULL}else{paste0("'",controls_column,"'")},
+                  permute, ", ", controls,  
+                  if(is.null(controls_column)){NULL}else{paste0(", '",controls_column,"'")},
                   ")")
   ans <- datashield.aggregate(datasources, as.symbol(cally))
   
