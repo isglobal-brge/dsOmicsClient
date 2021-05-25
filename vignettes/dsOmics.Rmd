@@ -1,6 +1,9 @@
 ---
 title: "Non-disclosive federated omic data analysis with DataSHIELD and Bioconductor"
 author:
+- name: Xavier Escriba-Montagut
+  affiliation:
+  - &isglobal Bioinformatics Research Group in Epidemiolgy (BRGE), Barcelona Insitute for Global Health (ISGlobal)
 - name: Yannick Marcon
   affiliation:
   - &epigeny Epigeny
@@ -210,6 +213,7 @@ We refer to [this chapter](https://isglobal-brge.github.io/resource_bookdown/dsl
 ```
 
 # Acknowledgments
-JRG want to thank Deroshan Padotan for having worked on a preliminary version of `dsOmicsClient` package developed before the `resourcer` package was created. We also thank Demetris Avraam for his feedback while programming DataSHIELD functions and writing the vignette. Leire Abarrategui is acknowledged for implementing RNA-seq data analysis using DESeq2 and edgeR. Xavier Escribà is also acknowledged for the implementation of several functions to summarize and perform quality control of SNP data.
+JRG want to thank Deroshan Padotan for having worked on a preliminary version of `dsOmicsClient` package developed before the `resourcer` package was created. We also thank Demetris Avraam for his feedback while programming DataSHIELD functions and writing the vignette. Leire Abarrategui is acknowledged for implementing RNA-seq data analysis using DESeq2 and edgeR. 
+
 
 # References
