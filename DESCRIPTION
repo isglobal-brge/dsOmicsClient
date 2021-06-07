@@ -1,7 +1,7 @@
 Package: dsOmicsClient
 Type: Package
 Title: DataSHIELD client site Omics association functions.
-Version: 1.0.5-1
+Version: 1.0.5-3
 Date: 2021-05-05
 Authors@R: c(person("Yannick", "Marcon", , "yannick.marcon@obiba.org", role = "aut"),
   person("Xavier", "Esriba-Montagut", , "xavier.escriba@isglobal.org", role = "aut"),
