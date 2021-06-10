@@ -8,6 +8,7 @@ ds.addPhenoData(
   x,
   pheno,
   identifier = "ID",
+  alternate_eset_id = NULL,
   newobj.name = NULL,
   complete_cases = TRUE,
   datasources = NULL
@@ -20,6 +21,10 @@ ds.addPhenoData(
 study server}
 
 \item{identifier}{\code{character} (default \code{"ID"}) Name of the ID column on the phenotypes data.frame}
+
+\item{alternate_eset_id}{\code{character} (default \code{NULL}) Alternate ID of the eSet pheno data, by default the rownames 
+of the eSet pheno data act as ID, use this argument if the ID to merge the individuals is on a column of the pheno data. 
+Input NULL for the standard behaviour of using the rownames of the pheno data as ID.}
 
 \item{newobj.name}{\code{character} (default \code{NULL}) If \code{NULL}, the original ExpressionSet will be overwritten,
 otherwise the new ExpressionSet will be assigned to a variable named after this argument}
