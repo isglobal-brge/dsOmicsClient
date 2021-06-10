@@ -31,7 +31,6 @@ ds.GWAS <- function(genoData, model, family="binomial", snpBlock=10000, datasour
     stop("'family' not recognized")
   }
   
-  
   if (is.null(datasources)) {
     datasources <- DSI::datashield.connections_find()
   }
@@ -43,7 +42,7 @@ ds.GWAS <- function(genoData, model, family="binomial", snpBlock=10000, datasour
   else
     covariable_names <- NULL
 
-  vars <- unlist(ds.varLabels(genoData))
+  vars <- unlist(ds.varLabels(object = genoData, datasources = datasources))
   if(!all(mt %in% vars)){
     stop('[',mt[which(!(mt %in% vars))],
          '] Not a variable(s) name of [', genoData,']')
