@@ -42,15 +42,39 @@ ds.GWAS <- function(genoData, model, family="binomial", snpBlock=10000, datasour
   else
     covariable_names <- NULL
 
-  vars <- unlist(ds.varLabels(object = genoData, datasources = datasources))
+  if(length(genoData) > 1){
+    vars <- lapply(genoData, function(x){
+      ds.varLabels(object = x, datasources = datasources)
+    })
+    if(!do.call(identical, vars)){
+      stop('The phenotypes of the supplied GDS files do not match, make sure to use the same phenotypes table on the ds.GenotypeData function')
+    } else {vars <- unlist(vars[[1]])}
+    
+  } else {vars <- unlist(ds.varLabels(object = genoData, datasources = datasources))}
+  
   if(!all(mt %in% vars)){
     stop('[',mt[which(!(mt %in% vars))],
          '] Not a variable(s) name of [', genoData,']')
   }
   
-  cally <- paste0("GWASDS(", genoData, "," , deparse(variable_name), ",", deparse(covariable_names), 
-                  ",", deparse(family.ini), ",", snpBlock, ")")
-  ans <- DSI::datashield.aggregate(datasources, as.symbol(cally))
+  if(length(genoData) > 1){
+    res <- lapply(genoData, function(x){
+      cally <- paste0("GWASDS(", x, "," , deparse(variable_name), ",", deparse(covariable_names), 
+                      ",", deparse(family.ini), ",", snpBlock, ")")
+      DSI::datashield.aggregate(datasources, as.symbol(cally))
+    })
+    res <- do.call(c, res)
+    keys <- unique(names(res))
+    ans <- NULL
+    for(i in keys){
+      ii <- which(names(res) == i)
+      ans[[i]] <- do.call(rbind, res[ii])
+    }
+  } else {
+    cally <- paste0("GWASDS(", genoData, "," , deparse(variable_name), ",", deparse(covariable_names), 
+                    ",", deparse(family.ini), ",", snpBlock, ")")
+    ans <- DSI::datashield.aggregate(datasources, as.symbol(cally))
+  }
   
   class(ans) <- c("dsGWAS", class(ans))
   
