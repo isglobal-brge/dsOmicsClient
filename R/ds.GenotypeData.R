@@ -52,12 +52,20 @@ ds.GenotypeData <- function(x, covars, columnId, sexId = NULL, male_encoding = "
     stop('If a case/control column is to be releveled, please input both arguments
          [case] and [control]')
   }
+  # cally <- paste0("GenotypeDataDS(", x, "," , covars, ",", columnId, ", ", if(is.null(sexId)){"NULL"}else{sexId}, 
+  #                 ", '", male_encoding, "', '", female_encoding, "', ",
+  #                 if(is.null(case_control_column)){"NULL"}else{paste0("'",case_control_column,"'")}, ", ",
+  #                 if(is.null(case)){"NULL"}else{paste0("'",case,"'")}, ", ",
+  #                 if(is.null(control)){"NULL"}else{paste0("'",control,"'")}, ", ",
+  #                 if(is.null(control)){"NULL"}else{paste0("'",paste(na_string, collapse = "','"),"'")}, 
+  #                 ")")
   cally <- paste0("GenotypeDataDS(", x, "," , covars, ",", columnId, ", ", if(is.null(sexId)){"NULL"}else{sexId}, 
-                  ", '", male_encoding, "', '", female_encoding, "', ",
-                  if(is.null(case_control_column)){"NULL"}else{paste0("'",case_control_column,"'")}, ", ",
-                  if(is.null(case)){"NULL"}else{paste0("'",case,"'")}, ", ",
-                  if(is.null(control)){"NULL"}else{paste0("'",control,"'")}, ", ",
-                  if(is.null(control)){"NULL"}else{paste0("'",paste(na_string, collapse = "','"),"'")}, 
+                  ", '", paste0(charToRaw(male_encoding), collapse = ""),
+                  "', '", paste0(charToRaw(female_encoding), collapse = ""), "', ",
+                  if(is.null(case_control_column)){"NULL"}else{paste0("'",paste0(charToRaw(case_control_column), collapse = ""),"'")}, ", ",
+                  if(is.null(case)){"NULL"}else{paste0("'",paste0(charToRaw(case), collapse = ""),"'")}, ", ",
+                  if(is.null(control)){"NULL"}else{paste0("'",paste0(charToRaw(control), collapse = ""),"'")}, ", ",
+                  if(is.null(control)){"NULL"}else{paste0("'",paste(sapply(na_string, function(x){paste0(charToRaw(x), collapse = "")}, simplify = T), collapse = "','"),"'")}, 
                   ")")
   DSI::datashield.assign(datasources,  symbol = newobj.name, as.symbol(cally))
   
