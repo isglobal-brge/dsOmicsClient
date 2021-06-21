@@ -65,7 +65,7 @@ ds.GenotypeData <- function(x, covars, columnId, sexId = NULL, male_encoding = "
                   if(is.null(case_control_column)){"NULL"}else{paste0("'",paste0(charToRaw(case_control_column), collapse = ""),"'")}, ", ",
                   if(is.null(case)){"NULL"}else{paste0("'",paste0(charToRaw(case), collapse = ""),"'")}, ", ",
                   if(is.null(control)){"NULL"}else{paste0("'",paste0(charToRaw(control), collapse = ""),"'")}, ", ",
-                  if(is.null(control)){"NULL"}else{paste0("'",paste(sapply(na_string, function(x){paste0(charToRaw(x), collapse = "")}, simplify = T), collapse = "','"),"'")}, 
+                  if(is.null(na_string)){"NULL"}else{paste0("'",paste(sapply(na_string, function(x){paste0(charToRaw(x), collapse = "")}, simplify = T), collapse = "','"),"'")}, 
                   ")")
   DSI::datashield.assign(datasources,  symbol = newobj.name, as.symbol(cally))
   
