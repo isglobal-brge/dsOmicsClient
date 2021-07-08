@@ -2,16 +2,28 @@
 % Please edit documentation in R/ds.PRS.R
 \name{.retrievePGS}
 \alias{.retrievePGS}
-\title{Title}
+\title{Internal function: Get PGS catalog table of polygenic risks}
 \usage{
 .retrievePGS(pgs_id)
 }
 \arguments{
-\item{pgs_id}{}
+\item{pgs_id}{\code{character} ID of the PGS catalog to be used to calculate the polygenic risk score. 
+Polygenic Score ID & Name from https://www.pgscatalog.org/browse/scores/}
 }
 \value{
-
+\code{data.frame} with the columns: \cr
+- If chr_name and poition are found: \cr
++ start \cr
++ end \cr
++ effect_allele \cr
++ effect_weight \cr
++ weight_type (if present on the catalog) \cr
+- If rsID is found: \cr
++ rsID \cr
++ effect_allele \cr
++ effect_weight \cr
++ weight_type (if present on the catalog) \cr
 }
 \description{
-Title
+Internal function: Get PGS catalog table of polygenic risks
 }

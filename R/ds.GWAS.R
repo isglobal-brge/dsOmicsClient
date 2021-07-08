@@ -41,17 +41,15 @@ ds.GWAS <- function(genoData, model, family="binomial", snpBlock=10000, datasour
     covariable_names <- paste(mt[-1], collapse=",")
   else
     covariable_names <- NULL
-
   if(length(genoData) > 1){
     vars <- lapply(genoData, function(x){
       ds.varLabels(object = x, datasources = datasources)
     })
-    if(!do.call(identical, vars)){
+    if(!isTRUE(do.call(all.equal, vars))){
       stop('The phenotypes of the supplied GDS files do not match, make sure to use the same phenotypes table on the ds.GenotypeData function')
     } else {vars <- unlist(vars[[1]])}
     
   } else {vars <- unlist(ds.varLabels(object = genoData, datasources = datasources))}
-  
   if(!all(mt %in% vars)){
     stop('[',mt[which(!(mt %in% vars))],
          '] Not a variable(s) name of [', genoData,']')

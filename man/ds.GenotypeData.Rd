@@ -14,7 +14,6 @@ ds.GenotypeData(
   case_control_column = NULL,
   case = NULL,
   control = NULL,
-  na_string = NULL,
   newobj.name = NULL,
   datasources = NULL
 )
@@ -36,15 +35,12 @@ phenotype on the covars table}
 \item{female_encoding}{\code{character} (default \code{"female"}) String used to encode the female sex
 phenotype on the covars table}
 
-\item{case_control_column}{\code{character} (default \code{NULL}) Name of the column that holds the
+\item{case_control_column}{\code{numeric} (default \code{NULL}) Column that holds the
 case/control to relevel to 0/1}
 
 \item{case}{\code{character} (default \code{NULL}) Encoding of the case of the \code{case_control_column}}
 
 \item{control}{\code{character} (default \code{NULL}) Encoding of the control of the \code{case_control_column}}
-
-\item{na_string}{\code{character vector} (default \code{NULL}) Encoding to be
-put to NA of the \code{case_control_column}}
 
 \item{newobj.name}{\code{character} (default \code{NULL})}
 

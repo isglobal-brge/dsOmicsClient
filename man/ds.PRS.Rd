@@ -4,15 +4,24 @@
 \alias{ds.PRS}
 \title{Get Ploygenic Risk Score}
 \usage{
-ds.PRS(resources, pgs_id, snp_threshold = 80, datasources = NULL)
+ds.PRS(
+  resources,
+  pgs_id = NULL,
+  ROI = NULL,
+  snp_threshold = 80,
+  datasources = NULL
+)
 }
 \arguments{
 \item{resources}{\code{list} of all the VCF resources with biallelic genotype information. It is advised to 
 have one VCF resource per chromosome, a big VCF file with all the information is always slower 
 to use.}
 
-\item{pgs_id}{\code{character} ID of the PGS catalog to be used to calculate the polygenic risk score. 
+\item{pgs_id}{\code{character} (default \code{NULL}) ID of the PGS catalog to be used to calculate the polygenic risk score. 
 Polygenic Score ID & Name from https://www.pgscatalog.org/browse/scores/}
+
+\item{ROI}{\code{data.frame} (default \code{NULL}) Table containing the genomic region of interest to calculate 
+the polygenic risk score. See the details for information of the structure this table has to have.}
 
 \item{snp_threshold}{\code{numeric} (default \code{80}) Threshold to drop individuals. See details for 
 further information.}
@@ -23,6 +32,7 @@ further information.}
 \code{data.frame} were the rownames are the individuals. The columns found are: \cr
 prs: Polygenic risk score per individual \cr
 prs_nw: Polygenic risk score without weights (weight 1 for each risk allele) \cr
+p_prs_nw: Risk probability using prs_nw and SNPassoc::pscore \cr
 n_snps: Number of SNPs with information for each individual
 }
 \description{
@@ -36,4 +46,18 @@ of SNPs with data, it will be dropped (SNP with no data is marked on the VCF as 
 passes this threshold filter but still has SNPs with no data, those SNPs will be counted on the 
 polygenic risk score as non-risk-alleles, to take this infomation into account, the number of SNPs 
 with data for each individual is returned as 'n_snps'.
+
+When using a user provided ROI table instead of a PGS catalog ID to calculate the PRS, it is important to note that 
+the provided data.frame has to have a very strict structure regarding column names (order is not relevant). Please 
+follow one of this two schemas: \cr
+- Schema 1 (provide SNP positions): \cr
++ "chr_name", "chr_position", "effect_allele", "reference_allele", "effect_weight" \cr
+\cr
+- Schema 2 (provide SNP id's): \cr
++ "rsID", "effect_allele", "reference_allele", "effect_weight" \cr
+\cr
+It is important to note that this "effect_weight" corresponds to the beta value of the SNP (log(OR)).
+
+As a rule of thumb, it is advised to use when possible the Schema 1 (provide SNP positions), as the implementation 
+to subset the VCF files is miles faster.
 }

@@ -23,11 +23,10 @@
 #' @import ggrepel
 #' @import RColorBrewer
 
-manhattan <- function(x, featureCol, chrCol, posCol, pvalCol, sig= 5e-8,
+manhattan <- function(x, featureCol = 1, chrCol = 2, posCol = 3, pvalCol = 6, sig= 5e-8,
                       sugg = 1e-6, threshold=NA, hlight=NA, 
                       col=c("#E2709A", "#CB4577", "#BD215B", "#970F42", "#75002B"), 
                       ylims = c(1.5,9), title="Manhattan plot", ...){
-  
   df <- x[ , c(featureCol, chrCol, posCol, pvalCol)]
   names(df) <- c("SNP", "CHR", "BP", "P")
   df <- dplyr::filter(df, CHR%in%c(1:22))
