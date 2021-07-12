@@ -109,7 +109,7 @@ ds.PRS <- function(resources, pgs_id = NULL, ROI = NULL, snp_threshold = 80, dat
   } else if ("rsID" %in% colnames(ROI)){
     ROI_type <- "rsID"
   }
-  
+  browser()
   cally <- paste0("PRSDS(c(",
                   paste0(assigned_resources, collapse = ", "),
                   "), NULL, ", snp_threshold, ", '", paste(unlist(ROI), collapse = "', '"),
@@ -163,7 +163,6 @@ ds.PRS <- function(resources, pgs_id = NULL, ROI = NULL, snp_threshold = 80, dat
                        effect_weight = scorings$effect_weight)
     if("weight_type" %in% colnames(scorings)){
       data <- data %>% tibble::add_column(weight_type = scorings$weight_type)}
-    return(data)
   } else {
     data <- data.frame(rsID = scorings$rsID,
                        # reference_allele = scorings$reference_allele,
@@ -171,8 +170,21 @@ ds.PRS <- function(resources, pgs_id = NULL, ROI = NULL, snp_threshold = 80, dat
                        effect_weight = scorings$effect_weight)
     if("weight_type" %in% colnames(scorings)){
       data <- data %>% tibble::add_column(weight_type = scorings$weight_type)}
-    return(data)
   }
+  # If weight_type is present and is equal to "OR" or "HR", convert the effect_weight
+  # to log(effect_weight) to get the beta
+  # This is done row by row in case not all rows have the same weight_type
+  if(!is.null(data$weight_type)){
+    for(i in seq(1, nrow(data))){
+      if(c("OR", "HR") %in% data$weight_type[i]){
+        data$effect_weight[i] <- log(data$effect_weight[i])
+      }
+    }
+    data$weight_type <- NULL
+  }
+  
+  return(data)
+  
 }
 
 
