@@ -60,11 +60,9 @@ ds.PRS <- function(resources, pgs_id = NULL, ROI = NULL, snp_threshold = 80, dat
     if(all(c("chr_name", "chr_position", "effect_allele", "reference_allele", "effect_weight") %in% colnames(ROI))){
       ROI <- ROI %>% dplyr::select(chr_name, chr_position, effect_allele, reference_allele, effect_weight)
       ROI <- .recodeROI(ROI)
-      ROI_type <- "chr_name"
     } else if (all(c("rsID", "effect_allele", "reference_allele", "effect_weight") %in% colnames(ROI))){
       ROI <- ROI %>% dplyr::select(rsID, effect_allele, reference_allele, effect_weight)
       ROI <- .recodeROI(ROI)
-      ROI_type <- "rsID"
     } else {
       stop('The supplied [ROI] table is not structure as required. Please read the @details of ?dsOmicsClient::ds.PRS')
     }
@@ -105,17 +103,17 @@ ds.PRS <- function(resources, pgs_id = NULL, ROI = NULL, snp_threshold = 80, dat
       })
     }
   })
-  # Different cally builds depending on needing to send to the server the ROI or just the pgs_id
-  if(is.null(pgs_id)){
-    cally <- paste0("PRSDS(c(",
-                    paste0(assigned_resources, collapse = ", "),
-                    "), NULL, ", snp_threshold, ", '", paste(unlist(ROI), collapse = "', '"),
-                    "', ", if(ROI_type == "rsID"){3}else{5}, ")")
-  } else{
-    cally <- paste0("PRSDS(c(",
-                    paste0(assigned_resources, collapse = ", "),
-                    "), '", pgs_id, "', ", snp_threshold, ")")
+  # Different cally builds depending on needing to send to the server the ROI with ID or positions
+  if(all(c("chr_name", "chr_position") %in% colnames(ROI))){
+    ROI_type <- "chr_name"
+  } else if ("rsID" %in% colnames(ROI)){
+    ROI_type <- "rsID"
   }
+  
+  cally <- paste0("PRSDS(c(",
+                  paste0(assigned_resources, collapse = ", "),
+                  "), NULL, ", snp_threshold, ", '", paste(unlist(ROI), collapse = "', '"),
+                  "', ", if(ROI_type == "rsID"){3}else{5}, ")")
   
   DSI::datashield.aggregate(datasources, as.symbol(cally))
 }
