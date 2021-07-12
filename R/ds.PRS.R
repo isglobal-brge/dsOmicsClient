@@ -109,7 +109,7 @@ ds.PRS <- function(resources, pgs_id = NULL, ROI = NULL, snp_threshold = 80, dat
   } else if ("rsID" %in% colnames(ROI)){
     ROI_type <- "rsID"
   }
-  browser()
+
   cally <- paste0("PRSDS(c(",
                   paste0(assigned_resources, collapse = ", "),
                   "), NULL, ", snp_threshold, ", '", paste(unlist(ROI), collapse = "', '"),
