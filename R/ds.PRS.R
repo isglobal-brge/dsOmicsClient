@@ -104,15 +104,14 @@ ds.PRS <- function(resources, pgs_id = NULL, ROI = NULL, snp_threshold = 80, dat
     }
   })
   # Different cally builds depending on needing to send to the server the ROI with ID or positions
-  if(all(c("chr_name", "chr_position") %in% colnames(ROI))){
+  if(all(c("chr_name", "start") %in% colnames(ROI))){
     ROI_type <- "chr_name"
   } else if ("rsID" %in% colnames(ROI)){
     ROI_type <- "rsID"
   }
-
   cally <- paste0("PRSDS(c(",
                   paste0(assigned_resources, collapse = ", "),
-                  "), NULL, ", snp_threshold, ", '", paste(unlist(ROI), collapse = "', '"),
+                  "), ", snp_threshold, ", '", paste(unlist(ROI), collapse = "', '"),
                   "', ", if(ROI_type == "rsID"){3}else{5}, ")")
   
   DSI::datashield.aggregate(datasources, as.symbol(cally))
