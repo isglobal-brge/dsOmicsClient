@@ -23,12 +23,10 @@
 #' phenotype on the covars table
 #' @param female_encoding \code{character} (default \code{"female"}) String used to encode the female sex
 #' phenotype on the covars table
-#' @param case_control_column \code{character} (default \code{NULL}) Name of the column that holds the
+#' @param case_control_column \code{numeric} (default \code{NULL}) Column that holds the
 #' case/control to relevel to 0/1
 #' @param case \code{character} (default \code{NULL}) Encoding of the case of the \code{case_control_column}
 #' @param control \code{character} (default \code{NULL}) Encoding of the control of the \code{case_control_column}
-#' @param na_string \code{character vector} (default \code{NULL}) Encoding to be
-#' put to NA of the \code{case_control_column}
 #' @param newobj.name \code{character} (default \code{NULL})
 #' @param datasources a list of \code{DSConnection-class} objects obtained after login. If the <datasources> the default set of connections will be used: see \code{datashield.connections_default}.
 #'
@@ -37,7 +35,7 @@
 #'
 
 ds.GenotypeData <- function(x, covars, columnId, sexId = NULL, male_encoding = "male", female_encoding = "female",
-                            case_control_column = NULL, case = NULL, control = NULL, na_string = NULL,
+                            case_control_column = NULL, case = NULL, control = NULL,
                             newobj.name = NULL, datasources=NULL){
   
   if (is.null(datasources)) {
@@ -52,13 +50,19 @@ ds.GenotypeData <- function(x, covars, columnId, sexId = NULL, male_encoding = "
     stop('If a case/control column is to be releveled, please input both arguments
          [case] and [control]')
   }
+  # cally <- paste0("GenotypeDataDS(", x, "," , covars, ",", columnId, ", ", if(is.null(sexId)){"NULL"}else{sexId}, 
+  #                 ", '", male_encoding, "', '", female_encoding, "', ",
+  #                 if(is.null(case_control_column)){"NULL"}else{paste0("'",case_control_column,"'")}, ", ",
+  #                 if(is.null(case)){"NULL"}else{paste0("'",case,"'")}, ", ",
+  #                 if(is.null(control)){"NULL"}else{paste0("'",control,"'")}, ", ",
+  #                 if(is.null(control)){"NULL"}else{paste0("'",paste(na_string, collapse = "','"),"'")}, 
+  #                 ")")
   cally <- paste0("GenotypeDataDS(", x, "," , covars, ",", columnId, ", ", if(is.null(sexId)){"NULL"}else{sexId}, 
-                  ", '", male_encoding, "', '", female_encoding, "', ",
-                  if(is.null(case_control_column)){"NULL"}else{paste0("'",case_control_column,"'")}, ", ",
-                  if(is.null(case)){"NULL"}else{paste0("'",case,"'")}, ", ",
-                  if(is.null(control)){"NULL"}else{paste0("'",control,"'")}, ", ",
-                  if(is.null(control)){"NULL"}else{paste0("'",paste(na_string, collapse = "','"),"'")}, 
-                  ")")
+                  ", '", paste0(charToRaw(male_encoding), collapse = ""),
+                  "', '", paste0(charToRaw(female_encoding), collapse = ""), "', ",
+                  if(is.null(case_control_column)){"NULL"}else{case_control_column}, ", ",
+                  if(is.null(case)){"NULL"}else{paste0("'",paste0(charToRaw(case), collapse = ""),"'")}, ", ",
+                  if(is.null(control)){"NULL"}else{paste0("'",paste0(charToRaw(control), collapse = ""),"'")},")")
   DSI::datashield.assign(datasources,  symbol = newobj.name, as.symbol(cally))
   
   test.obj.name <- newobj.name

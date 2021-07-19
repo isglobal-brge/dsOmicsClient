@@ -6,10 +6,10 @@
 \usage{
 manhattan(
   x,
-  featureCol,
-  chrCol,
-  posCol,
-  pvalCol,
+  featureCol = 1,
+  chrCol = 2,
+  posCol = 3,
+  pvalCol = 6,
   sig = 5e-08,
   sugg = 1e-06,
   threshold = NA,
