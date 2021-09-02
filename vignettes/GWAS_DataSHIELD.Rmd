@@ -10,7 +10,7 @@ author:
   - &uab Department of Mathematics, Autonomous University of Barcelona (UAB)
   email: juanr.gonzalez@isglobal.org
 date: "`r Sys.Date()`"
-package: "`r pkg_ver('dsOmicsClient')`, `r aux <- opalr::dsadmin.package_description(opalr::opal.login('administrator', 'password', url='https://opal-demo.obiba.org', profile = 'omics'), 'dsOmics'); paste(aux$Package, '(in the https://opal-demo.obiba.org demo Opal)', aux$Version)`"
+package: "`r pkg_ver('dsOmicsClient')`, `r aux <- opalr::dsadmin.package_description(opalr::opal.login('administrator', 'password', url='https://opal-demo.obiba.org', profile = 'omics'), 'dsOmics'); paste(aux$Package, '(in the https://opal-demo.obiba.org demo Opal)', aux$Version)` resourcer min. version 1.2.0 (server), dsBase min. version 6.1.1 (server)"
 output:
   BiocStyle::html_document:
     number_sections: true
@@ -79,7 +79,7 @@ Three different use cases will be illustrated along this document; the first one
 
 The single cohort analysis is a way of performing a GWAS study guaranteeing GDPR data confidentiality. The structure followed is illustrated on the following figure.
 
-```{r single_cohort_image, echo=FALSE, fig.cap="Proposed infrastructure to perform single-cohort GWAS studies.", fig.align='center'}
+```{r singleCohortImage, echo=FALSE, fig.cap="Proposed infrastructure to perform single-cohort GWAS studies.", fig.align='center'}
 knitr::include_graphics("gwas_images/single_cohort.png")
 ```
 
@@ -109,25 +109,26 @@ conns <- DSI::datashield.login(logins = logindata)
 
 Now that we have created a connection object to the Opal, we have triggered a new R session on the server. Once this R session is active, we can begin assigning resources to it.
 
-```{r single_cohort_assign_resources}
-DSI::datashield.assign.resource(conns, "chr19", "GWAS.chr19A")
-DSI::datashield.assign.resource(conns, "chr21", "GWAS.chr21A")
+```{r single_cohort_assign_resources, message=FALSE, warning=FALSE, results=FALSE}
+lapply(1:21, function(x){
+  DSI::datashield.assign.resource(conns, paste0("chr", x), paste0("GWAS.chr", x,"A"))
+  })
 ```
 
 This resources that we have assigned are pointers to the VCF files that we want to use. To access the data and load it into the server, we have to resolve the resources.
 
-```{r single_cohort_resolve_resources}
-DSI::datashield.assign.expr(conns = conns, symbol = "gds19_object", 
-                            expr = quote(as.resource.object(chr19)))
-DSI::datashield.assign.expr(conns = conns, symbol = "gds21_object", 
-                            expr = quote(as.resource.object(chr21)))
+```{r single_cohort_resolve_resources, message=FALSE, warning=FALSE, results=FALSE}
+lapply(1:21, function(x){
+  DSI::datashield.assign.expr(conns = conns, symbol = paste0("gds", x, "_object"), 
+                            expr = as.symbol(paste0("as.resource.object(chr", x, ")")))
+})
 ```
 
 We can check he assignment was successful by checking the class of the new objects.
 
 ```{r single_cohort_check_class}
-ds.class("chr19")
-ds.class("gds19_object")
+ds.class("chr1")
+ds.class("gds1_object")
 ```
 
 ### Assign the covariates resource
@@ -186,15 +187,13 @@ ds.table("feno_object$sex")
 
 With all this information we can now merge the covariates and GDS data to a GenotypeData object. We have to do it for every chromosome keeping the same covariates file for all of them.
 
-```{r single_cohort_create_genoData}
-ds.GenotypeData(x='gds19_object', covars = 'feno_object', columnId = 51, sexId = 62, 
+```{r single_cohort_create_genoData, message=FALSE, warning=FALSE, results=FALSE}
+lapply(1:21, function(x){
+  ds.GenotypeData(x=paste0('gds', x,'_object'), covars = 'feno_object', columnId = 51, sexId = 62, 
                 male_encoding = "male", female_encoding = "female",
                 case_control_column = 38, case = "Yes", control = "No",
-                newobj.name = 'gds.Data19', datasources = conns)
-ds.GenotypeData(x='gds21_object', covars = 'feno_object', columnId = 51, sexId = 62, 
-                male_encoding = "male", female_encoding = "female",
-                case_control_column = 38, case = "Yes", control = "No",
-                newobj.name = 'gds.Data21', datasources = conns)
+                newobj.name = paste0('gds.Data', x), datasources = conns)
+})
 ```
 
 Now we are ready to perform a GWAS analysis. It is important noting that we have to pass a formula object to the `ds.GWAS` function. The variables from the covariates file may contain some special characters and spaces that are not allowed by the R formula element, to account for that we should use th `make.names` function. As an example, we may want to study the following:
@@ -222,9 +221,9 @@ Non.accidental.death.in.close.genetic.family ~ sex + HDL.cholesterol
 We now proceed to perform the GWAS analysis.
 
 ```{r single_cohort_GWAS, message=FALSE, warning=FALSE}
-results <- ds.GWAS(genoData = c("gds.Data19", "gds.Data21"), model = Non.accidental.death.in.close.genetic.family ~ sex + HDL.cholesterol)[[1]]
+results <- ds.GWAS(genoData = paste0("gds.Data", 1:21), model = Non.accidental.death.in.close.genetic.family ~ sex + HDL.cholesterol)[[1]]
 
-DT::datatable(results, class = 'cell-border stripe', width = '90%', options=list(columnDefs = list(list(visible=FALSE, targets=0)))) %>% DT::formatRound(columns = c(5:8), digits = 3)
+results
 ```
 
 We can display the results of the GWAS using a Manhattan plot.
@@ -241,7 +240,7 @@ datashield.logout(conns)
 
 A GWAS can be performed on a multi-cohort situation to get results for all the cohorts to be analyzed using meta-analysis techniques. As with the single-cohort methodology illustrated on the prior section, this method guarantees GDPR data confidentiality. The structure for a two cohort study is illustrated on the following figure (note this can be extrapolated for cohorts with a bigger partner count).
 
-```{r multi_cohort_image, echo=FALSE, fig.cap="Proposed infrastructure to perform multi-cohort GWAS studies.", fig.align='center'}
+```{r multiCohortImage, echo=FALSE, fig.cap="Proposed infrastructure to perform multi-cohort GWAS studies.", fig.align='center'}
 knitr::include_graphics("gwas_images/multi_cohort.png")
 ```
 
@@ -299,14 +298,16 @@ conns
 
 We see that the first connection object is the cohort1 and the second object is the cohort2.
 
-```{r multi_cohort_assign_resources}
+```{r multi_cohort_assign_resources, message=FALSE, warning=FALSE, results=FALSE}
 # Cohort 1 resources
-DSI::datashield.assign.resource(conns[1], "chr19", "GWAS.chr19A")
-DSI::datashield.assign.resource(conns[1], "chr21", "GWAS.chr21A")
+lapply(1:21, function(x){
+  DSI::datashield.assign.resource(conns[1], paste0("chr", x), paste0("GWAS.chr", x,"A"))
+  })
 
 # Cohort 2 resources
-DSI::datashield.assign.resource(conns[2], "chr19", "GWAS.chr19B")
-DSI::datashield.assign.resource(conns[2], "chr21", "GWAS.chr21B")
+lapply(1:21, function(x){
+  DSI::datashield.assign.resource(conns[2], paste0("chr", x), paste0("GWAS.chr", x,"B"))
+  })
 ```
 
 We can check that we did the assignments properly by checking the workspaces of all the connections.
@@ -317,18 +318,18 @@ ds.ls(datasources = conns)
 
 This resources that we have assigned are pointers to the VCF files that we want to use. To access the data and load it into the server, we have to resolve the resources. Since on all the cohort servers we assigned the resources to the same variables (`chr19` and `chr21`), we don't have to manipulate them separately as we did on the previous code chunk.
 
-```{r multi_cohort_resolve_resources}
-DSI::datashield.assign.expr(conns = conns, symbol = "gds19_object", 
-                            expr = quote(as.resource.object(chr19)))
-DSI::datashield.assign.expr(conns = conns, symbol = "gds21_object", 
-                            expr = quote(as.resource.object(chr21)))
+```{r multi_cohort_resolve_resources, message=FALSE, warning=FALSE, results=FALSE}
+lapply(1:21, function(x){
+  DSI::datashield.assign.expr(conns = conns, symbol = paste0("gds", x, "_object"), 
+                            expr = as.symbol(paste0("as.resource.object(chr", x, ")")))
+})
 ```
 
 We can check he assignment was successful by checking the class of the new objects.
 
 ```{r multi_cohort_check_class}
-ds.class("chr19")
-ds.class("gds19_object")
+ds.class("chr1")
+ds.class("gds1_object")
 ```
 
 ### Assign the covariates resource
@@ -389,15 +390,13 @@ ds.table("feno_object$sex")
 
 With all this information we can now merge the covariates and GDS data to a GenotypeData object. We have to do it for every chromosome keeping the same covariates file for all of them.
 
-```{r multi_cohort_create_genoData}
-ds.GenotypeData(x='gds19_object', covars = 'feno_object', columnId = 51, sexId = 62,
+```{r multi_cohort_create_genoData, message=FALSE, warning=FALSE, results=FALSE}
+lapply(1:21, function(x){
+  ds.GenotypeData(x=paste0('gds', x,'_object'), covars = 'feno_object', columnId = 51, sexId = 62, 
                 male_encoding = "male", female_encoding = "female",
                 case_control_column = 38, case = "Yes", control = "No",
-                newobj.name = 'gds.Data19', datasources = conns)
-ds.GenotypeData(x='gds21_object', covars = 'feno_object', columnId = 51, sexId = 62,
-                male_encoding = "male", female_encoding = "female",
-                case_control_column = 38, case = "Yes", control = "No",
-                newobj.name = 'gds.Data21', datasources = conns)
+                newobj.name = paste0('gds.Data', x), datasources = conns)
+})
 ```
 
 Now we are ready to perform a GWAS analysis. It is important noting that we have to pass a formula object to the `ds.GWAS` function. The variables from the covariates file may contain some special characters and spaces that are not allowed by the R formula element, to account for that we should use th `make.names` function. As an example, we may want to study the following:
@@ -425,7 +424,7 @@ Non.accidental.death.in.close.genetic.family ~ sex + HDL.cholesterol
 We now proceed to perform the GWAS analysis.
 
 ```{r multi_cohort_GWAS, message=FALSE, warning=FALSE}
-results <- ds.GWAS(genoData = c("gds.Data19", "gds.Data21"), model = Non.accidental.death.in.close.genetic.family ~ sex + HDL.cholesterol)
+results <- ds.GWAS(genoData = paste0("gds.Data", 1:21), model = Non.accidental.death.in.close.genetic.family ~ sex + HDL.cholesterol)
 ```
 
 And we can see the results for each cohort.
@@ -433,13 +432,15 @@ And we can see the results for each cohort.
 #### Cohort 1 {.unnumbered}
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE}
-DT::datatable(results[[1]], class = 'cell-border stripe', width = '90%', options=list(columnDefs = list(list(visible=FALSE, targets=0)))) %>% DT::formatRound(columns = c(5:8), digits = 3)
+# DT::datatable(results[[1]], class = 'cell-border stripe', width = '90%', options=list(columnDefs = list(list(visible=FALSE, targets=0)))) %>% DT::formatRound(columns = c(5:8), digits = 3)
+results[[1]]
 ```
 
 #### Cohort 2 {.unnumbered}
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE}
-DT::datatable(results[[2]], class = 'cell-border stripe', width = '90%', options=list(columnDefs = list(list(visible=FALSE, targets=0)))) %>% DT::formatRound(columns = c(5:8), digits = 3)
+# DT::datatable(results[[2]], class = 'cell-border stripe', width = '90%', options=list(columnDefs = list(list(visible=FALSE, targets=0)))) %>% DT::formatRound(columns = c(5:8), digits = 3)
+results[[2]]
 ```
 
 ### GWAS Plots {.tabset .tabset-fade .tabset-pills}
@@ -466,8 +467,6 @@ datashield.logout(conns)
 
 Once all the results of the GWAS are gathered, a meta-analysis can be performed. Each researcher may have their own pipelines and methodologies to do so, one option would be to use the `metafor` package.
 
-fer una explicacio semblant a la de single cohort, dir una mica com sha fet aquest case study (nomes 10k snps i la divisio de individus per simular dos cohorts diferents) despres ficar mes o menys el mateix codi que a single cohort. el plot del manhattan shan de treure els numeros! ara ia estan com a per defecte ala funcion dsOmicsClient::manhattan (te mes sentit aixi)
-
 ## Polygenic risk scores
 
 ### Definition
@@ -482,7 +481,7 @@ The use of PRS markers is very popular nowadays and it has been proved to be a g
 
 When calculating the PRS, there is only one configuration possible, single-cohort. There is no need to perform analysis of multi cohorts at the same time, as the aggregated results correspond to each individual, and the individuals are unique for every cohort. This kind of analysis guarantees GDPR data confidentiality. Therefore the infrastructure schematic is almost identical as the GWAS single-cohort analysis.
 
-```{r prs_cohort_image, echo=FALSE, fig.cap="Proposed infrastructure to perform PRS studies.", fig.align='center'}
+```{r prsCohortImage, echo=FALSE, fig.cap="Proposed infrastructure to perform PRS studies.", fig.align='center'}
 knitr::include_graphics("gwas_images/prs.png")
 ```
 
@@ -503,57 +502,79 @@ The `effect_weight` have to be the betas (log(OR)).
 
 Please note when using a custom `ROI` table that it is much faster to use the Scheme 1, as the subset of the VCF files is miles faster to do using chromosome name and positions rather than SNP id's.
 
-For the use case illustrated on this vignette, the PGS Catalog will be used.
-
 ### Connection to the Opal server
 
 We have to create an Opal connection object to the cohort server. We do that using the following DSI functions.
 
 ```{r prs_ds_login, message=FALSE, warning=FALSE}
-# require('DSI')
-# require('DSOpal')
-# require('dsBaseClient')
-# require('dsOmicsClient')
-# 
-# builder <- DSI::newDSLoginBuilder()
-# builder$append(server = "cohort1", url = "https://opal-demo.obiba.org/",
-#                user =  "dsuser", password = "password",
-#                driver = "OpalDriver", profile = "omics")
-# logindata <- builder$build()
-# conns <- DSI::datashield.login(logins = logindata)
+require('DSI')
+require('DSOpal')
+require('dsBaseClient')
+require('dsOmicsClient')
+
+builder <- DSI::newDSLoginBuilder()
+builder$append(server = "cohort1", url = "https://opal-demo.obiba.org/",
+               user =  "dsuser", password = "password",
+               driver = "OpalDriver", profile = "omics")
+logindata <- builder$build()
+conns <- DSI::datashield.login(logins = logindata)
 ```
 
 ### Assign the VCF resources
 
 Now that we have created a connection object to the Opal, we have triggered a new R session on the server. Once this R session is active, we can begin assigning resources to it.
 
-```{r prs_assign_resources}
-# DSI::datashield.assign.resource(conns, "chr19", "GWAS.chr19A")
-# DSI::datashield.assign.resource(conns, "chr21", "GWAS.chr21A")
+```{r prs_assign_resources, message=FALSE, warning=FALSE, results=FALSE}
+lapply(1:21, function(x){
+  DSI::datashield.assign.resource(conns, paste0("chr", x), paste0("GWAS.chr", x, "A"))
+  })
 ```
 
 This resources that we have assigned are pointers to the VCF files that we want to use. There is one crucial difference between this analysis and the GWAS, here we don't need to resolve the resources. This is for memory efficiency purposes. When we calculate a PRS, we are only interested in a small selection of SNPs, for that reason the (potentially) huge VCF files will be trimmed before being resolved, so only the relevant SNPs are in the memory. For that reason the resolving of the resources is delegated to the `ds.PRS` function, which will perform this trimming according to the SNPs of interest yielded by the PGS catalog query.
 
 ### Calculate the PRS
 
+#### PGS Catalog Example
+
 For this example we will calculate the PRS associated to the trait 'Coronary artery disease', which corresponds to the PGS ID [PGS000011](https://www.pgscatalog.org/score/PGS000011/).
 
-```{r}
-# ds.PRS(list(chr19 = "chr19", chr21 = "chr21"), pgs_id = "PGS000011")
+```{r warning=FALSE}
+resources <- paste0("chr", 1:21)
+names(resources) <- paste0("chr", 1:21)
+resources <- as.list(resources)
+ds.PRS(resources = resources, pgs_id = "PGS000004")
 ```
 
 On this example the chromosomes are separated into different VCF resource, having a big VCF file with all the variants would also work (illustrated in the next chunk).
 
 ```{r eval=F}
 ## Do not run
-# ds.PRS(list(whole_vcf = "whole_vcf_resource_name"), pgs_id = "PGS000011")
+ds.PRS(list(whole_vcf = "whole_vcf_resource_name"), pgs_id = "PGS000011")
 ```
+
+#### Custom ROI example
+
+Here we will illustrate a use case with a custom ROI, please note that the proposed SNPs of interest and betas are totally arbitrary.
+
+We will first assemble the ROI table following the indications found on the Details section of `?ds.PRS` (Schema 1).
+
+```{r}
+ROI <- data.frame(chr_name = c(9, 9, 9, 9, 1, 1, 2, 2), chr_position = c(146349, 142144, 135112, 132718, 794332, 787399, 136638, 135000), effect_allele = c("C", "A", "G", "T", "G", "G", "G", "A"), reference_allele = c("T", "G", "A", "C", "A", "T", "A", "C"), effect_weight = c(0.5, 0.2, 0.1, 0.2, 0.1, 0.3, 0.1, 0.8))
+```
+
+Now we can pass the custom ROI to the PRS function to retrieve the aggregated results.
+
+```{r warning=FALSE}
+resources <- paste0("chr", 1:21)
+names(resources) <- paste0("chr", 1:21)
+resources <- as.list(resources)
+ds.PRS(resources = resources, ROI = ROI)
+```
+
 
 ```{r}
 datashield.logout(conns)
 ```
-
-aqui no fa falta especificar si single o multicohort pk no sa de fer meta analisis, cada individu te el seu outcome i aspavil! explicar aixo una mica per sobre, ficar un diagrama de draw.io de com funcione la funcio per dins, dir que ara mateix nomes es fa servir el PGS catalog pero que es pot ampliar al futur per tu passar la teua puta llista de snps i riscos per tal que funcioni ez gg, o potser feru directament i mostrar les dos opcions, casi que millor feru aixi sisis.
 
 ### Internal structure of the PRS functionality
 
@@ -571,7 +592,7 @@ The client performs two basic tasks. The first one is to select between a user i
 
 This is illustrated on the following figure.
 
-```{r block1_image, echo=FALSE, fig.cap="Flow chart of the client block.", fig.align='center'}
+```{r block1Image, echo=FALSE, fig.cap="Flow chart of the client block.", fig.align='center'}
 knitr::include_graphics("gwas_images/block1.png")
 ```
 
@@ -581,7 +602,7 @@ The server resolver is in charge of resolving the resources. The interesting asp
 
 This block is illustrated on the following figure.
 
-```{r block2_image, echo=FALSE, fig.cap="Flow chart of the server resolver block.", fig.align='center'}
+```{r block2Image, echo=FALSE, fig.cap="Flow chart of the server resolver block.", fig.align='center'}
 knitr::include_graphics("gwas_images/block2.png")
 ```
 
@@ -591,7 +612,7 @@ Many processes are performed inside the analysis block. For that reason, more th
 
 The block is illustrated on the following figure.
 
-```{r block3_image, echo=FALSE, fig.cap="Flow chart of the server analysis block.", fig.align='center'}
+```{r block3Image, echo=FALSE, fig.cap="Flow chart of the server analysis block.", fig.align='center'}
 knitr::include_graphics("gwas_images/block3.png")
 ```
 
