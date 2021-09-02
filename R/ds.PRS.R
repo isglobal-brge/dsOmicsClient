@@ -113,8 +113,7 @@ ds.PRS <- function(resources, pgs_id = NULL, ROI = NULL, snp_threshold = 80, dat
                   paste0(assigned_resources, collapse = ", "),
                   "), ", snp_threshold, ", '", paste(unlist(ROI), collapse = "', '"),
                   "', ", if(ROI_type == "rsID"){3}else{5}, ")")
-  
-  DSI::datashield.aggregate(datasources, as.symbol(cally))
+  DSI::datashield.aggregate(datasources, cally)
 }
 
 #' @title Internal function: Get PGS catalog table of polygenic risks
