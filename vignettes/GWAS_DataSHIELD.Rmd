@@ -232,6 +232,12 @@ We can display the results of the GWAS using a Manhattan plot.
 manhattan(results)
 ```
 
+Moreover, we can visualize the region with the lowest p-value in detail (or a custom region by using the arguments `position_zoom` to indicate the center position and `range` to indicate the left and right range to visualize. The range by default is `5e+05` bp).
+
+```{r locuszoom, message=FALSE, warning=FALSE}
+LocusZoom(results)
+```
+
 ```{r}
 datashield.logout(conns)
 ```
