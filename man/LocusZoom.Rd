@@ -8,10 +8,16 @@ LocusZoom(
   gwas_results,
   range = 5e+05,
   position_zoom = NULL,
-  GRCh = 37,
+  use_biomaRt = TRUE,
+  TxDb_version = c("hg18", "hg19"),
+  GRCh = NULL,
   pvalue = "p.value",
   chromosome = "chr",
-  position = "pos"
+  position = "pos",
+  rs = "rs",
+  range_filter = NULL,
+  draw_genes = TRUE,
+  snp_threshold = 5
 )
 }
 \arguments{
@@ -22,14 +28,37 @@ LocusZoom(
 \item{position_zoom}{\code{numeric} (default \code{NULL}) Center position of the plot if supplied. If \code{NULL}, 
 the center position is the lowerst p-value of the \code{gwas_results} table.}
 
-\item{GRCh}{\numeric (default \code{37}) GTCh version to use when querying biomaRt.}
+\item{use_biomaRt}{\code{bool} (default \code{TRUE}) Set to \code{TRUE} to use biomaRt to retrieve the annotation of the 
+genes. If set to \code{FALSE} TxDb.Hsapiens.UCSC.hgXX.knownGene will be used. Use the argument \code{TxDb_version} to 
+select between hg19 or hg18. Note that when using TxDb the correspondent packages needs to be installed, providing 
+a internet-free annotation option.}
 
-\item{pvalue}{\character (default \code{"p.value"}) Column name of \code{gwas_results} that contains the p-values.}
+\item{TxDb_version}{\code{character} (default \code{hg18}) TxDb version to use. This argument is only used when 
+\code{use_biomaRt} is set to \code{FALSE}.}
 
-\item{chromosome}{\character (default \code{"chr"}) Column name of \code{gwas_results} that contains 
+\item{GRCh}{\code{numeric} (default \code{NULL}) GRCh version to connect to if not the current GRCh38, currently this can 
+only be 37, if is different from 37 the GRCh38 version will be used. (Parameter passed to biomaRt::useEnsembl). 
+This argument is only used when \code{use_biomaRt} is set to TRUE.}
+
+\item{pvalue}{\code{character} (default \code{"p.value"}) Column name of \code{gwas_results} that contains the p-values.}
+
+\item{chromosome}{\code{character} (default \code{"chr"}) Column name of \code{gwas_results} that contains 
 the chromosome names.}
 
-\item{position}{\character (default \code{"pos"}) Column name of \code{gwas_results} that contains the positions.}
+\item{position}{\code{character} (default \code{"pos"}) Column name of \code{gwas_results} that contains the positions.}
+
+\item{rs}{\code{character} (default \code{"rs"}) Column name of \code{gwas_results} that contains 
+the rs ID of the SNPs. This column will only be used if \code{snp_threshold} is different than \code{NULL}, therefore 
+there is no need of supplying this argument if there is no interest to plot the labels of the rs IDs.}
+
+\item{range_filter}{\code{numeric} (default \code{NULL}). If not \code{NULL}, only the annotations with a range larger 
+than \code{range_filter} will be displayed.}
+
+\item{draw_genes}{\code{bool} (default \code{TRUE}). Select if the genes of the region plot are to be plotted below the p-values 
+plot.}
+
+\item{snp_threshold}{\code{numeric} (default \code{5}) Threshold of -log_{10}p-value to draw labels with the SNP IDs. 
+If \code{NULL} no labels will be drawn.}
 }
 \value{
 
