@@ -109,7 +109,6 @@ ds.PRS <- function(resources, pgs_id = NULL, ROI = NULL, table = NULL, table_id_
   }
 
   # Build cally
-  browser()
   cally <- paste0("PRSDS(c(",
                   paste0(assigned_resources, collapse = ", "),
                   "), ", snp_threshold, ", '", paste(unlist(ROI), collapse = "', '"),
