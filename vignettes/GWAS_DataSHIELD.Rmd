@@ -222,6 +222,28 @@ DSI::datashield.assign.expr(conns = conns, symbol = "feno_object",
 
 We can follow the same analogy as before to know that we have assigned the phenotypes table to a variable called `feno_object` on the remote R session.
 
+There is one extra step needed to perform on the phenotypes table, making sure the column names do not contain special characters. Special characters in R (for column names) are spaces, symbols, etc. To make sure our column names do not have any of them, there is a special function on the `dsOmics` package. We will overwrite the phenotypes table with syntax correct names.
+
+Here we can see the original column names.
+
+```{r}
+ds.colnames("feno_object")
+```
+
+And we apply the `make_valid_column_namesDS` function.
+
+```{r}
+DSI::datashield.assign.expr(conns, "feno_object", as.symbol("make_valid_column_namesDS(feno_object)"))
+```
+
+We can check the resulting names.
+
+```{r}
+ds.colnames("feno_object")
+```
+
+Now we have valid names on our phenotypes table so we can proceed.
+
 ### Merge VCF (genotype) and phenotype information
 
 Arrived at this point, we have 21 VCF objects (each one corresponds to a chromosome) and a phenotypes table on our remote session. The next step is merging each of the VCF objects with the phenotypes table. Before doing that however, we have to gather some information from the phenotypes table. The information to gather is summarized on the Table \@ref(tab:tab2).
@@ -294,23 +316,21 @@ The objects we just created are named `gds.DataXX` on the remote session. Now we
 condition ~ smoke + sex
 ```
 
-Some technical remarks have to be considered to build a formula, we cannot input special characters in our formulas, and unfortunately our phenotype names contain some. For example, the following (using variables from our phenotypes table) would not be a valid formula:
+<!-- Some technical remarks have to be considered to build a formula, we cannot input special characters in our formulas, and unfortunately our phenotype names contain some. For example, the following (using variables from our phenotypes table) would not be a valid formula: -->
 
-```{r eval=F}
-Non-accidental death in close genetic family ~ sex + HDL cholesterol
-```
+<!-- ```{r eval=F} -->
+<!-- Non-accidental death in close genetic family ~ sex + HDL cholesterol -->
+<!-- ``` -->
 
-However this technicality is very easy to solve. There is a special function called `make.names` that will replace special characters by dots, hence providing a valid formula. We just pass every variable name through `make.names`.
+<!-- However this technicality is very easy to solve. There is a special function called `make.names` that will replace special characters by dots, hence providing a valid formula. We just pass every variable name through `make.names`. -->
 
-```{r single_cohort_make_names}
-make.names("Non-accidental death in close genetic family")
-make.names("sex")
-make.names("HDL cholesterol")
-```
+<!-- ```{r single_cohort_make_names} -->
+<!-- make.names("Non-accidental death in close genetic family") -->
+<!-- make.names("sex") -->
+<!-- make.names("HDL cholesterol") -->
+<!-- ``` -->
 
-And we construct a valid formula with the outputs. [^4]
-
-[^4]: Some readers may be skeptic that writing names that are different than the original variables could create conflicts. This is sorted internally.
+For this use case we will use the following formula.
 
 ```{r eval=F}
 Non.accidental.death.in.close.genetic.family ~ sex + HDL.cholesterol
@@ -589,10 +609,6 @@ manhattan(results[[2]])
 manhattan(results[[3]])
 ```
 
-```{r}
-# datashield.logout(conns)
-```
-
 ### Meta-analysis
 
 Up to this point, we have obtained association results for each cohort on the study. The next step is to combine this information using meta-analysis methods to derive a pooled estimate closest to the common truth. Each researcher might have an already built pipeline to do so, or a preferred method; nevertheless, we included a couple methods inside `dsOmicsClient`. They are the following:
@@ -735,173 +751,217 @@ With this results we can conclude that refining the statistics for the SNPs of i
 3.  Extract top hits from the meta-analysis.
 4.  Perform pooled GLM on top hits with `dsOmicsClient::ds.glmSNP`
 
-<!-- ## Polygenic risk scores -->
+```{r}
+datashield.logout(conns)
+```
 
-<!-- ### Definition -->
+## Polygenic risk scores
 
-<!-- By checking for specific variants and quantifying them, a researcher can extract the polygenic risk score (PRS) of an individual, which translates to an associated risk of the individual versus a concrete phenotype. A definition of the term reads -->
+### Definition
 
-<!-- > "A weighted sum of the number of risk alleles carried by an individual, where the risk alleles and their weights are defined by the loci and their measured effects as detected by genome wide association studies." (Extracted from @torkamani2018personal) -->
+By checking for specific variants and quantifying them, a researcher can extract the polygenic risk score (PRS) of an individual, which translates to an associated risk of the individual versus a concrete phenotype. A definition of the term reads
 
-<!-- The use of PRS markers is very popular nowadays and it has been proved to be a good tool to asses associated risks @escott2017polygenic, @forgetta2020development, @kramer2020breast. -->
+> "A weighted sum of the number of risk alleles carried by an individual, where the risk alleles and their weights are defined by the loci and their measured effects as detected by genome wide association studies." (Extracted from @torkamani2018personal)
 
-<!-- ### Study configuration -->
+The use of PRS markers is very popular nowadays and it has been proved to be a good tool to asses associated risks @escott2017polygenic, @forgetta2020development, @kramer2020breast.
 
-<!-- When calculating the PRS, there is only one configuration possible, single-cohort. There is no need to perform analysis of multi cohorts at the same time, as the aggregated results correspond to each individual, and the individuals are unique for every cohort. This kind of analysis guarantees GDPR data confidentiality. Therefore the infrastructure schematic is almost identical as the GWAS single-cohort analysis. Specifically, we will be calculating the PRS for the individuals of the cohort number 1. -->
+When calculating the PRS using DataSHIELD, the actual scores are not returned, as it would not be GDPR compliant to be able to determine the risk of an individual versus a certain disease. The actual results are stored on the servers and optionally can be merged to the phenotypes table. This allows further study of the PRS using summaries or fitting pooled GLM models to assess relationships between phenotypes and PRS scores.
 
-<!-- ```{r prsCohortImage, echo=FALSE, fig.cap="Proposed infrastructure to perform PRS studies.", fig.align='center'} -->
-<!-- knitr::include_graphics("gwas_images/prs.png") -->
-<!-- ``` -->
+### Study configuration
 
-<!-- The only difference is that we only need the Genotype information to calculate the PRS, so there is no phenotypes table involved. The resources used by the PRS functionality are the same VCF files used for the GWAS. -->
+The PRS use case will be set up as a multi-cohort, using the same dataset as the multi-cohort GWAS (same VCF resources). A single cohort PRS could be performed analogously using the single cohort example of the GWAS.
 
-<!-- ### Source of polygenic scores -->
+```{r prsCohortImage, echo=FALSE, fig.cap="Proposed infrastructure to perform PRS studies.", fig.align='center'}
+# knitr::include_graphics("gwas_images/prs.png")
+```
 
-<!-- There are two ways of stating the SNPs of interest and their weights in order to calculate the PRS. -->
+### Source of polygenic scores
 
-<!-- -   Providing a `ROI` (region of interest) table. The ROI table has to have a defined structure and column names in order to be understood by this function. This table can be formulated using two schemas: -->
+There are two ways of stating the SNPs of interest and their weights in order to calculate the PRS.
 
-<!--     -   Scheme 1: Provide SNP positions. Use the column names: "`chr_name`", "`chr_position`", "`effect_allele`", "`reference_allele`", "`effect_weight`" -->
+-   Providing a `ROI` (region of interest) table. The ROI table has to have a defined structure and column names in order to be understood by this function. This table can be formulated using two schemas:
 
-<!--     | chr_name | chr_position | effect_allele| reference_allele | effect_weight | -->
-<!--     |----------|--------------|--------------|------------------|---------------| -->
-<!--     | 1        | 100880328    | T            | A                | 0.0373        | -->
-<!--     | 1        | 121287994    | G            | A                | -0.0673       | -->
-<!--     | 6        | 152023191    | A            | G                | 0.0626        | -->
-<!--     | ...      | ...          | ...          | ...              | ...           | -->
+    -   Scheme 1: Provide SNP positions. Use the column names: "`chr_name`", "`chr_position`", "`effect_allele`", "`reference_allele`", "`effect_weight`"
 
-<!--     -   Scheme 2: Provide SNP id's. Use the column names: "`rsID`", "`effect_allele`", "`reference_allele`", "`effect_weight`". -->
+    | chr_name | chr_position | effect_allele| reference_allele | effect_weight |
+    |----------|--------------|--------------|------------------|---------------|
+    | 1        | 100880328    | T            | A                | 0.0373        |
+    | 1        | 121287994    | G            | A                | -0.0673       |
+    | 6        | 152023191    | A            | G                | 0.0626        |
+    | ...      | ...          | ...          | ...              | ...           |
 
-<!--     | rdID       | effect_allele| reference_allele | effect_weight | -->
-<!--     |------------|--------------|------------------|---------------| -->
-<!--     | rs11206510 | T            | C                | 0.0769        | -->
-<!--     | rs4773144  | G            | A                | 0.0676        | -->
-<!--     | rs17514846 | A            | C                | 0.0487        | -->
-<!--     | ...        | ...          | ...              | ...           | -->
+    -   Scheme 2: Provide SNP id's. Use the column names: "`rsID`", "`effect_allele`", "`reference_allele`", "`effect_weight`".
 
-<!-- The `effect_weight` have to be the betas (log(OR)). -->
+    | rdID       | effect_allele| reference_allele | effect_weight |
+    |------------|--------------|------------------|---------------|
+    | rs11206510 | T            | C                | 0.0769        |
+    | rs4773144  | G            | A                | 0.0676        |
+    | rs17514846 | A            | C                | 0.0487        |
+    | ...        | ...          | ...              | ...           |
 
-<!-- -   Provide a [PGS Catalog](https://www.pgscatalog.org/browse/scores/) 'Polygenic Score ID & Name'. If this option is in use, the SNPs and beta weights will be downloaded from the PGS Catalog and will be used to calculate the PRS. -->
+The `effect_weight` have to be the betas (log(OR)).
 
-<!-- Please note when using a custom `ROI` table that it is much faster to use the Schema 1, as the subset of the VCF files is miles faster to do using chromosome name and positions rather than SNP id's. -->
+-   Provide a [PGS Catalog](https://www.pgscatalog.org/browse/scores/) 'Polygenic Score ID & Name'. If this option is in use, the SNPs and beta weights will be downloaded from the PGS Catalog and will be used to calculate the PRS.
 
-<!-- ### Connection to the Opal server -->
+Please note when using a custom `ROI` table that it is much faster to use the Schema 1, as the subset of the VCF files is miles faster to do using chromosome name and positions rather than SNP id's.
 
-<!-- We have to create an Opal connection object to the cohort server. We do that using the following DSI functions. -->
+### Connection to the Opal server
 
-<!-- ```{r prs_ds_login, message=FALSE, warning=FALSE} -->
-<!-- require('DSI') -->
-<!-- require('DSOpal') -->
-<!-- require('dsBaseClient') -->
-<!-- require('dsOmicsClient') -->
+We have to create an Opal connection object to the cohort server. We do that using the following functions.
 
-<!-- builder <- DSI::newDSLoginBuilder() -->
-<!-- builder$append(server = "cohort1", url = "https://opal-demo.obiba.org/", -->
-<!--                user =  "dsuser", password = "password", -->
-<!--                driver = "OpalDriver", profile = "omics") -->
-<!-- logindata <- builder$build() -->
-<!-- conns <- DSI::datashield.login(logins = logindata) -->
-<!-- ``` -->
+```{r prs_ds_login, message=FALSE, warning=FALSE}
+require('DSI')
+require('DSOpal')
+require('dsBaseClient')
+require('dsOmicsClient')
 
-<!-- ### Assign the VCF resources -->
+builder <- DSI::newDSLoginBuilder()
+builder$append(server = "cohort1", url = "https://opal-demo.obiba.org/",
+               user =  "dsuser", password = "password",
+               driver = "OpalDriver", profile = "omics")
+builder$append(server = "cohort2", url = "https://opal-demo.obiba.org/",
+               user =  "dsuser", password = "password",
+               driver = "OpalDriver", profile = "omics")
+builder$append(server = "cohort3", url = "https://opal-demo.obiba.org/",
+               user =  "dsuser", password = "password",
+               driver = "OpalDriver", profile = "omics")
+logindata <- builder$build()
+conns <- DSI::datashield.login(logins = logindata)
+```
 
-<!-- Now that we have created a connection object to the Opal, we have triggered a new R session on the server. Once this R session is active, we can begin assigning resources to it. -->
+### Assign the VCF resources {#multi-vcf}
 
-<!-- ```{r prs_assign_resources, message=FALSE, warning=FALSE, results=FALSE} -->
-<!-- lapply(1:21, function(x){ -->
-<!--   DSI::datashield.assign.resource(conns, paste0("chr", x), paste0("GWAS.chr", x, "A")) -->
-<!--   }) -->
-<!-- ``` -->
+We assign the VCF and phenotypes resources.
 
-<!-- This resources that we have assigned are pointers to the VCF files that we want to use. There is one crucial difference between this analysis and the GWAS, here we don't need to resolve the resources. This is for memory efficiency purposes. When we calculate a PRS, we are only interested in a small selection of SNPs, for that reason the (potentially) huge VCF files will be trimmed before being resolved, so only the relevant SNPs are loaded in the memory. For that reason the resolving of the resources is delegated to the `ds.PRS` function, which will perform this trimming according to the SNPs of interest yielded by the PGS catalog query. -->
+```{r prs_assign_resources, message=FALSE, warning=FALSE, results=FALSE}
+# Cohort 1 resources
+lapply(1:21, function(x){
+  DSI::datashield.assign.resource(conns[1], paste0("chr", x), paste0("GWAS.chr", x,"A"))
+  })
+DSI::datashield.assign.resource(conns[1], "phenotypes_resource", "GWAS.feno_samples1")
 
-<!-- ### Calculate the PRS -->
+# Cohort 2 resources
+lapply(1:21, function(x){
+  DSI::datashield.assign.resource(conns[2], paste0("chr", x), paste0("GWAS.chr", x,"B"))
+  })
+DSI::datashield.assign.resource(conns[2], "phenotypes_resource", "GWAS.feno_samples2")
 
-<!-- #### PGS Catalog Example -->
+# Cohort 3 resources
+lapply(1:21, function(x){
+  DSI::datashield.assign.resource(conns[3], paste0("chr", x), paste0("GWAS.chr", x,"C"))
+  })
+DSI::datashield.assign.resource(conns[3], "phenotypes_resource", "GWAS.feno_samples3")
+```
 
-<!-- For this example we will calculate the PRS associated to the trait 'Breast Cancer', which corresponds to the PGS ID [PGS000004](https://www.pgscatalog.org/score/PGS000004/). -->
+And we resolve the phenotypes table. Remember to pass the table through the `make_valid_column_namesDS` function to be sure the column names have valid R syntax.
 
-<!-- ```{r warning=FALSE} -->
-<!-- resources <- paste0("chr", 1:21) -->
-<!-- names(resources) <- paste0("chr", 1:21) -->
-<!-- resources <- as.list(resources) -->
-<!-- ds.PRS(resources = resources, pgs_id = "PGS000004") -->
-<!-- ``` -->
+```{r prs_resolve_resources, message=FALSE, warning=FALSE, results=FALSE}
+DSI::datashield.assign.expr(conns = conns, symbol = "phenotypes",
+                            expr = as.symbol("as.resource.data.frame(phenotypes_resource)"))
+DSI::datashield.assign.expr(conns, "phenotypes", as.symbol("make_valid_column_namesDS(phenotypes)"))
+```
 
-<!-- On this example the chromosomes are separated into different VCF resource, having a big VCF file with all the variants would also work (illustrated in the next chunk). -->
+There is one crucial difference between this analysis and the GWAS, here we don't need to resolve the resources. This is for memory efficiency purposes. When we calculate a PRS, we are only interested in a small selection of SNPs, for that reason the (potentially) huge VCF files will be trimmed before being resolved, so only the relevant SNPs are loaded in the memory. For that reason the resolving of the resources is delegated to the `ds.PRS` function, which will perform this trimming according to the SNPs of interest yielded by the PGS catalog query or the ROI table.
 
-<!-- ```{r eval=F} -->
-<!-- ## Do not run -->
-<!-- ds.PRS(list(whole_vcf = "all_chromosomes_vcf_resource_name"), pgs_id = "PGS000004") -->
-<!-- ``` -->
+### Calculate the PRS
 
-<!-- #### Custom ROI example -->
+The PRS results will be added to the phenotypes table to be later studied using a pooled GLM. To do that, the following arguments of the function `ds.PRS` will be used:
 
-<!-- Here we will illustrate a use case with a custom ROI, please note that the proposed SNPs of interest and betas are totally arbitrary. -->
++ `table`: Name of the table where the results will be merged.
++ `table_id_column`: Number of the column in the `table` table that contains the individuals ID to merge the results from the PRS.
++ `table_prs_name`: Name to append to the PRS results. It will take the structure `prs_table_prs_name` and `prs_nw_table_prs_name`.
 
-<!-- We will first assemble the ROI table following the indications found on the Details section of `?ds.PRS` (Schema 1). -->
+#### PGS Catalog Example
 
-<!-- ```{r} -->
-<!-- ROI <- data.frame(chr_name = c(9, 9, 9, 9, 1, 1, 2, 2),  -->
-<!--                   chr_position = c(177034, 161674, 140859, 119681, 60351, 825410, 154629, 145710),  -->
-<!--                   effect_allele = c("T", "C", "G", "C", "G", "G", "T", "A"),  -->
-<!--                   reference_allele = c("G", "T", "A", "T", "A", "A", "G", "G"),  -->
-<!--                   effect_weight = c(0.5, 0.2, 0.1, 0.2, 0.1, 0.3, 0.1, 0.8)) -->
-<!-- ``` -->
+For this example we will calculate the PRS associated to the trait 'Breast Cancer', which corresponds to the PGS ID [PGS000004](https://www.pgscatalog.org/score/PGS000004/).
 
-<!-- Now we can pass the custom ROI to the PRS function to retrieve the aggregated results. -->
+```{r prs_pgs, warning=FALSE}
+resources <- paste0("chr", 1:21)
+names(resources) <- paste0("chr", 1:21)
+resources <- as.list(resources)
+ds.PRS(resources = resources, pgs_id = "PGS000004", table = "phenotypes", table_id_column = 51, table_prs_name = "PGS000004_results")
+```
 
-<!-- ```{r warning=FALSE} -->
-<!-- resources <- paste0("chr", 1:21) -->
-<!-- names(resources) <- paste0("chr", 1:21) -->
-<!-- resources <- as.list(resources) -->
-<!-- ds.PRS(resources = resources, ROI = ROI) -->
-<!-- ``` -->
+#### Custom ROI example
 
-<!-- If we were also interested on calculating the PRS for individuals of other cohorts, we would have to follow the same procedure loading the resources with the information of the other cohorts. -->
+Here we will illustrate a use case with a custom ROI, please note that the proposed SNPs of interest and betas are totally arbitrary.
 
-<!-- ```{r} -->
-<!-- datashield.logout(conns) -->
-<!-- ``` -->
+We will first assemble the ROI table following the indications found on the Details section of `?ds.PRS` (Schema 1).
 
-<!-- ### Internal structure of the PRS functionality -->
+```{r roi}
+ROI <- data.frame(chr_name = c(9, 9, 9, 9, 1, 1, 2, 2),
+                  chr_position = c(177034, 161674, 140859, 119681, 60351, 825410, 154629, 145710),
+                  effect_allele = c("T", "C", "G", "C", "G", "G", "T", "A"),
+                  reference_allele = c("G", "T", "A", "T", "A", "A", "G", "G"),
+                  effect_weight = c(0.5, 0.2, 0.1, 0.2, 0.1, 0.3, 0.1, 0.8))
+```
 
-<!-- The PRS function can be divided into three main blocks that perform the required tasks to come up with the results. The three functional blocks are the following: -->
+Now we can pass the custom ROI to the PRS function to retrieve the aggregated results.
 
-<!-- -   Client: Assemble the ROI table if PGS Catalog is used, perform calls to the server to subset the resources and calculate the PRS with the subsetted resources. -->
-<!-- -   Server resolver: Resolve the selected resources (VCF files) and subset them using the ROI. -->
-<!-- -   Server analysis: Use the resolved resources (small VCF files with only the SNPs of interest according to the ROI table) to calculate the PRS. -->
+```{r prs_roi, warning=FALSE}
+resources <- paste0("chr", 1:21)
+names(resources) <- paste0("chr", 1:21)
+resources <- as.list(resources)
+ds.PRS(resources = resources, ROI = ROI, table = "phenotypes", table_id_column = 51, table_prs_name = "custom_ROI_results")
+```
 
-<!-- In order to introduce a little how those three blocks work internally, schematized flow charts have been designed. To understand the exact inner working of the functionality it is advised to follow the flowcharts alongside the actual source code. Find the links to the three blocks source code, [client](https://github.com/isglobal-brge/dsOmicsClient/blob/master/R/ds.PRS.R), [server resolver](https://github.com/isglobal-brge/dsOmics/blob/master/R/GDSFileResourceClient.R#L43) and [server analysis](https://github.com/isglobal-brge/dsOmics/blob/master/R/PRSDS.R). -->
+### Study of the PRS results
 
-<!-- #### Client -->
+First, we can check that the PRS results have been added to the specified `phenotypes` table.
 
-<!-- The client performs two basic tasks. The first one is to select between a user introduced `ROI` or to retrieve the `ROI` from the PGS Catalog. Please note that `ROI` stands for Region Of Interest, which may not be the common term for PGS analysis but it makes sense since it refers to a table that contain the SNP's of interest and their weight to the score. If the user introduces a custom `ROI` and a PGS Catalog ID, only the introduced table will be used, discarding the PGS Catalog ID information. Once this table is assembled, the next step is to call the required functions on the study servers. First, the resource resolver is called, and after that, the function that calculates the PRS is called. -->
+```{r}
+ds.colnames("phenotypes")
+```
 
-<!-- This is illustrated on the following figure. -->
+Finally, we can fit pooled GLM models using the function `ds.glm`. In this use case we will fit a model to relate the `prs_PGS000004_results` to `Sleep.duration` adjusted by `sex`. A remarks has to be done, this is an arbitrary model with not much scientific meaning, the idea is just to portray the funcionality.
 
-<!-- ```{r block1Image, echo=FALSE, fig.cap="Flow chart of the client block.", fig.align='center'} -->
-<!-- knitr::include_graphics("gwas_images/block1.png") -->
-<!-- ``` -->
+```{r}
+ds.glm(formula = "prs_PGS000004_results ~ Sleep.duration + sex", family = "gaussian", data = "phenotypes")
+```
 
-<!-- #### Server resolver -->
 
-<!-- The server resolver is in charge of resolving the resources. The interesting aspect is that only a region of interest is actually assigned to the R session, this is to avoid overloading the memory with unnecessary information. There are two different methodologies to perform this subsetting, one is using chromosome names and position and the other is using the SNP id's. Due to the technical specification of VCF files, is much easier to perform the subsetting using chromosome names and positions because there is an indexing file for the VCF files to perform fast queries of regions by position. On the other hand, to filter a VCF file using SNP id's, the whole file has to be scanned, yielding a much slower process. -->
+```{r}
+datashield.logout(conns)
+```
 
-<!-- This block is illustrated on the following figure. -->
+### Internal structure of the PRS functionality
 
-<!-- ```{r block2Image, echo=FALSE, fig.cap="Flow chart of the server resolver block.", fig.align='center'} -->
-<!-- knitr::include_graphics("gwas_images/block2.png") -->
-<!-- ``` -->
+The PRS function can be divided into three main blocks that perform the required tasks to come up with the results. The three functional blocks are the following:
 
-<!-- #### Server analysis -->
+-   Client: Assemble the ROI table if PGS Catalog is used, perform calls to the server to subset the resources and calculate the PRS with the subsetted resources.
+-   Server resolver: Resolve the selected resources (VCF files) and subset them using the ROI.
+-   Server analysis: Use the resolved resources (small VCF files with only the SNPs of interest according to the ROI table) to calculate the PRS.
 
-<!-- Many processes are performed inside the analysis block. For that reason, more than a flow chart, a step by step guide has been illustrated with the objects that are created (or modified) on each step. The most important step on this block is making sure that the alternate (risk) alleles match between the VCF resources and the alternate alleles stated by the ROI or PGS Catalog. -->
+In order to introduce a little how those three blocks work internally, schematized flow charts have been designed. To understand the exact inner working of the functionality it is advised to follow the flowcharts alongside the actual source code. Find the links to the three blocks source code, [client](https://github.com/isglobal-brge/dsOmicsClient/blob/master/R/ds.PRS.R), [server resolver](https://github.com/isglobal-brge/dsOmics/blob/master/R/GDSFileResourceClient.R#L43) and [server analysis](https://github.com/isglobal-brge/dsOmics/blob/master/R/PRSDS.R).
 
-<!-- The block is illustrated on the following figure. -->
+#### Client
 
-<!-- ```{r block3Image, echo=FALSE, fig.cap="Flow chart of the server analysis block.", fig.align='center'} -->
-<!-- knitr::include_graphics("gwas_images/block3.png") -->
-<!-- ``` -->
+The client performs two basic tasks. The first one is to select between a user introduced `ROI` or to retrieve the `ROI` from the PGS Catalog. Please note that `ROI` stands for Region Of Interest, which may not be the common term for PGS analysis but it makes sense since it refers to a table that contain the SNP's of interest and their weight to the score. If the user introduces a custom `ROI` and a PGS Catalog ID, only the introduced table will be used, discarding the PGS Catalog ID information. Once this table is assembled, the next step is to call the required functions on the study servers. First, the resource resolver is called, and after that, the function that calculates the PRS is called.
+
+This is illustrated on the following figure.
+
+```{r block1Image, echo=FALSE, fig.cap="Flow chart of the client block.", fig.align='center'}
+knitr::include_graphics("gwas_images/block1.png")
+```
+
+#### Server resolver
+
+The server resolver is in charge of resolving the resources. The interesting aspect is that only a region of interest is actually assigned to the R session, this is to avoid overloading the memory with unnecessary information. There are two different methodologies to perform this subsetting, one is using chromosome names and position and the other is using the SNP id's. Due to the technical specification of VCF files, is much easier to perform the subsetting using chromosome names and positions because there is an indexing file for the VCF files to perform fast queries of regions by position. On the other hand, to filter a VCF file using SNP id's, the whole file has to be scanned, yielding a much slower process.
+
+This block is illustrated on the following figure.
+
+```{r block2Image, echo=FALSE, fig.cap="Flow chart of the server resolver block.", fig.align='center'}
+knitr::include_graphics("gwas_images/block2.png")
+```
+
+#### Server analysis
+
+Many processes are performed inside the analysis block. For that reason, more than a flow chart, a step by step guide has been illustrated with the objects that are created (or modified) on each step. The most important step on this block is making sure that the alternate (risk) alleles match between the VCF resources and the alternate alleles stated by the ROI or PGS Catalog.
+
+The block is illustrated on the following figure.
+
+```{r block3Image, echo=FALSE, fig.cap="Flow chart of the server analysis block.", fig.align='center'}
+knitr::include_graphics("gwas_images/block3.png")
+```
 
 # References
