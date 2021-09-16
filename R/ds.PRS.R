@@ -43,7 +43,8 @@
 #' @export
 #'
 
-ds.PRS <- function(resources, pgs_id = NULL, ROI = NULL, snp_threshold = 80, datasources = NULL){
+ds.PRS <- function(resources, pgs_id = NULL, ROI = NULL, table = NULL, table_id_column = NULL,
+                   table_prs_name = NULL, snp_threshold = 80, datasources = NULL){
   
   if (is.null(datasources)) {
     datasources <- DSI::datashield.connections_find()
@@ -83,11 +84,9 @@ ds.PRS <- function(resources, pgs_id = NULL, ROI = NULL, snp_threshold = 80, dat
                                       "as.resource.object(x = ", resources[[x]],
                                       ", snps = c('", paste(ROI$rsID, collapse = "', '"), "'))"
                                     )))
-        paste0(x, "_gds")
       }, error = function(w){
         NULL
       })
-      
     } else {
       tryCatch({
         DSI::datashield.assign.expr(conns = datasources, symbol = paste0(x, "_gds"), 
@@ -97,7 +96,6 @@ ds.PRS <- function(resources, pgs_id = NULL, ROI = NULL, snp_threshold = 80, dat
                                       paste(ROI$start, collapse = ", "), "), end.loc = c(",
                                       paste(ROI$end, collapse = ", "), "))"
                                     )))
-        paste0(x, "_gds")
       }, error = function(w){
         NULL
       })
@@ -109,11 +107,27 @@ ds.PRS <- function(resources, pgs_id = NULL, ROI = NULL, snp_threshold = 80, dat
   } else if ("rsID" %in% colnames(ROI)){
     ROI_type <- "rsID"
   }
+
+  # Build cally
+  browser()
   cally <- paste0("PRSDS(c(",
                   paste0(assigned_resources, collapse = ", "),
                   "), ", snp_threshold, ", '", paste(unlist(ROI), collapse = "', '"),
                   "', ", if(ROI_type == "rsID"){3}else{5}, ")")
-  DSI::datashield.aggregate(datasources, cally)
+  DSI::datashield.assign.expr(datasources, "prs_results", cally)
+  
+  # If table is NULL the results will not be added (join by ID) to a table on the server
+  if(!is.null(table)){
+    if(is.null(table_id_column)){
+      stop()
+    }
+    if(is.null(table_prs_name)){
+      warning("Default PRS custom name used ['prs_results']")
+      table_prs_name <- 'prs_results'
+    }
+    cally <- paste0("PRSDS_aux(prs_results, '", table_prs_name, "', ", table, ", ", table_id_column, ")")
+    DSI::datashield.assign.expr(datasources, table, cally)
+  }
 }
 
 #' @title Internal function: Get PGS catalog table of polygenic risks
