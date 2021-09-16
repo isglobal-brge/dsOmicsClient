@@ -244,7 +244,7 @@ ds.colnames("feno_object")
 
 Now we have valid names on our phenotypes table so we can proceed.
 
-### Merge VCF (genotype) and phenotype information
+### Merge VCF (genotype) and phenotype information {#vcf_merge}
 
 Arrived at this point, we have 21 VCF objects (each one corresponds to a chromosome) and a phenotypes table on our remote session. The next step is merging each of the VCF objects with the phenotypes table. Before doing that however, we have to gather some information from the phenotypes table. The information to gather is summarized on the Table \@ref(tab:tab2).
 
@@ -278,7 +278,7 @@ Getting the encodings of the sex and case-control columns
 
 ```{r single_cohort_tables_of_columns, message=FALSE, warning=FALSE}
 ds.table("feno_object$sex")
-# ds.table("feno_object$`Non-accidental death in close genetic family`")
+# ds.table("feno_object$Non.accidental.death.in.close.genetic.family")
 ```
 
 From the different functions we used, we can extract our answers (Summarized on the Table \@ref(tab:tab3))
@@ -364,19 +364,19 @@ datashield.logout(conns)
 
 ## Multi cohorts
 
-A GWAS can be performed on a multi-cohort situation to get results for all the cohorts to be analyzed using meta-analysis techniques. As with the single-cohort methodology illustrated on the prior section, this method guarantees GDPR data confidentiality. The structure for a three cohort study is illustrated on the following figure (note this can be extrapolated for cohorts with a bigger (or lower) partner count).
+Now all the individuals used for the single cohort use case will be divided into three different synthetic cohorts. The results from each cohort will then be meta-analyzed to be compared to the results obtained by studying all the individuals together. As with the single-cohort methodology illustrated on the prior section, this method guarantees GDPR data confidentiality. The structure for a three cohort study is illustrated on the following figure (note this can be extrapolated for cohorts with a bigger (or lower) partner count).
 
 ```{r multiCohortImage, echo=FALSE, fig.cap="Proposed infrastructure to perform multi-cohort GWAS studies.", fig.align='center'}
 knitr::include_graphics("gwas_images/multi_cohort.png")
 ```
 
-The data analyst corresponds to the "RStudio" session, which through DataSHIELD Interface (DSI) connects with all the different Opal servers located at the cohorts network (one Opal per cohort). This Opal servers contain an array of resources that correspond to the different VCF files (sliced by chromosome)[^5] and a resource that corresponds to the phenotypes table of the studied individuals. This resources are URL pointers to the Data store of each Opal server, so that the data is contained through all the analysis inside the cohort network, and the only data being transfered are non-disclosive statistics.
+The data analyst corresponds to the "RStudio" session, which through DataSHIELD Interface (DSI) connects with the Opal server located at the cohort network. This Opal server contains an array of resources that correspond to the different VCF files (sliced by chromosome) [^5] and a resource that corresponds to the phenotypes table of the studied individuals.
 
 [^5]: The same methodology and code can be used with unitary VCF resources that contain the variant information of all chromosomes.
 
 ### Connection to the Opal server
 
-We have to create an Opal connection object to the different cohorts servers. We do that using the following DSI functions.
+We have to create an Opal connection object to the different cohorts server. We do that using the following functions.
 
 ```{r multi_cohort_ds_login, message=FALSE, warning=FALSE}
 require('DSI')
@@ -398,7 +398,7 @@ logindata <- builder$build()
 conns <- DSI::datashield.login(logins = logindata)
 ```
 
-It is important to note that in this illustrated example, we are using only one server that contains all the resources (<https://opal-demo.obiba.org/>), on this server there are all the resources that correspond to the different cohorts. From a technical point of view we are making two different connections to the server to simulate this multi-cohort scenario. A more realistic code would be the following one (fake URLs, don't try to reproduce it).
+It is important to note that in this use case, we are only using one server that contains all the resources (<https://opal-demo.obiba.org/>), on this server there are all the resources that correspond to the different cohorts. From a technical point of view we are making three different connections to the server to simulate this multi-cohort scenario. A more realistic code would be the following one (fake URLs, do not try to reproduce it).
 
 ```{r eval=F}
 require('DSI')
@@ -422,13 +422,11 @@ conns <- DSI::datashield.login(logins = logindata)
 
 ### Assign the VCF resources {#multi-vcf}
 
-Now that we have created a connection object to the different Opals, we have triggered a new R session on all the servers. Once this R sessions are active, we can begin assigning resources to them. To do so we have to specify which connection object we are talking with, we can take a look at them beforehand.
+Now that we have created a connection object to the different Opals, we have started three R session, our analysis will take place on those remote sessions, so we have to load the data into them.
 
-```{r}
-conns
-```
+In this use case we will use 63 different resources from the `GWAS` project hosted on the [demo Opal server](https://opal-demo.obiba.org/). This resources correspond to VCF files with information on individual chromosomes (21 chromosomes per three cohorts). The names of the resources are `chrXXY` (where XX is the chromosome number and Y is the cohort A/B/C). Following the Opal syntax, we will refer to them using the string `GWAS.chrXXY`.
 
-We see that the first connection object is the cohort1 and the second object is the cohort2.
+We have to refer specifically to each different server by using `conns[X]`, this allows us to communicate with the server of interest to indicate to it the resources that it has to load.
 
 ```{r multi_cohort_assign_resources, message=FALSE, warning=FALSE, results=FALSE}
 # Cohort 1 resources
@@ -447,110 +445,90 @@ lapply(1:21, function(x){
   })
 ```
 
-We can check that we did the assignments properly by checking the workspaces of all the connections.
+Now we have assigned all the resources named `GWAS.chrXXY` into our remote R session. We have assigned them to the variables called `chrXX`. To verify this step has been performed correctly, we could use the `ds.class` function to check for their class and that they exist on the remote sessions.
 
-```{r}
-ds.ls(datasources = conns)
+```{r multi_cohort_check_class_resource}
+ds.class("chr1")
 ```
 
-This resources that we have assigned are pointers to the VCF files that we want to use. To access the data and load it into the server, we have to resolve the resources. Since on all the cohort servers we assigned the resources to the same variables (`chr19` and `chr21`), we don't have to manipulate them separately as we did on the previous code chunk.
+We can see that the object `chr1` exists in all the three servers.
+
+Finally the resources are resolved to retrieve the data in the remote sessions.
 
 ```{r multi_cohort_resolve_resources, message=FALSE, warning=FALSE, results=FALSE}
 lapply(1:21, function(x){
-  DSI::datashield.assign.expr(conns = conns, symbol = paste0("gds", x, "_object"),
+  DSI::datashield.assign.expr(conns = conns, symbol = paste0("gds", x, "_object"), 
                             expr = as.symbol(paste0("as.resource.object(chr", x, ")")))
 })
 ```
 
-We can check he assignment was successful by checking the class of the new objects.
+Now we have resolved the resources named `chrXX` into our remote R sessions. The objects retrieved have been assigned into variables named `gdsXX_object`. We can check the process was successful as we did before.
 
 ```{r multi_cohort_check_class}
-ds.class("chr1")
 ds.class("gds1_object")
 ```
 
-### Assign the covariates resource
+### Assign the phenotypes
 
-On this use case the covariates table is a resource, please note that it could be a regular Opal table. Since it is a resource we follow the same procedure as with the VCF resources. The only change is that we have to specify that we are resolving a resource into a table instead of into an object, so in this case we will use `as.resource.data.frame`. It is important to take into account that this covariates table has to be harmonized between all the cohorts, that means having the same structure and column order, in the case this condition is not met, we can still perform the analysis, we just have to be careful on the the following section (creating the Genotype Data objects) to send different parameters to each server in a similar fashion as the one used on the [Assign the VCF resources](#multi-vcf) section.
+The objects we have loaded into our remote sessions are VCF files that contain genomic information of the individuals. To perform a GWAS this information has to be related to some phenotypes to extract relationships. Therefore, we need to load the phenotypes into the remote sessions. The phenotypes information is a table that contains the individuals as rows and phenotypes as columns. In this use case, we will use a resource (as with the VCF files) to load the phenotypes table into the remote sessions.
+
+As with the VCF resources, here we load a different resource to each cohort, as it is expected that each cohort has only the phenotypes information regarding their individuals, therefore different tables. Note that we are assigning the resource to the same variable at each server (`feno`), so we only need one function call to resolve all the resources together.
 
 ```{r multi_cohort_assign_covariates_table}
-DSI::datashield.assign.resource(conns, "feno", "GWAS.feno")
+# Cohort 1 phenotypes table
+DSI::datashield.assign.resource(conns[1], "feno", "GWAS.feno_samples1")
+
+# Cohort 2 phenotypes table
+DSI::datashield.assign.resource(conns[2], "feno", "GWAS.feno_samples2")
+
+# Cohort 3 phenotypes table
+DSI::datashield.assign.resource(conns[3], "feno", "GWAS.feno_samples3")
+
+# Resolve phenotypes table
 DSI::datashield.assign.expr(conns = conns, symbol = "feno_object",
                             expr = quote(as.resource.data.frame(feno)))
 ```
 
-If the covariates were contained on a regular Opal table, the assignment procedure would be the following.
+We can follow the same analogy as before to know that we have assigned the phenotypes table to a variable called `feno_object` on the remote R session.
 
-```{r eval=F}
-DSI::datashield.assign.table(conns, "feno_object", "project.covar_table")
-```
+There is one extra step needed to perform on the phenotypes table, making sure the column names do not contain special characters. Special characters in R (for column names) are spaces, symbols, etc. To make sure our column names do not have any of them, there is a special function on the `dsOmics` package. We will overwrite the phenotypes table with syntax correct names.
 
-When we assign a table, we don't have to resolve it as with the resources.
+Here we can see the original column names.
 
-### Create the Genotype Data objects
-
-Now that we have both the GDS (container for VCF files) and covariates loaded into the R sessions, we have to merge them into a type of container called GenotypeData. Some things have to be considered before performing this merge:
-
--   Which column has the samples identifier? (mandatory to have it on the covariates file)
--   Which is the sex column on the covariates file? (mandatory to have it on the covariates file)
--   How are males and how are females encoded into this column?
--   Which is the case-control column of interest of the covariates?
--   What is the encoding for case and for control on this column?
-
-As mentioned before, for simplicity, the covariates table has to be harmonized between all the cohorts, otherwise we will have to pass each R session different arguments corresponding to this questions we will answer.
-
-It's important to note that all the other encodings present on the case-control column that are not the case or control, will be turned into NAs.
-
-We can use DataSHIELD to answer the aforementioned questions:
-
-Getting the ID, sex and case-control columns:
-
-```{r multi_cohort_check_feno_columns}
+```{r}
 ds.colnames("feno_object")
 ```
 
--   ID col: Number 51
--   Sex col: Number 62
--   case-control col: 38
+And we apply the `make_valid_column_namesDS` function.
 
-Getting the encodings of the sex and case-control columns
-
-```{r multi_cohort_tables_of_columns, message=FALSE, warning=FALSE}
-ds.table("feno_object$sex")
-# ds.table("feno_object$`Non-accidental death in close genetic family`")
+```{r}
+DSI::datashield.assign.expr(conns, "feno_object", as.symbol("make_valid_column_namesDS(feno_object)"))
 ```
 
--   Male encoding: `male`
--   Female encoding: `female`
--   Case encoding: `Yes`
--   Control encoding: `No`
+We can check the resulting names.
 
-With all this information we can now merge the covariates and GDS data to a GenotypeData object. We have to do it for every chromosome keeping the same covariates file for all of them.
+```{r}
+ds.colnames("feno_object")
+```
+
+Now we have valid names on our phenotypes table so we can proceed.
+
+### Merge VCF (genotype) and phenotype information
+
+Arrived at this point, we have 21 VCF objects at each cohort R session (each one corresponds to a chromosome) and a phenotypes table. The next step is merging each of the VCF objects with the phenotypes table. The same procedure as the [single cohort](#vcf_merge) can be applied to extract the arguments required.
+
+With all this information we can now merge the phenotypes and VCF objects into a type of object named GenotypeData. We will use the `ds.GenotypeData` function.
 
 ```{r multi_cohort_create_genoData, message=FALSE, warning=FALSE, results=FALSE}
 lapply(1:21, function(x){
-  ds.GenotypeData(x=paste0('gds', x,'_object'), covars = 'feno_object', columnId = 51, sexId = 62,
+  ds.GenotypeData(x=paste0('gds', x,'_object'), covars = 'feno_object', columnId = 51, sexId = 62, 
                 male_encoding = "male", female_encoding = "female",
                 case_control_column = 38, case = "Yes", control = "No",
                 newobj.name = paste0('gds.Data', x), datasources = conns)
 })
 ```
 
-Now we are ready to perform a GWAS analysis. It is important noting that we have to pass a formula object to the `ds.GWAS` function. The variables from the covariates file may contain some special characters and spaces that are not allowed by the R formula element, to account for that we should use th `make.names` function. As an example, we may want to study the following:
-
-```{r eval=F}
-Non-accidental death in close genetic family ~ sex + HDL cholesterol
-```
-
-We pass every variable name through `make.names`.
-
-```{r multi_cohort_make_names}
-make.names("Non-accidental death in close genetic family")
-make.names("sex")
-make.names("HDL cholesterol")
-```
-
-And we construct or final formula with the outputs.
+The objects we just created are named `gds.DataXX` on the remote session. Now we are ready to perform a GWAS analysis. We will use the same formula as the single cohort to be able to compare the results later:
 
 ```{r eval=F}
 Non.accidental.death.in.close.genetic.family ~ sex + HDL.cholesterol
@@ -569,21 +547,18 @@ And we can see the results for each cohort.
 #### Cohort 1 {.unnumbered}
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE}
-# DT::datatable(results[[1]], class = 'cell-border stripe', width = '90%', options=list(columnDefs = list(list(visible=FALSE, targets=0)))) %>% DT::formatRound(columns = c(5:8), digits = 3)
 results[[1]]
 ```
 
 #### Cohort 2 {.unnumbered}
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE}
-# DT::datatable(results[[2]], class = 'cell-border stripe', width = '90%', options=list(columnDefs = list(list(visible=FALSE, targets=0)))) %>% DT::formatRound(columns = c(5:8), digits = 3)
 results[[2]]
 ```
 
 #### Cohort 3 {.unnumbered}
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE}
-# DT::datatable(results[[2]], class = 'cell-border stripe', width = '90%', options=list(columnDefs = list(list(visible=FALSE, targets=0)))) %>% DT::formatRound(columns = c(5:8), digits = 3)
 results[[3]]
 ```
 
@@ -646,35 +621,25 @@ sum(top_20_complete$rs %in% top_20_pval$rs)
 
 The meta-analysis using beta values recovers a higher amount of top SNPs, therefore it can be considerated a more powerful method for GWAS meta-analyses.
 
-<!-- #### Manhattan plot all individuals {.unnumbered} -->
+#### Visualizing the results of the meta-analysis
 
-<!-- ```{r} -->
+We can use the manhattan plot and locus zoom to visualize the results of the meta-analysis as we visualized the single cohorts before.
 
-<!-- manhattan(results_single) -->
+##### Manhatan plot
+```{r message=FALSE, warning=FALSE, fig.cap="Manhattan plot of the meta-analysis results.", fig.align='center'}
+manhattan(meta_pvalues, 1, 2, 3, 7)
+```
 
-<!-- ``` -->
-
-<!-- #### Manhattan plot meta p-values {.unnumbered} -->
-
-<!-- ```{r} -->
-
-<!-- manhattan(meta_pvalues, 1, 2, 3, 7) -->
-
-<!-- ``` -->
-
-<!-- #### Manhattan plot meta beta-values {.unnumbered} -->
-
-<!-- ```{r} -->
-
-<!-- manhattan(meta_bvalues, 1, 2, 3, 10) -->
-
-<!-- ``` -->
+##### LocusZoom
+```{r message=FALSE, warning=FALSE, fig.cap="LocusZoom plot of the meta-analysis results.", fig.align='center'}
+LocusZoom(meta_pvalues, pvalue = "p.meta")
+```
 
 #### Meta-analysis versus pooled linear models
 
 The `dsOmicsClient` package also bundles a function to fit pooled generalized linear models (GLM) on single (or multiple) SNPs. On this section we will compare the results of the meta-analysis to the pooled GLM models to see which method is closer to the common truth. The meta-analysis method will be the beta values (fixed-effects model).
 
-The study methododology will be similar to the one we just performed. The top 20 hits yielded by the meta-analysis will be selected, those SNPs will be studied using the pooled GLM function. Both results will be compared to the common truth.
+The study methodology will be similar to the one we just performed. The top 20 hits yielded by the meta-analysis will be selected, those SNPs will be studied using the pooled GLM function. Both results will be compared to the common truth.
 
 We aim to replicate a real scenario with this study, typically there is no access to the common truth (if so there is no point on performing meta-analysis on synthetic multi-cohorts), therefore we simulate the discovery of SNPs of interest via meta-analysis, then we want to assess if studying individually those SNPs using pooled GLM will put us closer to the common truth than what we already achieved.
 
@@ -717,7 +682,7 @@ With all the information gathered we can visualize the results the Table <a href
 
 ```{r f, echo=F}
 library(gt)
-total %>% gt() %>% tab_spanner(label = 'Beta', columns = c(Est.original, Est.pooled, Est.beta)) %>% tab_spanner(label = 'SE', columns = c(SE.original, SE.pooled, SE.beta)) %>% tab_spanner(label = 'P-Value', columns = c(pval.original, pval.pooled, pval.beta)) %>% cols_label(Est.original = "Original", Est.pooled = "Pooled", Est.beta = "Meta", SE.original = "Original", SE.pooled = "Pooled", SE.beta = "Meta", pval.original = "Original", pval.pooled = "Pooled", pval.beta = "Meta", rs = "SNP id") %>% fmt_number(columns = c(Est.original, Est.pooled, Est.beta, SE.original, SE.pooled, SE.beta), decimals = 3) %>% fmt_scientific(columns = c(pval.original, pval.pooled, pval.beta), decimals = 1) %>% tab_options(column_labels.font.weight = "bold") %>% tab_style(style = cell_fill(color = "grey"), locations = list(cells_body(columns = c(SE.original, SE.pooled, SE.beta), rows = c(seq(2,nrow(total),2))))) %>% tab_style(style = cell_fill(color = "lightgray"), locations = list(cells_body(columns = c(SE.original, SE.pooled, SE.beta), rows = c(seq(1,nrow(total),2))))) %>% tab_style(style = cell_borders(sides = "all", color = "lightgrey", style = "solid", weight = px(1)), locations = cells_body(columns = everything(), rows = everything())) %>% tab_style(style = cell_text(color = "red"), locations = list(cells_body(columns = Est.original, rows = Est.original<0))) %>% tab_style(style = cell_text(color = "red"), locations = list(cells_body(columns = Est.beta, rows = Est.beta<0))) %>% tab_style(style = cell_text(color = "red"), locations = list(cells_body(columns = Est.pooled, rows = Est.pooled<0))) %>% tab_options(table.font.size = "10pt")# %>% tab_options(table.align='left') %>% opt_row_striping(row_striping = TRUE)
+total %>% gt() %>% tab_spanner(label = 'Beta', columns = c(Est.original, Est.pooled, Est.beta)) %>% tab_spanner(label = 'SE', columns = c(SE.original, SE.pooled, SE.beta)) %>% tab_spanner(label = 'P-Value', columns = c(pval.original, pval.pooled, pval.beta)) %>% cols_label(Est.original = "Original", Est.pooled = "Pooled", Est.beta = "Meta", SE.original = "Original", SE.pooled = "Pooled", SE.beta = "Meta", pval.original = "Original", pval.pooled = "Pooled", pval.beta = "Meta", rs = "SNP id") %>% fmt_number(columns = c(Est.original, Est.pooled, Est.beta, SE.original, SE.pooled, SE.beta), decimals = 3) %>% fmt_scientific(columns = c(pval.original, pval.pooled, pval.beta), decimals = 1) %>% tab_options(column_labels.font.weight = "bold") %>% tab_style(style = cell_fill(color = "grey"), locations = list(cells_body(columns = c(SE.original, SE.pooled, SE.beta), rows = c(seq(2,nrow(total),2))))) %>% tab_style(style = cell_fill(color = "lightgray"), locations = list(cells_body(columns = c(SE.original, SE.pooled, SE.beta), rows = c(seq(1,nrow(total),2))))) %>% tab_style(style = cell_borders(sides = "all", color = "lightgrey", style = "solid", weight = px(1)), locations = cells_body(columns = everything(), rows = everything())) %>% tab_style(style = cell_text(color = "red"), locations = list(cells_body(columns = Est.original, rows = Est.original<0))) %>% tab_style(style = cell_text(color = "red"), locations = list(cells_body(columns = Est.beta, rows = Est.beta<0))) %>% tab_style(style = cell_text(color = "red"), locations = list(cells_body(columns = Est.pooled, rows = Est.pooled<0))) %>% tab_options(table.font.size = "10pt")
 ```
 
 Finally, to conclude this study we can compute the bias and mean squared error (code not shown). The resutls are shown on the Table <a href="#tab:tab5">5</a>.
