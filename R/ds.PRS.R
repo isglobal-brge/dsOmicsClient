@@ -118,7 +118,8 @@ ds.PRS <- function(resources, pgs_id = NULL, ROI = NULL, table = NULL, table_id_
   # If table is NULL the results will not be added (join by ID) to a table on the server
   if(!is.null(table)){
     if(is.null(table_id_column)){
-      stop()
+      stop('Please provide the argument "table_id_column" to identify the number of the column that contains the
+           IDs to merge.')
     }
     if(is.null(table_prs_name)){
       warning("Default PRS custom name used ['prs_results']")

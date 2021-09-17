@@ -8,6 +8,9 @@ ds.PRS(
   resources,
   pgs_id = NULL,
   ROI = NULL,
+  table = NULL,
+  table_id_column = NULL,
+  table_prs_name = NULL,
   snp_threshold = 80,
   datasources = NULL
 )

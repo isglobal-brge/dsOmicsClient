@@ -17,14 +17,14 @@
 #' @param chromosome \code{character} (default \code{"chr"}) Column name of \code{gwas_results} that contains 
 #' the chromosome names.
 #' @param rs \code{character} (default \code{"rs"}) Column name of \code{gwas_results} that contains 
-#' the rs ID of the SNPs. This column will only be used if \code{snp_threshold} is different than \code{NULL}, therefore 
+#' the rs ID of the SNPs. This column will only be used if \code{pval_threshold} is different than \code{NULL}, therefore 
 #' there is no need of supplying this argument if there is no interest to plot the labels of the rs IDs.
 #' @param position \code{character} (default \code{"pos"}) Column name of \code{gwas_results} that contains the positions.
 #' @param range_filter \code{numeric} (default \code{NULL}). If not \code{NULL}, only the annotations with a range larger 
 #' than \code{range_filter} will be displayed.
 #' @param draw_genes \code{bool} (default \code{TRUE}). Select if the genes of the region plot are to be plotted below the p-values 
 #' plot.
-#' @param snp_threshold \code{numeric} (default \code{5}) Threshold of -log_{10}p-value to draw labels with the SNP IDs. 
+#' @param pval_threshold \code{numeric} (default \code{5}) Threshold of -log_{10}p-value to draw labels with the SNP IDs. 
 #' If \code{NULL} no labels will be drawn.
 #'
 #' @return
@@ -32,7 +32,7 @@
 
 LocusZoom <- function(gwas_results, range = 5e+05, position_zoom = NULL, use_biomaRt = TRUE, TxDb_version = c("hg18", "hg19"),
                       GRCh = NULL, pvalue = "p.value", chromosome = "chr", position = "pos", rs = "rs", range_filter = NULL,
-                      draw_genes = TRUE, snp_threshold = 5){
+                      draw_genes = TRUE, pval_threshold = 5){
   require("magrittr")
   require("tidyverse")
   require("patchwork")
@@ -63,11 +63,11 @@ LocusZoom <- function(gwas_results, range = 5e+05, position_zoom = NULL, use_bio
                           "to", format((sel.pos + range), big.mark = "'"), "bp")) + 
     ylab(expression(-log[10](p-value))) + theme(text = element_text(size = 11))
   
-  # Put labels + threshold line of top SNPs if snp_threshold is different from NULL
-  if(!is.null(snp_threshold)){
+  # Put labels + threshold line of top SNPs if pval_threshold is different from NULL
+  if(!is.null(pval_threshold)){
     require(ggrepel) # package to add labels without overlapping
-    p1 <- p1 + geom_hline(yintercept = snp_threshold, color = "red") +
-      geom_label_repel(data=dat.bmi.sel.region[dat.bmi.sel.region$pval_calculated >= snp_threshold,], 
+    p1 <- p1 + geom_hline(yintercept = pval_threshold, color = "red") +
+      geom_label_repel(data=dat.bmi.sel.region[dat.bmi.sel.region$pval_calculated >= pval_threshold,], 
                      aes_string(label=rs, x=position, y="pval_calculated"), size=3, force=1.3)
   }
   
