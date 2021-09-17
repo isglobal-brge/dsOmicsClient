@@ -157,7 +157,7 @@ Once we have the genomic data (original VCF file in EGA) into the R server, we p
 - Population: 1000 Genome sub-population
 - Population.Description: Description of the Population
 - Gender: male, female
-- Relationship: familiar relathionship (Family ID)          
+- Relationship: familiar relationship (Family ID)          
 - casco: simulated case/control status (0:control, 1:case)          
 
 
@@ -198,7 +198,7 @@ We can start to see whether there is population stratification and compute PCAs 
 
 ```{r pca}
 pca <- ds.PCASNPS("ega_gds", prune = TRUE)
-plotPCASNPS(pca, group = 'Population', 'covars', feno_id = 1)
+plotPCASNPS(pca, group = 'Population', geno = 'geno')
 ```
 
 The object `pca` contains the variables ....
