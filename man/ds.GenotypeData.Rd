@@ -25,9 +25,9 @@ from a resource of type VCF2GDS}
 
 \item{covars}{a data.frame or a tibble having the metadata of samples (i.e. phenotypes and/or covariates)}
 
-\item{columnId}{\code{numeric} Column of the covars that contains the IDs}
+\item{columnId}{\code{character} Column of the covars that contains the IDs}
 
-\item{sexId}{\code{numeric} (default \code{NULL}) Column of the covars that contains the sex phenotype}
+\item{sexId}{\code{character} (default \code{NULL}) Column of the covars that contains the sex phenotype}
 
 \item{male_encoding}{\code{character} (default \code{"male"}) String used to encode the male sex
 phenotype on the covars table}
@@ -35,7 +35,7 @@ phenotype on the covars table}
 \item{female_encoding}{\code{character} (default \code{"female"}) String used to encode the female sex
 phenotype on the covars table}
 
-\item{case_control_column}{\code{numeric} (default \code{NULL}) Column that holds the
+\item{case_control_column}{\code{character} (default \code{NULL}) Column that holds the
 case/control to relevel to 0/1}
 
 \item{case}{\code{character} (default \code{NULL}) Encoding of the case of the \code{case_control_column}}
