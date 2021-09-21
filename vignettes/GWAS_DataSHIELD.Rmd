@@ -227,7 +227,7 @@ There is one extra step needed to perform on the phenotypes table, making sure t
 Here we can see the original column names.
 
 ```{r}
-ds.colnames("feno_object")
+head(ds.colnames("feno_object")[[1]])
 ```
 
 And we apply the `make_valid_column_namesDS` function.
@@ -239,7 +239,7 @@ DSI::datashield.assign.expr(conns, "feno_object", as.symbol("make_valid_column_n
 We can check the resulting names.
 
 ```{r}
-ds.colnames("feno_object")
+head(ds.colnames("feno_object")[[1]])
 ```
 
 Now we have valid names on our phenotypes table so we can proceed.
@@ -251,13 +251,13 @@ Arrived at this point, we have 21 VCF objects (each one corresponds to a chromos
 +---------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Information                                                   | Details                                                                                                                                                                                                                                            |
 +===============================================================+====================================================================================================================================================================================================================================================+
-| Which column has the samples identifier?                      | Column number that contains the IDs of the samples. Those are the IDs that will be matched to the ones present on the VCF objects.                                                                                                                 |
+| Which column has the samples identifier?                      | Column name that contains the IDs of the samples. Those are the IDs that will be matched to the ones present on the VCF objects.                                                                                                                 |
 +---------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Which is the sex column on the covariates file?               | Column number that contains the sex information.                                                                                                                                                                                                   |
+| Which is the sex column on the covariates file?               | Column name that contains the sex information.                                                                                                                                                                                                   |
 +---------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | How are males and how are females encoded into this column?   | There is not a standard way to encode the sex information, some people use 0/1; male/female; etc. Our approach uses a library that requires a specific encoding, for that reason we need to know the original encoding to perform the translation. |
 +---------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Which is the case-control column?                             | Column number that contains the case/control to be studied.                                                                                                                                                                                        |
+| Which is the case-control column?                             | Column name that contains the case/control to be studied.                                                                                                                                                                                        |
 +---------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | What is the encoding for case and for control on this column? | Similar as the sex column, the case/control will be translated to the particular standard of the software we have used to develop our functionalities [^3] .                                                                                       |
 +---------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -266,19 +266,21 @@ Table: (\#tab:tab2) Information to gather from the phenotypes table.
 
 [^3]: It's important to note that all the other encodings present on the case-control column that are not the case or control, will be turned into missings. As an example, if we have "cancer"/"no cancer"/"no information"/"prefer not to answer" we can specifcy case="cancer", control="no cancer" and all the individuals with "no information"/"prefer not to answer" will be interpreted as missings.
 
-We could know beforehand the answers to the proposed questions. In this use case we don't, so we will use different DataSHIELD functions to answer them.
+If we are not sure about the exact column names, we can use the function `ds.colnames` as we did before. Also, we can use the function `ds.table1D` to check the level names of the categorical variables.
 
-Getting the ID, sex and case-control column numbers:
+<!-- We could know beforehand the answers to the proposed questions. In this use case we don't, so we will use different DataSHIELD functions to answer them. -->
 
-```{r single_cohort_check_feno_columns}
-ds.colnames("feno_object")
-```
+<!-- Getting the ID, sex and case-control column numbers: -->
 
-Getting the encodings of the sex and case-control columns
+<!-- ```{r single_cohort_check_feno_columns} -->
+<!-- ds.colnames("feno_object") -->
+<!-- ``` -->
+
+<!-- Getting the encodings of the sex and case-control columns -->
 
 ```{r single_cohort_tables_of_columns, message=FALSE, warning=FALSE}
-ds.table("feno_object$sex")
-# ds.table("feno_object$Non.accidental.death.in.close.genetic.family")
+ds.table1D("feno_object$sex")$counts
+ds.table1D("feno_object$Diabetes.diagnosed.by.doctor")$counts
 ```
 
 From the different functions we used, we can extract our answers (Summarized on the Table \@ref(tab:tab3))
@@ -286,13 +288,13 @@ From the different functions we used, we can extract our answers (Summarized on 
 +-----------------------------------------------------------------+-----------------+
 | Question                                                        | Answer          |
 +=================================================================+=================+
-| Which column has the samples identifier?                        | 51              |
+| Which column has the samples identifier?                        | "subject_id"              |
 +-----------------------------------------------------------------+-----------------+
-| Which is the sex column on the covariates file?                 | 62              |
+| Which is the sex column on the covariates file?                 | "sex"              |
 +-----------------------------------------------------------------+-----------------+
 | How are males and how are females encoded into this column?     | "male"/"female" |
 +-----------------------------------------------------------------+-----------------+
-| Which is the case-control column of interest of the covariates? | 38              |
+| Which is the case-control column of interest of the covariates? | "Diabetes.diagnosed.by.doctor"              |
 +-----------------------------------------------------------------+-----------------+
 | What is the encoding for case and for control on this column?   | "Yes"/"No"      |
 +-----------------------------------------------------------------+-----------------+
@@ -303,10 +305,10 @@ With all this information we can now merge the phenotypes and VCF objects into a
 
 ```{r single_cohort_create_genoData, message=FALSE, warning=FALSE, results=FALSE}
 lapply(1:21, function(x){
-  ds.GenotypeData(x=paste0('gds', x,'_object'), covars = 'feno_object', columnId = 51, sexId = 62, 
-                male_encoding = "male", female_encoding = "female",
-                case_control_column = 38, case = "Yes", control = "No",
-                newobj.name = paste0('gds.Data', x), datasources = conns)
+  ds.GenotypeData(x=paste0('gds', x,'_object'), covars = 'feno_object', columnId = "subject_id", 
+                  sexId = "sex", male_encoding = "male", female_encoding = "female",
+                  case_control_column = "Diabetes.diagnosed.by.doctor", case = "Yes", control = "No",
+                  newobj.name = paste0('gds.Data', x), datasources = conns)
 })
 ```
 
@@ -333,7 +335,7 @@ condition ~ smoke + sex
 For this use case we will use the following formula.
 
 ```{r eval=F}
-Non.accidental.death.in.close.genetic.family ~ sex + HDL.cholesterol
+Diabetes.diagnosed.by.doctor ~ sex + HDL.cholesterol
 ```
 
 ### Performing the GWAS
@@ -341,7 +343,7 @@ Non.accidental.death.in.close.genetic.family ~ sex + HDL.cholesterol
 We are finally ready to achieve our ultimate goal, performing a GWAS analysis. We have our data (genotype + phenotypes) organized into the correspondent objects (GenotypeData) and our association formula ready. The function `ds.GWAS` is in charge of doing the analysis, we have to supply it with the names of the GenotypeData objects of the remote R session and the formula. Since we have 21 different objects, the `paste0` function is used to simplify the call.
 
 ```{r single_cohort_GWAS, message=FALSE, warning=FALSE}
-results_single <- ds.GWAS(genoData = paste0("gds.Data", 1:21), model = Non.accidental.death.in.close.genetic.family ~ sex + HDL.cholesterol)[[1]]
+results_single <- ds.GWAS(genoData = paste0("gds.Data", 1:21), model = Diabetes.diagnosed.by.doctor ~ sex + HDL.cholesterol)[[1]]
 
 results_single
 ```
@@ -398,27 +400,29 @@ logindata <- builder$build()
 conns <- DSI::datashield.login(logins = logindata)
 ```
 
-It is important to note that in this use case, we are only using one server that contains all the resources (<https://opal-demo.obiba.org/>), on this server there are all the resources that correspond to the different cohorts. From a technical point of view we are making three different connections to the server to simulate this multi-cohort scenario. A more realistic code would be the following one (fake URLs, do not try to reproduce it).
+It is important to note that in this use case, we are only using one server that contains all the resources (<https://opal-demo.obiba.org/>), on this server there are all the resources that correspond to the different cohorts. 
 
-```{r eval=F}
-require('DSI')
-require('DSOpal')
-require('dsBaseClient')
-require('dsOmicsClient')
+<!-- From a technical point of view we are making three different connections to the server to simulate this multi-cohort scenario. A more realistic code would be the following one (fake URLs, do not try to reproduce it). -->
 
-builder <- DSI::newDSLoginBuilder()
-builder$append(server = "cohort1", url = "https://opal.cohort1.org/",
-               user =  "dsuser_cohort_1", password = "password_cohort_1",
-               driver = "OpalDriver")
-builder$append(server = "cohort2", url = "https://opal.cohort2.org/",
-               user =  "dsuser_cohort_2", password = "password_cohort_2",
-               driver = "OpalDriver")
-builder$append(server = "cohort3", url = "https://opal.cohort3.org/",
-               user =  "dsuser_cohort_3", password = "password_cohort_3",
-               driver = "OpalDriver")
-logindata <- builder$build()
-conns <- DSI::datashield.login(logins = logindata)
-```
+<!-- ```{r eval=F} -->
+<!-- require('DSI') -->
+<!-- require('DSOpal') -->
+<!-- require('dsBaseClient') -->
+<!-- require('dsOmicsClient') -->
+
+<!-- builder <- DSI::newDSLoginBuilder() -->
+<!-- builder$append(server = "cohort1", url = "https://opal.cohort1.org/", -->
+<!--                user =  "dsuser_cohort_1", password = "password_cohort_1", -->
+<!--                driver = "OpalDriver") -->
+<!-- builder$append(server = "cohort2", url = "https://opal.cohort2.org/", -->
+<!--                user =  "dsuser_cohort_2", password = "password_cohort_2", -->
+<!--                driver = "OpalDriver") -->
+<!-- builder$append(server = "cohort3", url = "https://opal.cohort3.org/", -->
+<!--                user =  "dsuser_cohort_3", password = "password_cohort_3", -->
+<!--                driver = "OpalDriver") -->
+<!-- logindata <- builder$build() -->
+<!-- conns <- DSI::datashield.login(logins = logindata) -->
+<!-- ``` -->
 
 ### Assign the VCF resources {#multi-vcf}
 
@@ -496,7 +500,7 @@ There is one extra step needed to perform on the phenotypes table, making sure t
 Here we can see the original column names.
 
 ```{r}
-ds.colnames("feno_object")
+head(ds.colnames("feno_object")[[1]])
 ```
 
 And we apply the `make_valid_column_namesDS` function.
@@ -508,7 +512,7 @@ DSI::datashield.assign.expr(conns, "feno_object", as.symbol("make_valid_column_n
 We can check the resulting names.
 
 ```{r}
-ds.colnames("feno_object")
+head(ds.colnames("feno_object")[[1]])
 ```
 
 Now we have valid names on our phenotypes table so we can proceed.
@@ -521,9 +525,9 @@ With all this information we can now merge the phenotypes and VCF objects into a
 
 ```{r multi_cohort_create_genoData, message=FALSE, warning=FALSE, results=FALSE}
 lapply(1:21, function(x){
-  ds.GenotypeData(x=paste0('gds', x,'_object'), covars = 'feno_object', columnId = 51, sexId = 62, 
+  ds.GenotypeData(x=paste0('gds', x,'_object'), covars = 'feno_object', columnId = "subject_id", sexId = "sex", 
                 male_encoding = "male", female_encoding = "female",
-                case_control_column = 38, case = "Yes", control = "No",
+                case_control_column = "Diabetes.diagnosed.by.doctor", case = "Yes", control = "No",
                 newobj.name = paste0('gds.Data', x), datasources = conns)
 })
 ```
@@ -531,7 +535,7 @@ lapply(1:21, function(x){
 The objects we just created are named `gds.DataXX` on the remote session. Now we are ready to perform a GWAS analysis. We will use the same formula as the single cohort to be able to compare the results later:
 
 ```{r eval=F}
-Non.accidental.death.in.close.genetic.family ~ sex + HDL.cholesterol
+Diabetes.diagnosed.by.doctor ~ sex + HDL.cholesterol
 ```
 
 ### Performing the GWAS {.tabset .tabset-fade .tabset-pills}
@@ -539,7 +543,7 @@ Non.accidental.death.in.close.genetic.family ~ sex + HDL.cholesterol
 We now proceed to perform the GWAS analysis.
 
 ```{r multi_cohort_GWAS, message=FALSE, warning=FALSE}
-results <- ds.GWAS(genoData = paste0("gds.Data", 1:21), model = Non.accidental.death.in.close.genetic.family ~ sex + HDL.cholesterol)
+results <- ds.GWAS(genoData = paste0("gds.Data", 1:21), model = Diabetes.diagnosed.by.doctor ~ sex + HDL.cholesterol)
 ```
 
 And we can see the results for each cohort.
@@ -623,16 +627,18 @@ The meta-analysis using beta values recovers a higher amount of top SNPs, theref
 
 #### Visualizing the results of the meta-analysis
 
-We can use the manhattan plot and locus zoom to visualize the results of the meta-analysis as we visualized the single cohorts before.
+We can use the manhattan plot and locus zoom to visualize the results of the meta-analysis as we visualized the single cohorts before. To help assess the meta-analysis behaviour, we will plot together the common truth results (left plot) and the meta-analysis results (right plot).
 
 ##### Manhatan plot
-```{r message=FALSE, warning=FALSE, fig.cap="Manhattan plot of the meta-analysis results.", fig.align='center'}
-manhattan(meta_pvalues, 1, 2, 3, 7)
+```{r message=FALSE, warning=FALSE, fig.cap="Manhattan plot of the meta-analysis results."}
+manhattan(results_single)
+manhattan(meta_bvalues)
 ```
 
 ##### LocusZoom
-```{r message=FALSE, warning=FALSE, fig.cap="LocusZoom plot of the meta-analysis results.", fig.align='center'}
-LocusZoom(meta_pvalues, pvalue = "p.meta")
+```{r message=FALSE, warning=FALSE, fig.cap="LocusZoom plot of the meta-analysis results."}
+LocusZoom(results_single)
+LocusZoom(meta_bvalues, pvalue = "p.F")
 ```
 
 #### Meta-analysis versus pooled linear models
@@ -649,12 +655,12 @@ We have already calculated the top 20 SNPs discovered by the beta meta-analysis.
 top_20_beta
 ```
 
-Next, we have to fit pooled GLM using the `ds.glmSNP` function, obviously we have to fit the same model that we did on the GWAS (`Non.accidental.death.in.close.genetic.family ~ sex + HDL.cholesterol`), otherwise the results will not be consistent. Remember that we have the genotype data separated by chromosome, following that we will construct the GLM calls as follows:
+Next, we have to fit pooled GLM using the `ds.glmSNP` function, obviously we have to fit the same model that we did on the GWAS (`Diabetes.diagnosed.by.doctor ~ sex + HDL.cholesterol`), otherwise the results will not be consistent. Remember that we have the genotype data separated by chromosome, following that we will construct the GLM calls as follows:
 
 ```{r pooled_analysis, message=FALSE, warning=FALSE, results=FALSE}
 s <- lapply(1:nrow(top_20_beta), function(x){
   tryCatch({
-    ds.glmSNP(snps.fit = top_20_beta[x, 1], model = Non.accidental.death.in.close.genetic.family ~ sex + HDL.cholesterol, genoData = paste0("gds.Data", top_20_beta[x, 2]))
+    ds.glmSNP(snps.fit = top_20_beta[x, 1], model = Diabetes.diagnosed.by.doctor ~ sex + HDL.cholesterol, genoData = paste0("gds.Data", top_20_beta[x, 2]))
   }, error = function(w){NULL})
 })
 # Simple data cleaning and column name changes
@@ -711,6 +717,8 @@ statistics %>% group_by(stat) %>% gt(rowname_col = "var") %>% fmt_scientific(col
 
 With this results we can conclude that refining the statistics for the SNPs of interest using pooled GLM is advisable. Therefore the recommended flowchart when performing a GWAS using `dsOmicsClient+DataSHIELD` is the following:
 
+REVISAR ESTOS RESULTADOS
+
 1.  Perform GWAS with `dsOmicsClient::dsGWAS`
 2.  Perform meta-analysis on the results with `dsOmicsClient::metaBetaValues`
 3.  Extract top hits from the meta-analysis.
@@ -744,7 +752,7 @@ The PRS use case will be set up as a multi-cohort, using the same dataset as the
 
 There are two ways of stating the SNPs of interest and their weights in order to calculate the PRS.
 
--   Providing a `ROI` (region of interest) table. The ROI table has to have a defined structure and column names in order to be understood by this function. This table can be formulated using two schemas:
+-   Providing a `prs_table` (SNPs of interest) table. The `prs_table` table has to have a defined structure and column names in order to be understood by this function. This table can be formulated using two schemas:
 
     -   Scheme 1: Provide SNP positions. Use the column names: "`chr_name`", "`chr_position`", "`effect_allele`", "`reference_allele`", "`effect_weight`"
 
@@ -768,7 +776,7 @@ The `effect_weight` have to be the betas (log(OR)).
 
 -   Provide a [PGS Catalog](https://www.pgscatalog.org/browse/scores/) 'Polygenic Score ID & Name'. If this option is in use, the SNPs and beta weights will be downloaded from the PGS Catalog and will be used to calculate the PRS.
 
-Please note when using a custom `ROI` table that it is much faster to use the Schema 1, as the subset of the VCF files is miles faster to do using chromosome name and positions rather than SNP id's.
+Please note when using a custom `prs_table` table that it is much faster to use the Schema 1, as the subset of the VCF files is miles faster to do using chromosome name and positions rather than SNP id's.
 
 ### Connection to the Opal server
 
@@ -826,7 +834,7 @@ DSI::datashield.assign.expr(conns = conns, symbol = "phenotypes",
 DSI::datashield.assign.expr(conns, "phenotypes", as.symbol("make_valid_column_namesDS(phenotypes)"))
 ```
 
-There is one crucial difference between this analysis and the GWAS, here we don't need to resolve the resources. This is for memory efficiency purposes. When we calculate a PRS, we are only interested in a small selection of SNPs, for that reason the (potentially) huge VCF files will be trimmed before being resolved, so only the relevant SNPs are loaded in the memory. For that reason the resolving of the resources is delegated to the `ds.PRS` function, which will perform this trimming according to the SNPs of interest yielded by the PGS catalog query or the ROI table.
+There is one crucial difference between this analysis and the GWAS, here we don't need to resolve the resources. This is for memory efficiency purposes. When we calculate a PRS, we are only interested in a small selection of SNPs, for that reason the (potentially) huge VCF files will be trimmed before being resolved, so only the relevant SNPs are loaded in the memory. For that reason the resolving of the resources is delegated to the `ds.PRS` function, which will perform this trimming according to the SNPs of interest yielded by the PGS catalog query or the `prs_table` table.
 
 ### Calculate the PRS
 
@@ -838,52 +846,58 @@ The PRS results will be added to the phenotypes table to be later studied using 
 
 #### PGS Catalog Example
 
-For this example we will calculate the PRS associated to the trait 'Breast Cancer', which corresponds to the PGS ID [PGS000004](https://www.pgscatalog.org/score/PGS000004/).
+For this example we will calculate the PRS associated to the trait 'HDL Cholesterol' and 'Thyroid cancer', which corresponds to the PGS ID [PGS000660](https://www.pgscatalog.org/score/PGS000660/) and [PGS000636](https://www.pgscatalog.org/score/PGS000636/)
 
 ```{r prs_pgs, warning=FALSE}
 resources <- paste0("chr", 1:21)
 names(resources) <- paste0("chr", 1:21)
 resources <- as.list(resources)
-ds.PRS(resources = resources, pgs_id = "PGS000004", table = "phenotypes", table_id_column = 51, table_prs_name = "PGS000004_results")
+# HDL cholesterol
+ds.PRS(resources = resources, pgs_id = "PGS000660", table = "phenotypes", table_id_column = "subject_id")
+# Thyroid cancer
+ds.PRS(resources = resources, pgs_id = "PGS000636", table = "phenotypes", table_id_column = "subject_id")
 ```
 
-#### Custom ROI example
+We can check that the results have been correctly added to the `phenotypes` table.
 
-Here we will illustrate a use case with a custom ROI, please note that the proposed SNPs of interest and betas are totally arbitrary.
+```{r}
+tail(ds.colnames('phenotypes')[[1]])
+```
 
-We will first assemble the ROI table following the indications found on the Details section of `?ds.PRS` (Schema 1).
 
-```{r roi}
-ROI <- data.frame(chr_name = c(9, 9, 9, 9, 1, 1, 2, 2),
+#### Custom `prs_table` example
+
+Here we will illustrate a use case with a custom `prs_table`, please note that the proposed SNPs of interest and betas are totally arbitrary.
+
+We will first assemble the `prs_table` table following the indications found on the Details section of `?ds.PRS` (Schema 1).
+
+```{r prs_table}
+prs_table <- data.frame(chr_name = c(9, 9, 9, 9, 1, 1, 2, 2),
                   chr_position = c(177034, 161674, 140859, 119681, 60351, 825410, 154629, 145710),
                   effect_allele = c("T", "C", "G", "C", "G", "G", "T", "A"),
                   reference_allele = c("G", "T", "A", "T", "A", "A", "G", "G"),
                   effect_weight = c(0.5, 0.2, 0.1, 0.2, 0.1, 0.3, 0.1, 0.8))
 ```
 
-Now we can pass the custom ROI to the PRS function to retrieve the aggregated results.
+Now we can pass the custom `prs_table` to the PRS function to retrieve the aggregated results.
 
-```{r prs_roi, warning=FALSE}
+```{r prs_prs_table, warning=FALSE}
 resources <- paste0("chr", 1:21)
 names(resources) <- paste0("chr", 1:21)
 resources <- as.list(resources)
-ds.PRS(resources = resources, ROI = ROI, table = "phenotypes", table_id_column = 51, table_prs_name = "custom_ROI_results")
+ds.PRS(resources = resources, prs_table = prs_table, table = "phenotypes", table_id_column = "subject_id", table_prs_name = "custom_prs_table_results")
 ```
 
 ### Study of the PRS results
 
-First, we can check that the PRS results have been added to the specified `phenotypes` table.
+We can fit pooled GLM models using the function `ds.glm`. In this use case we will fit a model to relate the `HDL.cholesterol` to `prs_PGS000660` adjusted by `sex`. The same will be done with the `prs_PGS000636`.
 
 ```{r}
-ds.colnames("phenotypes")
+ds.glm(formula = "HDL.cholesterol ~ prs_PGS000660 + sex", family = "gaussian", data = "phenotypes")$coefficients
+ds.glm(formula = "HDL.cholesterol ~ prs_PGS000636 + sex", family = "gaussian", data = "phenotypes")$coefficients
 ```
 
-Finally, we can fit pooled GLM models using the function `ds.glm`. In this use case we will fit a model to relate the `prs_PGS000004_results` to `Sleep.duration` adjusted by `sex`. A remarks has to be done, this is an arbitrary model with not much scientific meaning, the idea is just to portray the funcionality.
-
-```{r}
-ds.glm(formula = "prs_PGS000004_results ~ Sleep.duration + sex", family = "gaussian", data = "phenotypes")
-```
-
+EXPLICAR RESULTADOS ASSOCIACION
 
 ```{r}
 datashield.logout(conns)
@@ -893,15 +907,15 @@ datashield.logout(conns)
 
 The PRS function can be divided into three main blocks that perform the required tasks to come up with the results. The three functional blocks are the following:
 
--   Client: Assemble the ROI table if PGS Catalog is used, perform calls to the server to subset the resources and calculate the PRS with the subsetted resources.
--   Server resolver: Resolve the selected resources (VCF files) and subset them using the ROI.
--   Server analysis: Use the resolved resources (small VCF files with only the SNPs of interest according to the ROI table) to calculate the PRS.
+-   Client: Assemble the `prs_table` table if PGS Catalog is used, perform calls to the server to subset the resources and calculate the PRS with the subsetted resources.
+-   Server resolver: Resolve the selected resources (VCF files) and subset them using the prs_table.
+-   Server analysis: Use the resolved resources (small VCF files with only the SNPs of interest according to the `prs_table` table) to calculate the PRS.
 
 In order to introduce a little how those three blocks work internally, schematized flow charts have been designed. To understand the exact inner working of the functionality it is advised to follow the flowcharts alongside the actual source code. Find the links to the three blocks source code, [client](https://github.com/isglobal-brge/dsOmicsClient/blob/master/R/ds.PRS.R), [server resolver](https://github.com/isglobal-brge/dsOmics/blob/master/R/GDSFileResourceClient.R#L43) and [server analysis](https://github.com/isglobal-brge/dsOmics/blob/master/R/PRSDS.R).
 
 #### Client
 
-The client performs two basic tasks. The first one is to select between a user introduced `ROI` or to retrieve the `ROI` from the PGS Catalog. Please note that `ROI` stands for Region Of Interest, which may not be the common term for PGS analysis but it makes sense since it refers to a table that contain the SNP's of interest and their weight to the score. If the user introduces a custom `ROI` and a PGS Catalog ID, only the introduced table will be used, discarding the PGS Catalog ID information. Once this table is assembled, the next step is to call the required functions on the study servers. First, the resource resolver is called, and after that, the function that calculates the PRS is called.
+The client performs two basic tasks. The first one is to select between a user introduced `prs_table` or to retrieve the `prs_table` from the PGS Catalog. Please note that `prs_table` stands for Region Of Interest, which may not be the common term for PGS analysis but it makes sense since it refers to a table that contain the SNP's of interest and their weight to the score. If the user introduces a custom `prs_table` and a PGS Catalog ID, only the introduced table will be used, discarding the PGS Catalog ID information. Once this table is assembled, the next step is to call the required functions on the study servers. First, the resource resolver is called, and after that, the function that calculates the PRS is called.
 
 This is illustrated on the following figure.
 
@@ -921,7 +935,7 @@ knitr::include_graphics("gwas_images/block2.png")
 
 #### Server analysis
 
-Many processes are performed inside the analysis block. For that reason, more than a flow chart, a step by step guide has been illustrated with the objects that are created (or modified) on each step. The most important step on this block is making sure that the alternate (risk) alleles match between the VCF resources and the alternate alleles stated by the ROI or PGS Catalog.
+Many processes are performed inside the analysis block. For that reason, more than a flow chart, a step by step guide has been illustrated with the objects that are created (or modified) on each step. The most important step on this block is making sure that the alternate (risk) alleles match between the VCF resources and the alternate alleles stated by the `prs_table` or PGS Catalog.
 
 The block is illustrated on the following figure.
 
