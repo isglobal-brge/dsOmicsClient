@@ -55,7 +55,7 @@
 #' the merge.
 #' @param table_prs_name \code{character} (default \code{NULL}) If not \code{NULL} it's the name that will be 
 #' used to design the column names added to \code{table}. Read the details for further information.
-#' @param snp_threshold \code{numeric} (default \code{80}) Threshold to drop individuals. See details for 
+#' @param snp_threshold \code{numeric} (default \code{90}) Threshold to drop individuals. See details for 
 #' further information.
 #' @param datasources a list of \code{\link{DSConnection-class}} (default \code{NULL}) objects obtained after login
 #'
@@ -64,7 +64,7 @@
 #'
 
 ds.PRS <- function(resources, pgs_id = NULL, prs_table = NULL, table = NULL, table_id_column = NULL,
-                   table_prs_name = NULL, snp_threshold = 80, datasources = NULL){
+                   table_prs_name = NULL, snp_threshold = 90, datasources = NULL){
   
   if (is.null(datasources)) {
     datasources <- DSI::datashield.connections_find()
