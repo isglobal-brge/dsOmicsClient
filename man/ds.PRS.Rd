@@ -11,7 +11,7 @@ ds.PRS(
   table = NULL,
   table_id_column = NULL,
   table_prs_name = NULL,
-  snp_threshold = 80,
+  snp_threshold = 90,
   datasources = NULL
 )
 }
@@ -33,7 +33,7 @@ the merge.}
 \item{table_prs_name}{\code{character} (default \code{NULL}) If not \code{NULL} it's the name that will be 
 used to design the column names added to \code{table}. Read the details for further information.}
 
-\item{snp_threshold}{\code{numeric} (default \code{80}) Threshold to drop individuals. See details for 
+\item{snp_threshold}{\code{numeric} (default \code{90}) Threshold to drop individuals. See details for 
 further information.}
 
 \item{datasources}{a list of \code{\link{DSConnection-class}} (default \code{NULL}) objects obtained after login}
