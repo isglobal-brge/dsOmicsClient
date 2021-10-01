@@ -11,6 +11,16 @@
 #' @export
 
 seNPlot <- function(x, se_column = "Est.SE", n_column = "n.obs"){
+  
+  # Check that all column names are present on each table, if present: continue, if not: throw error
+  if(!all(unlist(lapply(x, function(x){all(c(se_column, n_column) %in% colnames(x))})))){
+    `%!in%` <- Negate(`%in%`)
+    bad_colnames <- unique(unlist(lapply(x, function(x){
+      c(se_column, n_column)[which(c(se_column, n_column) %!in% colnames(x))]
+    })))
+    stop('[', paste0(bad_colnames, collapse = ", "), '] column(s) not found on the input object.')
+  }
+  
   medSEinv <- lapply(x, function(x){
     1/median(x[[se_column]])
   })

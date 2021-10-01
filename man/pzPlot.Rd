@@ -23,7 +23,7 @@ A ggplot object
 P-Z plot
 }
 \details{
-Plot to reveal issues with beta estimates, standard errors and P values .
+Plot to reveal issues with beta estimates, standard errors and P values.
 The plots compare P values reported in the association GWAS with P values calculated from 
 Z-statistics (P.ztest) derived from the reported beta and standard error. A study with no issues 
 should show perfect concordance. It will generate a plot per study, where concordance of all the study SNPs 

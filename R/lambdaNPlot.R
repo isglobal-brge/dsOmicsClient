@@ -14,8 +14,16 @@
 #' @export
 
 lambdaNPlot <- function(x, pval_column = "p.value", n_column = "n.obs", threshold = 1.2){
-  # Check columns do exist
-  
+
+  # Check that all column names are present on each table, if present: continue, if not: throw error
+  if(!all(unlist(lapply(x, function(x){all(c(pval_column, n_column) %in% colnames(x))})))){
+    `%!in%` <- Negate(`%in%`)
+    bad_colnames <- unique(unlist(lapply(x, function(x){
+      c(pval_column, n_column)[which(c(pval_column, n_column) %!in% colnames(x))]
+    })))
+    stop('[', paste0(bad_colnames, collapse = ", "), '] column(s) not found on the input object.')
+  }
+    
   # Get lambdaGC from each cohort
   lambdaGC <-lapply(x, function(x){
     chisq <- qchisq(1-x[[pval_column]],1)
