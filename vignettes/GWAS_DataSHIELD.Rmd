@@ -622,7 +622,7 @@ reference
 
 Now we just use the function `eafPlot` and we pass to it the GWAS results and the reference set.
 
-```{r eafPlot}
+```{r eafPlot, fig.cap="EAF Plot.", fig.align='center'}
 eafPlot(x = results, reference = reference, rs_reference = "Rs", freq_reference = "Freq")
 ```
 
@@ -632,7 +632,7 @@ The obtained results are the expected, which is a linear correlation of slope on
 
 This plot will assess the issues with beta estimates, standard errors and P values. Here we will only need the results from the `ds.GWAS` function and pass them to the function `pzPlot`.
 
-```{r pzplot}
+```{r pzplot, fig.cap="P-Z Plot.", fig.align='center'}
 pzPlot(results)
 ```
 
@@ -644,7 +644,7 @@ A dataset with no issues will show perfect concordance. For further details plea
 
 Finally, we will assess issues with trait transformations. For this we will only need the results from the `ds.GWAS` function and pass them to the function `seNPlot`.
 
-```{r senplot}
+```{r senplot, fig.cap="SE-N Plot.", fig.align='center'}
 seNPlot(results)
 ```
 
@@ -802,199 +802,185 @@ REVISAR ESTOS RESULTADOS
 datashield.logout(conns)
 ```
 
-<!-- ## Polygenic risk scores -->
+## Polygenic risk scores
 
-<!-- ### Definition -->
+### Definition
 
-<!-- By checking for specific variants and quantifying them, a researcher can extract the polygenic risk score (PRS) of an individual, which translates to an associated risk of the individual versus a concrete phenotype. A definition of the term reads -->
+By checking for specific variants and quantifying them, a researcher can extract the polygenic risk score (PRS) of an individual, which translates to an associated risk of the individual versus a concrete phenotype. A definition of the term reads
 
-<!-- > "A weighted sum of the number of risk alleles carried by an individual, where the risk alleles and their weights are defined by the loci and their measured effects as detected by genome wide association studies." (Extracted from @torkamani2018personal) -->
+> "A weighted sum of the number of risk alleles carried by an individual, where the risk alleles and their weights are defined by the loci and their measured effects as detected by genome wide association studies." (Extracted from @torkamani2018personal)
 
-<!-- The use of PRS markers is very popular nowadays and it has been proved to be a good tool to asses associated risks @escott2017polygenic, @forgetta2020development, @kramer2020breast. -->
+The use of PRS markers is very popular nowadays and it has been proved to be a good tool to asses associated risks @escott2017polygenic, @forgetta2020development, @kramer2020breast.
 
-<!-- When calculating the PRS using DataSHIELD, the actual scores are not returned, as it would not be GDPR compliant to be able to determine the risk of an individual versus a certain disease. The actual results are stored on the servers and optionally can be merged to the phenotypes table. This allows further study of the PRS using summaries or fitting pooled GLM models to assess relationships between phenotypes and PRS scores. -->
+When calculating the PRS using DataSHIELD, the actual scores are not returned, as it would not be GDPR compliant to be able to determine the risk of an individual versus a certain disease. The actual results are stored on the servers and optionally can be merged to the phenotypes table. This allows further study of the PRS using summaries or fitting pooled GLM models to assess relationships between phenotypes and PRS scores.
 
-<!-- ### Study configuration -->
+### Study configuration
 
-<!-- The PRS use case will be set up as a multi-cohort, using the same dataset as the multi-cohort GWAS (same VCF resources). A single cohort PRS could be performed analogously using the single cohort example of the GWAS. -->
+The PRS use case will be set up as a multi-cohort, using the same dataset as the multi-cohort GWAS (same VCF resources). A single cohort PRS could be performed analogously using the single cohort example of the GWAS.
 
-<!-- ```{r prsCohortImage, echo=FALSE, fig.cap="Proposed infrastructure to perform PRS studies.", fig.align='center'} -->
-<!-- # knitr::include_graphics("gwas_images/prs.png") -->
-<!-- ``` -->
+```{r prsCohortImage, echo=FALSE, fig.cap="Proposed infrastructure to perform PRS studies.", fig.align='center'}
+# knitr::include_graphics("gwas_images/prs.png")
+```
 
-<!-- ### Source of polygenic scores -->
+### Source of polygenic scores
 
-<!-- There are two ways of stating the SNPs of interest and their weights in order to calculate the PRS. -->
+There are two ways of stating the SNPs of interest and their weights in order to calculate the PRS.
 
-<!-- -   Providing a `prs_table` (SNPs of interest) table. The `prs_table` table has to have a defined structure and column names in order to be understood by this function. This table can be formulated using two schemas: -->
+-   Providing a `prs_table` (SNPs of interest) table. The `prs_table` table has to have a defined structure and column names in order to be understood by this function. This table can be formulated using two schemas:
 
-<!--     -   Scheme 1: Provide SNP positions. Use the column names: "`chr_name`", "`chr_position`", "`effect_allele`", "`reference_allele`", "`effect_weight`" -->
+    -   Scheme 1: Provide SNP positions. Use the column names: "`chr_name`", "`chr_position`", "`effect_allele`", "`reference_allele`", "`effect_weight`"
 
-<!--     | chr_name | chr_position | effect_allele| reference_allele | effect_weight | -->
-<!--     |----------|--------------|--------------|------------------|---------------| -->
-<!--     | 1        | 100880328    | T            | A                | 0.0373        | -->
-<!--     | 1        | 121287994    | G            | A                | -0.0673       | -->
-<!--     | 6        | 152023191    | A            | G                | 0.0626        | -->
-<!--     | ...      | ...          | ...          | ...              | ...           | -->
+    | chr_name | chr_position | effect_allele| reference_allele | effect_weight |
+    |----------|--------------|--------------|------------------|---------------|
+    | 1        | 100880328    | T            | A                | 0.0373        |
+    | 1        | 121287994    | G            | A                | -0.0673       |
+    | 6        | 152023191    | A            | G                | 0.0626        |
+    | ...      | ...          | ...          | ...              | ...           |
 
-<!--     -   Scheme 2: Provide SNP id's. Use the column names: "`rsID`", "`effect_allele`", "`reference_allele`", "`effect_weight`". -->
+    -   Scheme 2: Provide SNP id's. Use the column names: "`rsID`", "`effect_allele`", "`reference_allele`", "`effect_weight`".
 
-<!--     | rdID       | effect_allele| reference_allele | effect_weight | -->
-<!--     |------------|--------------|------------------|---------------| -->
-<!--     | rs11206510 | T            | C                | 0.0769        | -->
-<!--     | rs4773144  | G            | A                | 0.0676        | -->
-<!--     | rs17514846 | A            | C                | 0.0487        | -->
-<!--     | ...        | ...          | ...              | ...           | -->
+    | rdID       | effect_allele| reference_allele | effect_weight |
+    |------------|--------------|------------------|---------------|
+    | rs11206510 | T            | C                | 0.0769        |
+    | rs4773144  | G            | A                | 0.0676        |
+    | rs17514846 | A            | C                | 0.0487        |
+    | ...        | ...          | ...              | ...           |
 
-<!-- The `effect_weight` have to be the betas (log(OR)). -->
+The `effect_weight` have to be the betas (log(OR)).
 
-<!-- -   Provide a [PGS Catalog](https://www.pgscatalog.org/browse/scores/) 'Polygenic Score ID & Name'. If this option is in use, the SNPs and beta weights will be downloaded from the PGS Catalog and will be used to calculate the PRS. -->
+-   Provide a [PGS Catalog](https://www.pgscatalog.org/browse/scores/) 'Polygenic Score ID & Name'. If this option is in use, the SNPs and beta weights will be downloaded from the PGS Catalog and will be used to calculate the PRS.
 
-<!-- Please note when using a custom `prs_table` table that it is much faster to use the Schema 1, as the subset of the VCF files is miles faster to do using chromosome name and positions rather than SNP id's. -->
+Please note when using a custom `prs_table` table that it is much faster to use the Schema 1, as the subset of the VCF files is miles faster to do using chromosome name and positions rather than SNP id's.
 
-<!-- ### Connection to the Opal server -->
+### Connection to the Opal server
 
-<!-- We have to create an Opal connection object to the cohort server. We do that using the following functions. -->
+We have to create an Opal connection object to the cohort server. We do that using the following functions.
 
-<!-- ```{r prs_ds_login, message=FALSE, warning=FALSE} -->
-<!-- require('DSI') -->
-<!-- require('DSOpal') -->
-<!-- require('dsBaseClient') -->
-<!-- require('dsOmicsClient') -->
+```{r prs_ds_login, message=FALSE, warning=FALSE}
+require('DSI')
+require('DSOpal')
+require('dsBaseClient')
+require('dsOmicsClient')
 
-<!-- builder <- DSI::newDSLoginBuilder() -->
-<!-- builder$append(server = "cohort1", url = "https://opal-demo.obiba.org/", -->
-<!--                user =  "dsuser", password = "password", -->
-<!--                driver = "OpalDriver", profile = "omics") -->
-<!-- builder$append(server = "cohort2", url = "https://opal-demo.obiba.org/", -->
-<!--                user =  "dsuser", password = "password", -->
-<!--                driver = "OpalDriver", profile = "omics") -->
-<!-- builder$append(server = "cohort3", url = "https://opal-demo.obiba.org/", -->
-<!--                user =  "dsuser", password = "password", -->
-<!--                driver = "OpalDriver", profile = "omics") -->
-<!-- logindata <- builder$build() -->
-<!-- conns <- DSI::datashield.login(logins = logindata) -->
-<!-- ``` -->
+builder <- DSI::newDSLoginBuilder()
+builder$append(server = "cohort1", url = "https://opal-demo.obiba.org/",
+               user =  "dsuser", password = "password",
+               driver = "OpalDriver", profile = "omics")
+builder$append(server = "cohort2", url = "https://opal-demo.obiba.org/",
+               user =  "dsuser", password = "password",
+               driver = "OpalDriver", profile = "omics")
+builder$append(server = "cohort3", url = "https://opal-demo.obiba.org/",
+               user =  "dsuser", password = "password",
+               driver = "OpalDriver", profile = "omics")
+logindata <- builder$build()
+conns <- DSI::datashield.login(logins = logindata)
+```
 
-<!-- ### Assign the VCF resources {#multi-vcf} -->
+### Assign the VCF resources {#multi-vcf}
 
-<!-- We assign the VCF and phenotypes resources. -->
+We assign the VCF and phenotypes resources.
 
-<!-- ```{r prs_assign_resources, message=FALSE, warning=FALSE, results=FALSE} -->
-<!-- # Cohort 1 resources -->
-<!-- lapply(1:21, function(x){ -->
-<!--   DSI::datashield.assign.resource(conns[1], paste0("chr", x), paste0("GWAS.chr", x,"A")) -->
-<!--   }) -->
-<!-- DSI::datashield.assign.resource(conns[1], "phenotypes_resource", "GWAS.feno_samples1") -->
+```{r prs_assign_resources, message=FALSE, warning=FALSE, results=FALSE}
+# Cohort 1 resources
+lapply(1:21, function(x){
+  DSI::datashield.assign.resource(conns[1], paste0("chr", x), paste0("GWAS.chr", x,"A"))
+  })
+DSI::datashield.assign.resource(conns[1], "phenotypes_resource", "GWAS.feno_samples1")
 
-<!-- # Cohort 2 resources -->
-<!-- lapply(1:21, function(x){ -->
-<!--   DSI::datashield.assign.resource(conns[2], paste0("chr", x), paste0("GWAS.chr", x,"B")) -->
-<!--   }) -->
-<!-- DSI::datashield.assign.resource(conns[2], "phenotypes_resource", "GWAS.feno_samples2") -->
+# Cohort 2 resources
+lapply(1:21, function(x){
+  DSI::datashield.assign.resource(conns[2], paste0("chr", x), paste0("GWAS.chr", x,"B"))
+  })
+DSI::datashield.assign.resource(conns[2], "phenotypes_resource", "GWAS.feno_samples2")
 
-<!-- # Cohort 3 resources -->
-<!-- lapply(1:21, function(x){ -->
-<!--   DSI::datashield.assign.resource(conns[3], paste0("chr", x), paste0("GWAS.chr", x,"C")) -->
-<!--   }) -->
-<!-- DSI::datashield.assign.resource(conns[3], "phenotypes_resource", "GWAS.feno_samples3") -->
-<!-- ``` -->
+# Cohort 3 resources
+lapply(1:21, function(x){
+  DSI::datashield.assign.resource(conns[3], paste0("chr", x), paste0("GWAS.chr", x,"C"))
+  })
+DSI::datashield.assign.resource(conns[3], "phenotypes_resource", "GWAS.feno_samples3")
+```
 
-<!-- And we resolve the phenotypes table. Remember to pass the table through the `make_valid_column_namesDS` function to be sure the column names have valid R syntax. -->
+And we resolve the phenotypes table. Remember to pass the table through the `make_valid_column_namesDS` function to be sure the column names have valid R syntax.
 
-<!-- ```{r prs_resolve_resources, message=FALSE, warning=FALSE, results=FALSE} -->
-<!-- DSI::datashield.assign.expr(conns = conns, symbol = "phenotypes", -->
-<!--                             expr = as.symbol("as.resource.data.frame(phenotypes_resource)")) -->
-<!-- DSI::datashield.assign.expr(conns, "phenotypes", as.symbol("make_valid_column_namesDS(phenotypes)")) -->
-<!-- ``` -->
+```{r prs_resolve_resources, message=FALSE, warning=FALSE, results=FALSE}
+DSI::datashield.assign.expr(conns = conns, symbol = "phenotypes",
+                            expr = as.symbol("as.resource.data.frame(phenotypes_resource)"))
+DSI::datashield.assign.expr(conns, "phenotypes", as.symbol("make_valid_column_namesDS(phenotypes)"))
+```
 
-<!-- There is one crucial difference between this analysis and the GWAS, here we don't need to resolve the resources. This is for memory efficiency purposes. When we calculate a PRS, we are only interested in a small selection of SNPs, for that reason the (potentially) huge VCF files will be trimmed before being resolved, so only the relevant SNPs are loaded in the memory. For that reason the resolving of the resources is delegated to the `ds.PRS` function, which will perform this trimming according to the SNPs of interest yielded by the PGS catalog query or the `prs_table` table. -->
+There is one crucial difference between this analysis and the GWAS, here we don't need to resolve the resources. This is for memory efficiency purposes. When we calculate a PRS, we are only interested in a small selection of SNPs, for that reason the (potentially) huge VCF files will be trimmed before being resolved, so only the relevant SNPs are loaded in the memory. For that reason the resolving of the resources is delegated to the `ds.PRS` function, which will perform this trimming according to the SNPs of interest yielded by the PGS catalog query or the `prs_table` table.
 
-<!-- ### Calculate the PRS -->
+### Calculate the PRS
 
-<!-- The PRS results will be added to the phenotypes table to be later studied using a pooled GLM. To do that, the following arguments of the function `ds.PRS` will be used: -->
+The PRS results will be added to the phenotypes table to be later studied using a pooled GLM. To do that, the following arguments of the function `ds.PRS` will be used:
 
-<!-- + `table`: Name of the table where the results will be merged. -->
-<!-- + `table_id_column`: Number of the column in the `table` table that contains the individuals ID to merge the results from the PRS. -->
-<!-- + `table_prs_name`: Name to append to the PRS results. It will take the structure `prs_table_prs_name` and `prs_nw_table_prs_name`. -->
++ `table`: Name of the table where the results will be merged.
++ `table_id_column`: Number of the column in the `table` table that contains the individuals ID to merge the results from the PRS.
++ `table_prs_name`: Name to append to the PRS results. It will take the structure `prs_table_prs_name` and `prs_nw_table_prs_name`.
 
-<!-- #### PGS Catalog Example -->
+#### PGS Catalog Example
 
-<!-- For this example we will calculate the PRS associated to the trait 'HDL Cholesterol' and 'Thyroid cancer', which corresponds to the PGS ID [PGS000660](https://www.pgscatalog.org/score/PGS000660/) and [PGS000636](https://www.pgscatalog.org/score/PGS000636/) -->
+For this example we will calculate the PRS associated to the trait 'HDL Cholesterol' and 'Thyroid cancer', which corresponds to the PGS ID [PGS000660](https://www.pgscatalog.org/score/PGS000660/) and [PGS000636](https://www.pgscatalog.org/score/PGS000636/)
 
-<!-- ```{r prs_pgs, warning=FALSE} -->
-<!-- resources <- paste0("chr", 1:21) -->
-<!-- names(resources) <- paste0("chr", 1:21) -->
-<!-- resources <- as.list(resources) -->
-<!-- # HDL cholesterol -->
-<!-- ds.PRS(resources = resources, pgs_id = "PGS000660", table = "phenotypes", table_id_column = "subject_id") -->
-<!-- # Thyroid cancer -->
-<!-- ds.PRS(resources = resources, pgs_id = "PGS000636", table = "phenotypes", table_id_column = "subject_id") -->
-<!-- # Total cholesterol -->
-<!-- ds.PRS(resources = resources, pgs_id = "PGS000311", table = "phenotypes", table_id_column = "subject_id") -->
-<!-- ds.PRS(resources = resources, pgs_id = "PGS000658", table = "phenotypes", table_id_column = "subject_id") -->
-<!-- # BMI -->
-<!-- ds.PRS(resources = resources, pgs_id = "PGS000298", table = "phenotypes", table_id_column = "subject_id") -->
-<!-- ds.PRS(resources = resources, pgs_id = "PGS000717", table = "phenotypes", table_id_column = "subject_id") -->
-<!-- # Eosinophill count -->
-<!-- ds.PRS(resources = resources, pgs_id = "PGS000165", table = "phenotypes", table_id_column = "subject_id") -->
-<!-- ``` -->
+```{r prs_pgs, warning=FALSE}
+resources <- paste0("chr", 1:21)
+names(resources) <- paste0("chr", 1:21)
+resources <- as.list(resources)
+# HDL cholesterol
+ds.PRS(resources = resources, pgs_id = "PGS000660", table = "phenotypes", table_id_column = "subject_id")
+# Thyroid cancer
+ds.PRS(resources = resources, pgs_id = "PGS000636", table = "phenotypes", table_id_column = "subject_id")
+```
 
-<!-- We can check that the results have been correctly added to the `phenotypes` table. -->
+We can check that the results have been correctly added to the `phenotypes` table.
 
-<!-- ```{r} -->
-<!-- tail(ds.colnames('phenotypes')[[1]]) -->
-<!-- ``` -->
+```{r}
+tail(ds.colnames('phenotypes')[[1]])
+```
 
 
-<!-- #### Custom `prs_table` example -->
+#### Custom `prs_table` example
 
-<!-- Here we will illustrate a use case with a custom `prs_table`, please note that the proposed SNPs of interest and betas are totally arbitrary. -->
+Here we will illustrate a use case with a custom `prs_table`, please note that the proposed SNPs of interest and betas are totally arbitrary.
 
-<!-- We will first assemble the `prs_table` table following the indications found on the Details section of `?ds.PRS` (Schema 1). -->
+We will first assemble the `prs_table` table following the indications found on the Details section of `?ds.PRS` (Schema 1).
 
-<!-- ```{r prs_table} -->
-<!-- prs_table <- data.frame(chr_name = c(9, 9, 9, 9, 1, 1, 2, 2), -->
-<!--                   chr_position = c(177034, 161674, 140859, 119681, 60351, 825410, 154629, 145710), -->
-<!--                   effect_allele = c("T", "C", "G", "C", "G", "G", "T", "A"), -->
-<!--                   reference_allele = c("G", "T", "A", "T", "A", "A", "G", "G"), -->
-<!--                   effect_weight = c(0.5, 0.2, 0.1, 0.2, 0.1, 0.3, 0.1, 0.8)) -->
-<!-- ``` -->
+```{r prs_table}
+prs_table <- data.frame(chr_name = c(9, 9, 9, 9, 1, 1, 2, 2),
+                  chr_position = c(177034, 161674, 140859, 119681, 60351, 825410, 154629, 145710),
+                  effect_allele = c("T", "C", "G", "C", "G", "G", "T", "A"),
+                  reference_allele = c("G", "T", "A", "T", "A", "A", "G", "G"),
+                  effect_weight = c(0.5, 0.2, 0.1, 0.2, 0.1, 0.3, 0.1, 0.8))
+```
 
-<!-- Now we can pass the custom `prs_table` to the PRS function to retrieve the aggregated results. -->
+Now we can pass the custom `prs_table` to the PRS function to retrieve the aggregated results.
 
-<!-- ```{r prs_prs_table, warning=FALSE} -->
-<!-- resources <- paste0("chr", 1:21) -->
-<!-- names(resources) <- paste0("chr", 1:21) -->
-<!-- resources <- as.list(resources) -->
-<!-- ds.PRS(resources = resources, prs_table = prs_table, table = "phenotypes", table_id_column = "subject_id", table_prs_name = "custom_prs_table_results") -->
-<!-- ``` -->
+```{r prs_prs_table, warning=FALSE}
+resources <- paste0("chr", 1:21)
+names(resources) <- paste0("chr", 1:21)
+resources <- as.list(resources)
+ds.PRS(resources = resources, prs_table = prs_table, table = "phenotypes", table_id_column = "subject_id", table_prs_name = "custom_prs_table_results")
+```
 
-<!-- ### Study of the PRS results -->
+### Study of the PRS results
 
-<!-- We can fit pooled GLM models using the function `ds.glm`. In this use case we will fit a model to relate the `HDL.cholesterol` to `prs_PGS000660` adjusted by `sex`. The same will be done with the `prs_PGS000636`. -->
+We can fit pooled GLM models using the function `ds.glm`. In this use case we will fit a model to relate the `HDL.cholesterol` to `prs_PGS000660` adjusted by `sex`. The same will be done with the `prs_PGS000636`.
 
-<!-- ```{r} -->
-<!-- ds.glm(formula = "HDL.cholesterol ~ prs_PGS000660", family = "gaussian", data = "phenotypes")$coefficients -->
-<!-- ds.glm(formula = "HDL.cholesterol ~ prs_PGS000636", family = "gaussian", data = "phenotypes")$coefficients -->
-<!-- ds.glm(formula = "HDL.cholesterol ~ prs_PGS000311", family = "gaussian", data = "phenotypes")$coefficients -->
-<!-- ds.glm(formula = "HDL.cholesterol ~ prs_PGS000658", family = "gaussian", data = "phenotypes")$coefficients -->
-<!-- ds.glm(formula = "Body.mass.index..BMI. ~ prs_PGS000298", family = "gaussian", data = "phenotypes")$coefficients -->
-<!-- ds.glm(formula = "Body.mass.index..BMI. ~ prs_PGS000717", family = "gaussian", data = "phenotypes")$coefficients -->
-<!-- ds.glm(formula = "Eosinophill.count ~ prs_PGS000090", family = "gaussian", data = "phenotypes")$coefficients -->
-<!-- ds.glm(formula = "Eosinophill.count ~ prs_PGS000165", family = "gaussian", data = "phenotypes")$coefficients -->
-<!-- ``` -->
+```{r}
+ds.glm(formula = "HDL.cholesterol ~ prs_PGS000660 + sex", family = "gaussian", data = "phenotypes")$coefficients
+ds.glm(formula = "HDL.cholesterol ~ prs_PGS000636 + sex", family = "gaussian", data = "phenotypes")$coefficients
+```
 
-<!-- EXPLICAR RESULTADOS ASSOCIACION -->
 
-<!-- ```{r} -->
-<!-- datashield.logout(conns) -->
-<!-- ``` -->
+```{r}
+datashield.logout(conns)
+```
 
 ## Technical details
 
 ### GWAS
 
+TODO
 
 ### Internal structure of the PRS functionality
 
