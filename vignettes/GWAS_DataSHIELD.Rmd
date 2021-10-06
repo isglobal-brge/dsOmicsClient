@@ -230,10 +230,10 @@ Here we can see the original column names.
 head(ds.colnames("feno_object")[[1]])
 ```
 
-And we apply the `make_valid_column_namesDS` function.
+And we apply the `ds.make_valid_names` function.
 
 ```{r}
-DSI::datashield.assign.expr(conns, "feno_object", as.symbol("make_valid_column_namesDS(feno_object)"))
+ds.make_valid_names("feno_object")
 ```
 
 We can check the resulting names.
@@ -516,10 +516,10 @@ Here we can see the original column names.
 head(ds.colnames("feno_object")[[1]])
 ```
 
-And we apply the `make_valid_column_namesDS` function.
+And we apply the `ds.make_valid_names` function.
 
 ```{r}
-DSI::datashield.assign.expr(conns, "feno_object", as.symbol("make_valid_column_namesDS(feno_object)"))
+ds.make_valid_names("feno_object")
 ```
 
 We can check the resulting names.
@@ -900,12 +900,12 @@ lapply(1:21, function(x){
 DSI::datashield.assign.resource(conns[3], "phenotypes_resource", "GWAS.feno_samples3")
 ```
 
-And we resolve the phenotypes table. Remember to pass the table through the `make_valid_column_namesDS` function to be sure the column names have valid R syntax.
+And we resolve the phenotypes table. Remember to pass the table through the `ds.make_valid_names` function to be sure the column names have valid R syntax.
 
 ```{r prs_resolve_resources, message=FALSE, warning=FALSE, results=FALSE}
 DSI::datashield.assign.expr(conns = conns, symbol = "phenotypes",
                             expr = as.symbol("as.resource.data.frame(phenotypes_resource)"))
-DSI::datashield.assign.expr(conns, "phenotypes", as.symbol("make_valid_column_namesDS(phenotypes)"))
+ds.make_valid_names("phenotypes")
 ```
 
 There is one crucial difference between this analysis and the GWAS, here we don't need to resolve the resources. This is for memory efficiency purposes. When we calculate a PRS, we are only interested in a small selection of SNPs, for that reason the (potentially) huge VCF files will be trimmed before being resolved, so only the relevant SNPs are loaded in the memory. For that reason the resolving of the resources is delegated to the `ds.PRS` function, which will perform this trimming according to the SNPs of interest yielded by the PGS catalog query or the `prs_table` table.
