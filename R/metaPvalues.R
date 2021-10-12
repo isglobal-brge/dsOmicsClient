@@ -29,17 +29,18 @@ metaPvalues <- function(x,  ...){
   } else if (inherits(x, 'dsGWAS')){
     ff <- function(x, y){
       inner_join(x, y, 
-                 by='variant.id')
+                 by=c('rs', 'chr', 'pos'))
     }
+    jj <- 'rs|chr|pos|p.value'
   } else{
       stop("Object should be of class 'dsLimma', 'dsOmics' or 'dsPLINK' ")
   }
   
   pvals <- Reduce(ff, x)
-  ii <- grep("id|P.Value", colnames(pvals))
+  ii <- grep(jj, colnames(pvals))
   pvals <- pvals[,ii]
-  colnames(pvals)[-1] <- names(x)
-  p.meta <- unlist(apply(pvals[,-1], 1, function(x) metap::sumlog (x)$p))
+  colnames(pvals)[-c(1:3)] <- names(x)
+  p.meta <- unlist(apply(pvals[,-c(1:3)], 1, function(x) metap::sumlog (x)$p))
   ans <- tibble::add_column(pvals, p.meta=p.meta)%>%arrange(p.meta)
   
   return(ans)

@@ -62,7 +62,7 @@ manhattan <- function(x, featureCol = 1, chrCol = 2, posCol = 3, pvalCol = 6, si
       scale_color_manual(values = rep(col, 22 )) +
       
       # custom X axis:
-      scale_x_continuous( label = axisdf$CHR, breaks= axisdf$center ) +
+      scale_x_continuous( label = axisdf$CHR, breaks= axisdf$center, guide = guide_axis(check.overlap = T) ) +
       scale_y_continuous(expand = c(0, 0), limits = ylims) + # expand=c(0,0)removes space between plot area and x axis 
       
       # add plot and axis titles
