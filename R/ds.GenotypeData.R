@@ -10,7 +10,7 @@
 #' require this encoding to study binomial outcomes. To use this funcionality, input the arguments
 #' \code{case_control_column}, \code{case} and \code{control} (optionally \code{na_string} can be
 #' used to specify strings that will be set as NA, this is useful for phenotypes that are encoded as:
-#' Yes/No/Don´t know/Don't answer/...). Input \code{NULL} to this arguments if this functionality is 
+#' Yes/No/Don't know/Don't answer/...). Input \code{NULL} to this arguments if this functionality is
 #' not to be used.
 #' 
 #' @param x a \code{GdsGenotypeReader} object (see GWASTools). It is the object that is
@@ -57,14 +57,17 @@ ds.GenotypeData <- function(x, covars, columnId, sexId = NULL, male_encoding = "
   #                 if(is.null(control)){"NULL"}else{paste0("'",control,"'")}, ", ",
   #                 if(is.null(control)){"NULL"}else{paste0("'",paste(na_string, collapse = "','"),"'")}, 
   #                 ")")
-  cally <- paste0("GenotypeDataDS(", x, "," , covars, ", '", 
-                  paste0(charToRaw(columnId), collapse = ""),
-                  "', '", if(is.null(sexId)){"NULL"}else{paste0(charToRaw(sexId), collapse = "")}, 
-                  "', '", paste0(charToRaw(male_encoding), collapse = ""),
-                  "', '", paste0(charToRaw(female_encoding), collapse = ""), "', '",
-                  if(is.null(case_control_column)){"NULL"}else{paste0(charToRaw(case_control_column), collapse = "")}, "', ",
-                  if(is.null(case)){"NULL"}else{paste0("'",paste0(charToRaw(case), collapse = ""),"'")}, ", ",
-                  if(is.null(control)){"NULL"}else{paste0("'",paste0(charToRaw(control), collapse = ""),"'")},")")
+  cally <- paste0("GenotypeDataDS(",
+                  paste(x, covars,
+                    if(is.null(columnId)){"NULL"}else{paste0("'", paste0(charToRaw(columnId), collapse = ""), "'")},
+                    if(is.null(sexId)){"NULL"}else{paste0("'", paste0(charToRaw(sexId), collapse = ""), "'")},
+                    paste0("'", paste0(charToRaw(male_encoding), collapse = ""), "'"),
+                    paste0("'", paste0(charToRaw(female_encoding), collapse = ""), "'"),
+                    if(is.null(case_control_column)){"NULL"}else{paste0("'", paste0(charToRaw(case_control_column), collapse = ""), "'")},
+                    if(is.null(case)){"NULL"}else{paste0("'", paste0(charToRaw(case), collapse = ""), "'")},
+                    if(is.null(control)){"NULL"}else{paste0("'", paste0(charToRaw(control), collapse = ""), "'")}, sep=","),
+                  ")")
+
   DSI::datashield.assign(datasources,  symbol = newobj.name, as.symbol(cally))
   
   test.obj.name <- newobj.name
