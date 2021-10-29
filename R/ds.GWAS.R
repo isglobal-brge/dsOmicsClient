@@ -35,6 +35,7 @@ ds.GWAS <- function(genoData, model, family="binomial", snpBlock=10000, datasour
     datasources <- DSI::datashield.connections_find()
   }
   
+  if(class(model) != "formula"){model <- as.formula(model)}
   mt <- all.vars(model)
   variable_name <- mt[1] 
   if (length(mt)>1)

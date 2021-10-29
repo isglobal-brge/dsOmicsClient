@@ -58,7 +58,7 @@ due because the subsequent analysis functionalities such as \code{ds.GWaS()} and
 require this encoding to study binomial outcomes. To use this funcionality, input the arguments
 \code{case_control_column}, \code{case} and \code{control} (optionally \code{na_string} can be
 used to specify strings that will be set as NA, this is useful for phenotypes that are encoded as:
-Yes/No/Don戼㸴t know/Don't answer/...). Input \code{NULL} to this arguments if this functionality is 
+Yes/No/Don't know/Don't answer/...). Input \code{NULL} to this arguments if this functionality is
 not to be used.
 }
 \examples{

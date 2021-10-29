@@ -46,16 +46,16 @@ metaBetaValues <- function(x){
   
   # Calculate b.F
   for(i in 1:length(names(x))){
-    betas.cohort <- as.symbol(paste0("betas.cohort", i))
-    SE.betas.cohort <- as.symbol(paste0("SE.betas.cohort", i))
-    colname1 <- as.symbol(paste0("b.F1.cohort", i))
-    colname2 <- as.symbol(paste0("b.F2.cohort", i))
+    betas.cohort <- as.symbol(paste0("betas.", names(x)[i]))
+    SE.betas.cohort <- as.symbol(paste0("SE.betas.", names(x)[i]))
+    colname1 <- as.symbol(paste0("b.F1.", names(x)[i]))
+    colname2 <- as.symbol(paste0("b.F2.", names(x)[i]))
     meta_data <- meta_data %>% mutate({{colname1}} := {{betas.cohort}} / {{SE.betas.cohort}}^2)
     meta_data <- meta_data %>% mutate({{colname2}} := 1 / {{SE.betas.cohort}}^2)
   }
   
-  meta_data <- meta_data %>% mutate(sum.b.F1 = rowSums(across(starts_with("b.F1.cohort"))))
-  meta_data <- meta_data %>% mutate(sum.b.F2 = rowSums(across(starts_with("b.F2.cohort"))))
+  meta_data <- meta_data %>% mutate(sum.b.F1 = rowSums(across(starts_with("b.F1."))))
+  meta_data <- meta_data %>% mutate(sum.b.F2 = rowSums(across(starts_with("b.F2."))))
   meta_data <- meta_data %>% mutate(b.F = sum.b.F1 / sum.b.F2)
   
   # Calculate se.F
@@ -74,7 +74,8 @@ metaBetaValues <- function(x){
   results <- meta_data %>% select(b.F, se.F, p.F, OR, low, up, pval) %>% 
     add_column(rs = joined_x$rs, .before = "b.F") %>%
     add_column(chr = joined_x$chr, .after = "rs") %>%
-    add_column(pos = joined_x$pos, .after = "chr")
+    add_column(pos = joined_x$pos, .after = "chr") %>%
+    arrange(pval)
   # class(results) <- c(class(results), "GWASBetaMetaAnalysis")
   return(results)
 }
