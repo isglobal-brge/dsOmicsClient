@@ -1,9 +1,8 @@
 #' @title Genome-wide association analysis (GWAS)
 #' 
 #' @description Performs GWAS using GENESIS
-#' @param genoData a \code{GenotypeData} object which is a container for storing genotype data
+#' @param genoData \code{character vector} of objects on the server side object which is a container for storing genotype data
 #' from a GWAS toghether with the metadata associated with the subjects (i.e. phenotypes and/or covariates)
-#' and SNPs
 #' @param model formula indicating the condition (left side) and other covariates to be adjusted for 
 ##' (i.e. condition ~ covar1 + ... + covar2). The fitted model is: snp ~ condition + covar1 + ... + covarN
 #' @param family A description of the generalized linear model used. The defatul is "binomial" that is defined
