@@ -12,7 +12,8 @@ Imports:
     DSI,
     tidyverse,
     metap,
-    parallel
+    parallel,
+    ggrepel
 License: MIT
 biocViews: DNAMethylation, Microarray, Software, WholeGenome, GWAS, Non-disclosive
 LazyData: true
