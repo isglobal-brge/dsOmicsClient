@@ -4,7 +4,7 @@
 \alias{ds.alleleFrequency}
 \title{Allelic frequency}
 \usage{
-ds.alleleFrequency(genoData, datasources = NULL)
+ds.alleleFrequency(genoData, type = c("combined", "split"), datasources = NULL)
 }
 \arguments{
 \item{genoData}{\code{character} Name of the \code{\link{GenotypeData}} object on the server}

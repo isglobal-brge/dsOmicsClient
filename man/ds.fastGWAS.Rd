@@ -2,24 +2,54 @@
 % Please edit documentation in R/ds.fastGWAS.R
 \name{ds.fastGWAS}
 \alias{ds.fastGWAS}
-\title{Title}
+\title{Fast genome-wide association analysis (GWAS)}
 \usage{
-ds.fastGWAS(genoData, formula, family, datasources = NULL)
+ds.fastGWAS(
+  genoData,
+  formula,
+  family,
+  do.par = FALSE,
+  n.cores = NULL,
+  snpBlock = 20000L,
+  datasources = NULL
+)
 }
 \arguments{
-\item{genoData}{}
+\item{genoData}{\code{character vector} of objects on the server side object which is a container for storing genotype data
+from a GWAS toghether with the metadata associated with the subjects (i.e. phenotypes and/or covariates)
+and SNPs}
 
-\item{formula}{}
+\item{formula}{\code{character or fomula} formula indicating the condition (left side) and other covariates to be adjusted for
+(i.e. condition ~ covar1 + ... + covar2). The fitted model is: snp ~ condition + covar1 + ... + covarN}
 
-\item{family}{}
+\item{family}{\code{character} A description of the generalized linear model used. "binomial" is defined
+for case/control studies. Quantitative traits can be analyzed by using "gaussian"}
 
-\item{datasources}{}
+\item{do.par}{\code{bool} (default \code{FALSE}) Whether to use parallelization on the servers, to do so the servers
+have to have the package \code{doParallel} installed and run on a POSIX OS (Mac, Linux, Unix, BSD); Windows
+is not supported. This parallelization computes in parallel each \code{genoData} object, therefore it is only useful
+when the genoData is divided by chromosome.}
 
-\item{x}{}
+\item{n.cores}{\code{numeric} (default \code{NULL}) Numbers of cores to use when \code{do.par} is \code{TRUE}. If
+\code{NULL} the number of cores used will be the maximum available minus one.}
+
+\item{snpBlock}{\code{numeric} (default \code{20000L}) Block size for dividing the genotype data, it equals to the
+number of SNPs used on each iteration, depending on the servers RAM it may perform faster using lower or greater
+block sizes, do some testing to assess it.}
+
+\item{datasources}{a list of \code{DSConnection-class} objects obtained after login. If the <datasources>
+the default set of connections will be used: see \code{datashield.connections_default}.}
 }
 \value{
-
+\code{data.frame} With the results of the GWAS
 }
 \description{
-Title
+Performs a distributed GWAS using the methodology proposed on the
+paper https://doi.org/10.1186/1471-2105-14-166. This implementation has been adapted
+to DataSHIELD as it can rely on a model 0 provided by the \code{ds.glm} function and
+the other steps require mostly performing colSums, which are non-disclosive. However,
+the results are not 100% precise, but they capture all heterogenity and individual
+differences between cohorts, as the method does not rely on a meta-analysis,
+the obtained results of this methodology are the same when used on a distributed
+DataSHIELD environment than they would be having all the data gathered at the same computer.
 }

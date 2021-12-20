@@ -18,7 +18,7 @@
 #' @export 
 #' 
 
-ds.GWAS <- function(genoData, model, family="binomial", snpBlock=10000, datasources=NULL, ...){
+ds.metaGWAS <- function(genoData, model, family="binomial", snpBlock=10000, datasources=NULL, ...){
   
   family.ini <- family
   if (is.character(family)) 
