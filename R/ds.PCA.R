@@ -18,12 +18,16 @@ ds.PCA <- function(genoData, standardize = TRUE, snpBlock = 20000L, datasources 
   # TODO comprobar que els geno files segueixen el mateix ordre?? rollo que les column i files estan alineades
   # TODO Add dsBaseClient:::isDefined(datasources, object)
   # and dsBaseClient:::checkClass(datasources, object) for the genoData objects
+  # TODO que es pugui agafar nomes una seleccion de SNPs (correu isglobal amb dolors)
   
   if(standardize){
-    standard_data <- standardizeGenoData(genoData, snpBlock, datasources)
+    standard_data <- standardizeGenoData(genoData, datasources)
   }
-  
   browser()
+  cally <- paste0("PCADS(c(", paste(genoData, collapse = ", "), "), ", nrow(standard_data), ", '", 
+                  paste(unlist(standard_data), collapse = "', '"), "')")
+  res <- DSI::datashield.aggregate(datasources, cally)
+  
   # TODO aqui començar a afegir tot el codi que tinc al servidor de isglobal 
   # i aplicar els coeficients de standaritzacio si fa falta al llegir el geno data
   # block by block!!!

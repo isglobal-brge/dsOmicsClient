@@ -4,12 +4,10 @@
 \alias{standardizeGenoData}
 \title{Title}
 \usage{
-standardizeGenoData(genoData, snpBlock, datasources)
+standardizeGenoData(genoData, datasources)
 }
 \arguments{
 \item{genoData}{}
-
-\item{snpBlock}{}
 
 \item{datasources}{}
 }

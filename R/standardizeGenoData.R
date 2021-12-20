@@ -1,13 +1,12 @@
 #' Title
 #'
 #' @param genoData 
-#' @param snpBlock 
 #' @param datasources 
 #'
 #' @return
 #'
 #' @examples
-standardizeGenoData <- function(genoData, snpBlock, datasources){
+standardizeGenoData <- function(genoData, datasources){
 
   # TODO this is an internal function! no need to search datasources etc.
 
@@ -23,6 +22,6 @@ standardizeGenoData <- function(genoData, snpBlock, datasources){
   # Return data frame with rs ID means and sd_hw to be applied on other functions when reading
   # the actual geno data. The formula to standardize is (Xij - means) / sd_hw. Where Xij 
   # corresponds to the geno data in 0, 1, 2 coding.
-  return(tibble(rs = allele_freqs$rs, means = means, sd_hw = sd_hw))
+  return(tibble(rs = allel_freqs$rs, means = means, sd_hw = sd_hw))
   
 }
