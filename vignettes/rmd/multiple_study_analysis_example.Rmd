@@ -11,10 +11,10 @@ In order to perform omic data analyses, we need first to login and assign resour
 builder <- DSI::newDSLoginBuilder()
 builder$append(server = "study1", url = "https://opal-demo.obiba.org", 
                user = "dsuser", password = "P@ssw0rd", 
-               resource = "RSRC.GSE66351_1")
+               resource = "RSRC.GSE66351_1", profile = "omics")
 builder$append(server = "study2", url = "https://opal-demo.obiba.org", 
                user = "dsuser", password = "P@ssw0rd", 
-               resource = "RSRC.GSE66351_2")
+               resource = "RSRC.GSE66351_2", profile = "omics")
 
 logindata <- builder$build()
 
