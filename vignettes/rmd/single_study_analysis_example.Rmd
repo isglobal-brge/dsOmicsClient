@@ -5,7 +5,7 @@ Let us start by creating the connection to the opal server:
 ```{r pipeline_gene_expr}
 builder <- newDSLoginBuilder()
 builder$append(server = "study1", url = "https://opal-demo.obiba.org", 
-               user = "dsuser", password = "password", 
+               user = "dsuser", password = "P@ssw0rd", 
                resource = "RSRC.tcga_liver")
 
 logindata <- builder$build()
