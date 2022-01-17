@@ -45,7 +45,7 @@ lapply(name.vars, head, n=15)
 We can visualize the levels of the variable having gender information that will be our condition (i.e., we are interested in obtaining genes that are differentially expressed between males and females)
 
 ```{r table_gender}
-ds.table("rse$gdc_cases.demographic.gender")
+ds.table1D("rse$gdc_cases.demographic.gender")
 ```
 
 We have implemented a function called `ds.RNAseqPreproc()` to perform RNAseq data pre-processing that includes:
