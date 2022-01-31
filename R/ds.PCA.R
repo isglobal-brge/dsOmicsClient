@@ -9,12 +9,26 @@
 #' @export
 #'
 #' @examples
-ds.PCA <- function(genoData, standardize = TRUE, snpBlock = 20000L, datasources = NULL){
+ds.PCA <- function(genoData, snp_subset = TRUE, standardize = TRUE, snpBlock = 20000L, datasources = NULL){
   
   if (is.null(datasources)) {
     datasources <- DSI::datashield.connections_find()
   }
   
+  if(snp_subset){
+    if(length(genoData) > 1){
+      lapply(1:length(genoData), function(x){
+        DSI::datashield.assign.expr(datasources, paste0("subsetGenoData_", x), 
+                                    paste0("subsetGenoDS(c('", genoData[[x]], "'), 'ethnic_snps')"))
+      })
+      genoData <- paste("subsetGenoData_", 1:length(genoData))
+    } else {
+      DSI::datashield.assign.expr(datasources, paste0("subsetGenoData_", 1), 
+                                  paste0("subsetGenoDS(c('", genoData[[1]], "'), 'ethnic_snps')"))
+      genoData <- "subsetGenoData_1"
+    }
+  }
+
   # TODO comprobar que els geno files segueixen el mateix ordre?? rollo que les column i files estan alineades
   # TODO Add dsBaseClient:::isDefined(datasources, object)
   # and dsBaseClient:::checkClass(datasources, object) for the genoData objects
@@ -22,13 +36,23 @@ ds.PCA <- function(genoData, standardize = TRUE, snpBlock = 20000L, datasources 
   
   if(standardize){
     standard_data <- standardizeGenoData(genoData, datasources)
+    toAssign <- paste0("'",paste(unlist(standard_data[,1]), collapse = ","), "'")
+    DSI::datashield.assign.expr(datasources, "pca_rs", toAssign)
+    toAssign <- paste0("'",paste(unlist(standard_data[,2]), collapse = ","), "'")
+    DSI::datashield.assign.expr(datasources, "pca_means", toAssign)
+    toAssign <- paste0("'",paste(unlist(standard_data[,3]), collapse = ","), "'")
+    DSI::datashield.assign.expr(datasources, "pca_sd_hw", toAssign)
+    
+    cally <- paste0("PCADS(c(", paste(genoData, collapse = ", ")
+                    ,"), pca_rs, pca_means, pca_sd_hw)")
+  } else {
+    cally <- paste0("PCADS(c(", paste(genoData, collapse = ", ")
+                    ,"), NULL, NULL, NULL)")
   }
-  browser()
-  cally <- paste0("PCADS(c(", paste(genoData, collapse = ", "), "), ", nrow(standard_data), ", '", 
-                  paste(unlist(standard_data), collapse = "', '"), "')")
+  
   res <- DSI::datashield.aggregate(datasources, cally)
   
-  # TODO aqui començar a afegir tot el codi que tinc al servidor de isglobal 
+  # TODO aqui comencar a afegir tot el codi que tinc al servidor de isglobal 
   # i aplicar els coeficients de standaritzacio si fa falta al llegir el geno data
   # block by block!!!
   
