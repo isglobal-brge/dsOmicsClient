@@ -24,7 +24,7 @@
 #' @return This function does not have an output. It creates (or overwrites) a data frame on the study server.
 #' @export
 
-ds.addPhenoData <- function(x, pheno, identifier = "ID", alternate_eset_id = NULL,
+ds.addPhenoData2eSet <- function(x, pheno, identifier = "ID", alternate_eset_id = NULL,
                             newobj.name = NULL, complete_cases = TRUE, datasources = NULL){
   
   if(is.null(datasources)){
