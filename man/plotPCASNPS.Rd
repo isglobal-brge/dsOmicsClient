@@ -4,27 +4,20 @@
 \alias{plotPCASNPS}
 \title{Plot the results of a \code{ds.PCASNPS()}}
 \usage{
-plotPCASNPS(
-  res,
-  group = NULL,
-  geno = NULL,
-  xcomp = 1,
-  ycomp = 2,
-  datasources = NULL
-)
+plotPCASNPS(res, group = NULL, xcomp = 1, ycomp = 2, datasources = NULL)
 }
 \arguments{
 \item{res}{\code{PCASNPS} Object returned from \code{ds.PCASNPS()}}
 
 \item{group}{}
 
-\item{geno}{}
-
 \item{xcomp}{\code{numeric} Principal component to plot on the X axis}
 
 \item{ycomp}{\code{numeric} Principal component to plot on the Y axis}
 
 \item{datasources}{}
+
+\item{geno}{}
 }
 \value{
 \code{ggplot} object

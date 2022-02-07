@@ -10,7 +10,6 @@ ds.exactHWE(
   geno.counts = TRUE,
   block.size = 5000,
   permute = FALSE,
-  controls = FALSE,
   controls_column = NULL,
   datasources = NULL
 )
@@ -27,9 +26,8 @@ ds.exactHWE(
 
 \item{permute}{\code{bool} (default \code{FALSE}) logical indicator for whether to permute alleles before calculations}
 
-\item{controls}{\code{bool} (default \code{FALSE}) logical to calculate the HWE test only on the controls}
-
-\item{controls_column}{\code{character} (default \code{NULL}) name of the case/controls column of the covariates 
+\item{controls_column}{\code{character} (default \code{NULL}) If specified, the control individuals found on this column 
+(specified by the encoding \code{1}) will be excluded when calculating the HWE.
 used to create the GenotypeData object. Only used if \code{controls = TRUE}}
 
 \item{datasources}{a list of \code{\link{DSConnection-class}} objects obtained after login.}

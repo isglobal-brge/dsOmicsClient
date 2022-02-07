@@ -12,7 +12,7 @@ ds.getSNPSbyGen(gdsFile, genes, name = NULL, datasources = NULL)
 \item{genes}{\code{character vector} Name of the gene(s) to select (HGCN nomenclature)}
 
 \item{name}{\code{character} (default \code{NULL}) Name of the subsetted GDS, if \code{NULL} 
-entry file will be over-written.}
+the name \code{gds_subsetted} will be used.}
 
 \item{datasources}{a list of \code{\link{DSConnection-class}} objects obtained after login.}
 }

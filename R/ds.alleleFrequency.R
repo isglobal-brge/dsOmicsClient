@@ -16,7 +16,8 @@
 #' "n.M", "n.F", and "n", respectively. "MAF" is the minor allele frequency over all scans.
 #' @export
 
-ds.alleleFrequency <- function(genoData, type = c("combined", "split"), datasources = NULL){
+ds.alleleFrequency <- function(genoData, type = c("combined", "split"), method = c("fast", "slow"),
+                               snpBlock = 5000L, datasources = NULL){
   
   if (is.null(datasources)) {
     datasources <- DSI::datashield.connections_find()
@@ -24,8 +25,13 @@ ds.alleleFrequency <- function(genoData, type = c("combined", "split"), datasour
   
   if(length(genoData) > 1){
     res <- lapply(genoData, function(x){
-      cally <- paste0("alleleFrequencyDS(", x, ")")
-      return(DSI::datashield.aggregate(datasources, as.symbol(cally)))
+      if(method == "fast"){
+        cally <- paste0("fastAlleleFrequencyDS(", x, ", ", snpBlock, ")")
+        return(DSI::datashield.aggregate(datasources, as.symbol(cally)))
+      } else {
+        cally <- paste0("alleleFrequencyDS(", x, ")")
+        return(DSI::datashield.aggregate(datasources, as.symbol(cally)))
+      }
     })
     
     res <- do.call(c, res)
@@ -37,8 +43,13 @@ ds.alleleFrequency <- function(genoData, type = c("combined", "split"), datasour
     }
     
   } else {
-    cally <- paste0("alleleFrequencyDS(", genoData, ")")
-    alFreq <- DSI::datashield.aggregate(datasources, as.symbol(cally))
+    if(method == "fast"){
+      cally <- paste0("fastAlleleFrequencyDS(", genoData, ", ", snpBlock, ")")
+      alFreq <- DSI::datashield.aggregate(datasources, as.symbol(cally))
+    } else {
+      cally <- paste0("alleleFrequencyDS(", genoData, ")")
+      alFreq <- DSI::datashield.aggregate(datasources, as.symbol(cally))
+    }
   }
   
   if(type == "combined"){

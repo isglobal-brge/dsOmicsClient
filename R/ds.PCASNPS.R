@@ -19,5 +19,5 @@ ds.PCASNPS <- function(gds, prune = TRUE, ld.threshold = 0.2, datasources = NULL
   cally <- paste0("PCASNPSDS(", gds, ", ", as.character(prune), ", ", ld.threshold, ")")
   res <- DSI::datashield.aggregate(datasources, as.symbol(cally))
   class(res) <- c(class(res), "PCASNPS")
-  return(list(res, set = gds))
+  return(list(res = res, set = gds))
 }

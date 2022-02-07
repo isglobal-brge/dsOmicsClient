@@ -159,10 +159,10 @@ ds.fastGWAS <- function(genoData, formula, family, do.par = FALSE, n.cores = NUL
   alleles <- DSI::datashield.aggregate(datasources[1], paste0("getVariable(c(", paste(genoData, collapse = ","), "), 'snp.allele')"))[[1]]
   position <- DSI::datashield.aggregate(datasources[1], paste0("getVariable(c(", paste(genoData, collapse = ","), "), 'snp.position')"))[[1]]
   chromosome <- DSI::datashield.aggregate(datasources[1], paste0("getVariable(c(", paste(genoData, collapse = ","), "), 'snp.chromosome')"))[[1]]
-  reference_allele <- substring(alleles, 1, 1)
-  alternate_allele <- substring(alleles, 3, 3)
+  ref_allele <- substring(alleles, 1, 1)
+  alt_allele <- substring(alleles, 3, 3)
 
   # Gather information and return ordered by p.value
   return(tibble(rs = rs, chr = chromosome, pos = position, p.value = PVAL, Est = B, Est.SE = ERR,
-                reference_allele = reference_allele, alternate_allele = alternate_allele) %>% arrange(p.value))
+                ref_allele = ref_allele, alt_allele = alt_allele) %>% arrange(p.value))
 }

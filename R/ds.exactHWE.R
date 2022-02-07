@@ -20,8 +20,8 @@
 #' @param geno.counts \code{bool} (default \code{TRUE}) if \code{TRUE}, genotype counts are returned in the output data.frame
 #' @param block.size \code{numeric} (default \code{5000}) number of SNPs to read in at once
 #' @param permute \code{bool} (default \code{FALSE}) logical indicator for whether to permute alleles before calculations
-#' @param controls \code{bool} (default \code{FALSE}) logical to calculate the HWE test only on the controls
-#' @param controls_column \code{character} (default \code{NULL}) name of the case/controls column of the covariates 
+#' @param controls_column \code{character} (default \code{NULL}) If specified, the control individuals found on this column 
+#' (specified by the encoding \code{1}) will be excluded when calculating the HWE.
 #' used to create the GenotypeData object. Only used if \code{controls = TRUE}
 #' @param datasources a list of \code{\link{DSConnection-class}} objects obtained after login. 
 #'
@@ -42,7 +42,7 @@
 #' @export
 
 ds.exactHWE <- function(genoData, chromosome = "all", geno.counts = TRUE,
-                        block.size = 5000, permute = FALSE, controls = FALSE,
+                        block.size = 5000, permute = FALSE,
                         controls_column = NULL, datasources = NULL){
   
   if (is.null(datasources)) {
@@ -51,8 +51,8 @@ ds.exactHWE <- function(genoData, chromosome = "all", geno.counts = TRUE,
   
   cally <- paste0("exactHWEDS(", genoData, ", geno.counts = ", if(!is.null(geno.counts)){geno.counts}else{"NULL"}, 
                   ", chromosome = '", chromosome, "', block.size = ", block.size, ", permute = ",
-                  permute, ", ", controls,  
-                  if(is.null(controls_column)){NULL}else{paste0(", '",controls_column,"'")},
+                  permute, ", ",  
+                  if(is.null(controls_column)){"NULL"}else{paste0("'",controls_column,"'")},
                   ")")
   ans <- datashield.aggregate(datasources, as.symbol(cally))
   

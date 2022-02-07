@@ -4,7 +4,13 @@
 \alias{ds.PCA}
 \title{Title}
 \usage{
-ds.PCA(genoData, standardize = TRUE, snpBlock = 20000L, datasources = NULL)
+ds.PCA(
+  genoData,
+  snp_subset = TRUE,
+  standardize = TRUE,
+  snpBlock = 20000L,
+  datasources = NULL
+)
 }
 \arguments{
 \item{genoData}{}

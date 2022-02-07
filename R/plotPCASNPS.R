@@ -10,15 +10,15 @@
 #' @return \code{ggplot} object
 #' @export
 
-plotPCASNPS <- function(res, group = NULL, geno = NULL, 
+plotPCASNPS <- function(res, group = NULL,
                         xcomp = 1, ycomp = 2, datasources = NULL){
   
   if(!is.null(group)){
     if (is.null(datasources)) {
       datasources <- DSI::datashield.connections_find()
     }
-    cally <- paste0('plotPCASNPSDS(', res$set, ', ', geno, ', "', group, '")')
-    grouping <- DSI::datashield.aggregate(datasources, as.symbol(cally))[[1]]
+    cally <- paste0('plotPCASNPSDS(', res$set, ',"', group, '")')
+    grouping <- as.factor(DSI::datashield.aggregate(datasources, as.symbol(cally))[[1]])
   }
   plt <- ggplot2::ggplot(res[[1]][[1]]) +  # Does plot with results from first study server!
     ggplot2::geom_point(aes_string(x = names(res[[1]][[1]])[xcomp], 
