@@ -64,7 +64,7 @@
 #'
 
 ds.PRS <- function(resources, pgs_id = NULL, prs_table = NULL, table = NULL, table_id_column = NULL,
-                   table_prs_name = NULL, snp_threshold = 90, datasources = NULL){
+                   table_prs_name = NULL, snp_threshold = 90, snp_assoc = FALSE, datasources = NULL){
   
   if (is.null(datasources)) {
     datasources <- DSI::datashield.connections_find()
@@ -88,53 +88,32 @@ ds.PRS <- function(resources, pgs_id = NULL, prs_table = NULL, table = NULL, tab
       stop('The supplied [prs_table] table is not structure as required. Please read the @details of ?dsOmicsClient::ds.PRS')
     }
   }
-  else if(is.null(prs_table) & !is.null(pgs_id)){
-    # Get PGS data to later calculate genetic risk score
-    prs_table <- .retrievePGS(pgs_id)
-  }
+
   else if(is.null(prs_table) & is.null(pgs_id)){
     error('Supply a [prs_table] or [pgs_id] to calculate the PRS.')
   }
-  # Assign all the resources to GDSs to be studied later
-  assigned_resources <- lapply(names(resources), function(x){
-    if(colnames(prs_table) == "rsID"){
-      tryCatch({
-        DSI::datashield.assign.expr(conns = datasources, symbol = paste0(x, "_gds"), 
-                                    expr = paste0(
-                                      "as.resource.object(x = ", resources[[x]],
-                                      ", snps = c('", paste(prs_table$rsID, collapse = "', '"), "'))"
-                                    ))
-        paste0(x, "_gds")
-      }, error = function(w){
-        NULL
-      })
-    } else {
-      tryCatch({
-        DSI::datashield.assign.expr(conns = datasources, symbol = paste0(x, "_gds"), 
-                                    expr = paste0(
-                                      "as.resource.object(x = ", resources[[x]], ", seq = c('", 
-                                      paste(prs_table$chr_name, collapse = "', '"), "'), start.loc = c(",
-                                      paste(prs_table$start, collapse = ", "), "), end.loc = c(",
-                                      paste(prs_table$end, collapse = ", "), "))"
-                                    ))
-        paste0(x, "_gds")
-      }, error = function(w){
-        NULL
-      })
-    }
-  })
+
   # Different cally builds depending on needing to send to the server the prs_table with ID or positions
-  if(all(c("chr_name", "start") %in% colnames(prs_table))){
-    prs_table_type <- "chr_name"
-  } else if ("rsID" %in% colnames(prs_table)){
-    prs_table_type <- "rsID"
+  if(!is.null(prs_table)){
+    if(all(c("chr_name", "start") %in% colnames(prs_table))){
+      prs_table_type <- "chr_name"
+    } else if ("rsID" %in% colnames(prs_table)){
+      prs_table_type <- "rsID"
+    }
   }
 
   # Build cally
-  cally <- paste0("PRSDS(c(",
-                  paste0(assigned_resources, collapse = ", "),
-                  "), ", snp_threshold, ", '", paste(unlist(prs_table), collapse = "', '"),
-                  "', ", if(prs_table_type == "rsID"){3}else{5}, ")")
+  if(!is.null(pgs_id)){
+    cally <- paste0("PRSDS(resources = c(", paste0(resources, collapse = ", "),
+                    "), snp_threshold = ", snp_threshold, ", pgs_id = '", pgs_id, 
+                    "', snp_assoc = ", snp_assoc, ")")
+  } else {
+    cally <- paste0("PRSDS(c(",
+                    paste0(resources, collapse = ", "),
+                    "), ", snp_threshold, ", pgs_id = NULL", ", snp_assoc = ", snp_assoc, ", '", paste(unlist(prs_table), collapse = "', '"),
+                    "', ", if(prs_table_type == "rsID"){3}else{5}, ")")
+  }
+  
   DSI::datashield.assign.expr(datasources, "prs_results", cally)
   
   # If table is NULL the results will not be added (join by ID) to a table on the server
@@ -157,76 +136,6 @@ ds.PRS <- function(resources, pgs_id = NULL, prs_table = NULL, table = NULL, tab
   }
 }
 
-#' @title Internal function: Get PGS catalog table of polygenic risks
-#'
-#' @param pgs_id \code{character} ID of the PGS catalog to be used to calculate the polygenic risk score. 
-#' Polygenic Score ID & Name from https://www.pgscatalog.org/browse/scores/
-#'
-#' @return \code{data.frame} with the columns: \cr
-#' - If chr_name and poition are found: \cr
-#' + start \cr
-#' + end \cr
-#' + effect_allele \cr
-#' + effect_weight \cr
-#' + weight_type (if present on the catalog) \cr
-#' - If rsID is found: \cr
-#' + rsID \cr
-#' + effect_allele \cr
-#' + effect_weight \cr
-#' + weight_type (if present on the catalog) \cr
-#'
-
-.retrievePGS <- function(pgs_id){
-  pgs <- httr::GET(paste0("https://www.pgscatalog.org/rest/score/", pgs_id))
-  pgs_text <- httr::content(pgs, "text")
-  pgs_scoring_file <- jsonlite::fromJSON(pgs_text, flatten = TRUE)$ftp_scoring_file
-  if(is.null(pgs_scoring_file)){stop('[', pgs_id, '] Not found in www.pgscatalog.org')}
-  
-  # Download scoring file
-  destination <- tempfile(fileext = ".txt.gz")
-  download.file(pgs_scoring_file, destination)
-  
-  # Unzip file
-  unziped_file <- tempfile(fileext = ".txt")
-  R.utils::gunzip(destination, unziped_file)
-  
-  # Read file into R
-  # Logic https://www.pgscatalog.org/downloads/
-  scorings <- read.delim(unziped_file, comment.char = "#")
-  if(c("chr_name", "chr_position") %in% colnames(scorings)){
-    data <- data.frame(chr_name = scorings$chr_name,
-                       start = scorings$chr_position,
-                       end = scorings$chr_position,
-                       # reference_allele = scorings$reference_allele,
-                       effect_allele = scorings$effect_allele,
-                       effect_weight = scorings$effect_weight)
-    if("weight_type" %in% colnames(scorings)){
-      data <- data %>% tibble::add_column(weight_type = scorings$weight_type)}
-  } else {
-    data <- data.frame(rsID = scorings$rsID,
-                       # reference_allele = scorings$reference_allele,
-                       effect_allele = scorings$effect_allele,
-                       effect_weight = scorings$effect_weight)
-    if("weight_type" %in% colnames(scorings)){
-      data <- data %>% tibble::add_column(weight_type = scorings$weight_type)}
-  }
-  # If weight_type is present and is equal to "OR" or "HR", convert the effect_weight
-  # to log(effect_weight) to get the beta
-  # This is done row by row in case not all rows have the same weight_type
-  if(!is.null(data$weight_type)){
-    for(i in seq(1, nrow(data))){
-      if(c("OR", "HR") %in% data$weight_type[i]){
-        data$effect_weight[i] <- log(data$effect_weight[i])
-      }
-    }
-    data$weight_type <- NULL
-  }
-  
-  return(data)
-  
-}
-
-
 
 .recodeprs_table <- function(scorings){
   if(c("chr_name", "chr_position") %in% colnames(scorings)){
@@ -245,4 +154,3 @@ ds.PRS <- function(resources, pgs_id = NULL, prs_table = NULL, table = NULL, tab
     return(data)
   }
 }
-

@@ -1,0 +1,163 @@
+---
+title: "Non-disclosive federated omic data analysis of EGA hosted datasets"
+author:
+- name: Xavier Escribà Montagut
+  affiliation:
+  - &isglobal Bioinformatics Research Group in Epidemiolgy (BRGE), Barcelona Insitute for Global Health (ISGlobal)
+  email: xavier.escriba@isglobal.org
+- name: Juan R. Gonzalez
+  affiliation:
+  - &isglobal Bioinformatics Research Group in Epidemiolgy (BRGE), Barcelona Insitute for Global Health (ISGlobal)
+  - &uab Department of Mathematics, Autonomous University of Barcelona (UAB)
+  email: juanr.gonzalez@isglobal.org
+date: "`r Sys.Date()`"
+package: "`r pkg_ver('dsOmics')`"
+output:
+  BiocStyle::html_document:
+    number_sections: true
+    toc: yes
+    fig_caption: yes
+    toc_float: true
+bibliography: ega_Vignette.bib
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Connect DSLite (for writing purposes)
+
+```{r}
+library(dsBase)
+library(dsBaseClient)
+library(resourcer)
+library(DSLite)
+library(dsOmics)
+library(dsOmicsClient)
+
+ceneca <- newResource(
+  name = "ceneca",
+  url = "file://C:/Users/Gerard/OneDrive/ISGlobal/PhD/obiba-home/opal/seed/data/chr22.vcf.gz",
+  format = 'VCF2GDS'
+)
+ceneca_covars <- newResource(
+  name = "ceneca_covars",
+  url = "https://raw.githubusercontent.com/isglobal-brge/brgedata/master/data/ega_synthetic_data_phenotypes.tsv",
+  format = "tsv"
+)
+dslite.server <- newDSLiteServer(resources=list(ceneca = ceneca, ceneca_covars = ceneca_covars),
+                                 config = DSLite::defaultDSConfiguration(include=c("dsBase", "resourcer", "dsOmics")))
+
+builder <- DSI::newDSLoginBuilder()
+builder$append(server = "server1", url = "dslite.server", resource = "ceneca", driver = "DSLiteDriver")
+logindata.dslite.cnsim <- builder$build()
+
+conns <- datashield.login(logindata.dslite.cnsim, assign=T, symbol = "resource")
+datashield.assign.resource(conns, "resource_covars", "ceneca_covars")
+datashield.assign.expr(conns = conns, symbol = "ceneca_vcf", expr = quote(as.resource.object(resource)))
+datashield.assign.expr(conns = conns, symbol = "ceneca_feno", expr = quote(as.resource.data.frame(resource_covars)))
+```
+
+# Connect Opal + Resource creation (????) For release version
+
+```{r}
+library(DSI)
+library(DSOpal)
+library(dsBaseClient)
+library(dsOmicsClient)
+
+builder <- newDSLoginBuilder()
+builder$append(server = "study1", url = "http://localhost:9980/", 
+               user = "dsuser", password = "password", 
+               resource = "RSRC.ceneca_vcf")
+
+logindata <- builder$build()
+
+conns <- datashield.login(logins = logindata, assign = TRUE, 
+                          symbol = "resource")
+datashield.assign.resource(conns, "resource_covars", "RSRC.ceneca_covars")
+datashield.assign.expr(conns = conns, symbol = "ceneca_vcf", expr = quote(as.resource.object(resource)))
+datashield.assign.expr(conns = conns, symbol = "ceneca_feno", expr = quote(as.resource.data.frame(resource_covars)))
+```
+
+
+We need to specify:
+
++ Number of column that holds ID on the covariates table
++ Number of column that holds the sex on the covariates table
++ Encoding of the sex column on the covariates table
+
+```{r}
+ds.colnames("ceneca_feno")
+```
+
+We can see IDcol = 51 and sexcol = 62
+
+Let's search for the sex encoding
+
+```{r}
+ds.table("ceneca_feno$sex")$output.list$TABLES.COMBINED_all.sources_counts
+```
+
+Now we have the information to assemble the GenotypeData structure on the server
+
+```{r}
+ds.GenotypeData(x='ceneca_vcf', covars = 'ceneca_feno', columnId = 51, sexId = 62, 
+                male_encoding = "male", female_encoding = "female", newobj.name = 'gds.Data')
+```
+
+## PCA
+
+```{r}
+ds.PCASNPS("ceneca_vcf")
+```
+
+## Allele Frequency
+
+```{r}
+al_freq <- ds.alleleFrequency("gds.Data")
+```
+
+## Association SNP to Phenotype
+
+```{r}
+ds.varLabels('gds.Data')
+```
+
+
+```{r}
+ds.glmSNP('rs587703534', 'Energy ~  sex', 'gds.Data', family = 'gaussian')
+```
+
+## Stratified Association SNP to Phenotype
+
+```{r}
+ds.glmSNP('rs12008773', "asthma ~ sex", 'gds.Data', family = 'binomial', strata = 'smoke')
+```
+
+
+## Same pero amb regió (Genomic Ranges)
+
+```{r}
+ds.glmSNP(gr2, "asthma ~ sex", 'gds.Data', family = 'binomial')
+```
+
+```{r}
+ds.glmSNP(gr2, "asthma ~ sex", 'gds.Data', family = 'binomial', strata = 'smoke')
+```
+
+
+## GWAS
+
+```{r}
+ds.GWAS('gds.Data', model = asthma ~  age+country, family = 'binomial')
+```
+
+
+```{r}
+datashield.logout(conns)
+```
+

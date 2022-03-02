@@ -1,0 +1,92 @@
+---
+title: "Non-disclosive federated omic data analysis of EGA hosted datasets"
+author:
+- name: Xavier Escribà Montagut
+  affiliation:
+  - &isglobal Bioinformatics Research Group in Epidemiolgy (BRGE), Barcelona Insitute for Global Health (ISGlobal)
+  email: xavier.escriba@isglobal.org
+- name: Juan R. Gonzalez
+  affiliation:
+  - &isglobal Bioinformatics Research Group in Epidemiolgy (BRGE), Barcelona Insitute for Global Health (ISGlobal)
+  - &uab Department of Mathematics, Autonomous University of Barcelona (UAB)
+  email: juanr.gonzalez@isglobal.org
+date: "`r Sys.Date()`"
+package: "`r pkg_ver('dsOmics')`"
+output:
+  BiocStyle::html_document:
+    number_sections: true
+    toc: yes
+    fig_caption: yes
+    toc_float: true
+bibliography: ega_Vignette.bib
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Creating the resources
+
+```{r}
+library(opalr)
+o <- opal.login("administrator","password", 
+                url="https://opal-demo.obiba.org")
+url <- dsOmicsClient::get_EGA_url("EGAF00004199964", 3, 1000, 10000)
+opal.project_create(o, "EGA")
+opal.resource_create(o, "EGA", "EGA_vcf_EGAF00004199964", 
+  url = url, 
+  format = "EGAhtsgetVCF", 
+  identity = "ega-test-data@ebi.ac.uk",
+  secret = "egarocks",
+  package = "dsOmics")
+opal.resource_create(o, "EGA", "EGA_vcf_EGAF00004199964_phenotypes", 
+  url = "https://raw.githubusercontent.com/isglobal-brge/brgedata/master/data/ega_synthetic_data_phenotypes.csv", 
+  format = "csv")
+
+# to test the resource assignment
+opal.assign.resource(o, "client", "EGA.EGA_vcf_EGAF00004199964")
+opal.assign.resource(o, "client", "EGA.EGA_vcf_EGAF00004199964_phenotypes")
+opal.execute(o, "class(client)")
+opal.logout(o)
+```
+
+# Analysis
+
+```{r}
+library(DSOpal)
+library(dsBaseClient)
+library(dsOmicsClient)
+
+# prepare login data and resource to assign
+builder <- DSI::newDSLoginBuilder()
+builder$append(server = "study1", url = "https://opal-demo.obiba.org", 
+               user = "dsuser", password = "password", 
+               resource = "EGA.EGA_vcf_EGAF00004199964_phenotypes", driver = "OpalDriver")
+logindata <- builder$build()
+
+# login and assign resource
+conns <- DSI::datashield.login(logins = logindata, assign = TRUE, 
+                               symbol = "res")
+datashield.assign.expr(conns, symbol = "D", 
+                       expr = quote(as.resource.data.frame(res)))
+datashield.assign.resource(conns, symbol = 'gen_vcf', resource = list(study1 = 'EGA.EGA_vcf_EGAF00004199964'))
+datashield.assign.expr(conns, symbol = "gds", 
+                       expr = quote(as.resource.object(gen_vcf)))
+datashield.logout(conns)
+```
+
+
+## PCA
+
+## Allele Frequency
+
+## Association SNP to Phenotype
+
+## Stratified Association SNP to Phenotype
+
+## Same pero amb regió (Genomic Ranges)
+
+## GWAS

@@ -9,6 +9,14 @@
 #'  but not for sex chromosomes.
 #'
 #' @param genoData \code{character} Name of the \code{\link{GenotypeData}} object on the server
+#' @param type \code{character} (default \code{"combined"}) Type of analysis, if (\code{"split"}), the  
+#' frequencies will be calculated for each study server. If  (\code{"combined"}) 
+#' a pooled methodology will be performed.
+#' @param method \code{character} (default \code{"fast"}) If \code{"fast"} an optimized fast method will 
+#' be used; if \code{"slow"} the function \code{GWASTools::alleleFrequency} will be used, this is notably 
+#' slower.
+#' @param snpBlock \code{integer} (default \code{5000L}) number of SNPs to read at each iteration, 
+#' tune this parameter to improve performance. This argument is only used when \code{method = "fast"}
 #' @param datasources a list of \code{\link{DSConnection-class}} objects obtained after login. 
 #'
 #' @return A \code{data frame} with a row for each SNP. Columns "M" for males, "F" for females, and "all" 
@@ -16,7 +24,7 @@
 #' "n.M", "n.F", and "n", respectively. "MAF" is the minor allele frequency over all scans.
 #' @export
 
-ds.alleleFrequency <- function(genoData, type = c("combined", "split"), method = c("fast", "slow"),
+ds.alleleFrequency <- function(genoData, type = "combined", method = "fast",
                                snpBlock = 5000L, datasources = NULL){
   
   if (is.null(datasources)) {

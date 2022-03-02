@@ -1,0 +1,88 @@
+---
+title: "Non-disclosive federated omic data analysis of EGA hosted RNAseq data"
+author:
+- name: Xavier Escribà Montagut
+  affiliation:
+  - &isglobal Bioinformatics Research Group in Epidemiolgy (BRGE), Barcelona Insitute for Global Health (ISGlobal)
+  email: xavier.escriba@isglobal.org
+- name: Juan R. Gonzalez
+  affiliation:
+  - &isglobal Bioinformatics Research Group in Epidemiolgy (BRGE), Barcelona Insitute for Global Health (ISGlobal)
+  - &uab Department of Mathematics, Autonomous University of Barcelona (UAB)
+  email: juanr.gonzalez@isglobal.org
+date: "`r Sys.Date()`"
+package: "`r pkg_ver('dsOmics')`"
+output:
+  BiocStyle::html_document:
+    number_sections: true
+    toc: yes
+    fig_caption: yes
+    toc_float: true
+bibliography: ega_Vignette.bib
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Connect to server
+
+```{r}
+require('DSI')
+require('DSOpal')
+require('dsBaseClient')
+
+builder <- DSI::newDSLoginBuilder()
+builder$append(server = "study1",
+   url = "https://opal-demo.obiba.org/",
+   user = "dsuser", password = "password",
+   driver = "OpalDriver")
+logindata <- builder$build()
+connections <- DSI::datashield.login(logins = logindata)
+```
+
+# Assign resources and resolve them
+
+```{r}
+# Assign resources to the R session
+datashield.assign.resource(connections, "RNAseq_resource", "RSRC.RNAseq_EGA")
+datashield.assign.resource(connections, "RNAseq_pheno_resource", "RSRC.RNAseq_pheno_EGA")
+# Resolve resources
+datashield.assign.expr(conns = conns, symbol = "RNAseq", expr = quote(as.resource.object(RNAseq_resource)))
+datashield.assign.expr(conns = conns, symbol = "RNAseq_pheno", expr = quote(as.resource.data.frame(RNAseq_pheno_resource)))
+```
+
+#  Create RangedSummarizedExperiment (RSE) with the two tables
+
+In order to create a RSE, the RNAseq file, has to comply with the following:
+
++ First column: Entrez identificator
++ Second column: Annotated symbol
++ All the remaining columns: One col. per individual
+
+```{r}
+ds.colnames('RNAseq_pheno')
+```
+
+The selected resource complies with the requirements. We can now proceed to merge the RNAseq with the phenotypes file into a RSE.
+
+```{r}
+ds.createRSE('RNAseq', 'RNAseq_pheno')
+```
+
+# Study of RSE
+
+```{r}
+ds.dim('RSE')
+name.features <- ds.featureNames("RSE")
+lapply(name.features, head)
+name.vars <- ds.featureData("RSE")
+lapply(name.vars, head, n=15)
+ans.gender <- ds.limma(model =  ~ gender, 
+                       Set = "RSE", type.data = "RNAseq", 
+                       sva = FALSE)
+```
+

@@ -21,7 +21,7 @@ ds.PCA <- function(genoData, snp_subset = TRUE, standardize = TRUE, snpBlock = 2
         DSI::datashield.assign.expr(datasources, paste0("subsetGenoData_", x), 
                                     paste0("subsetGenoDS(c('", genoData[[x]], "'), 'ethnic_snps')"))
       })
-      genoData <- paste("subsetGenoData_", 1:length(genoData))
+      genoData <- paste0("subsetGenoData_", 1:length(genoData))
     } else {
       DSI::datashield.assign.expr(datasources, paste0("subsetGenoData_", 1), 
                                   paste0("subsetGenoDS(c('", genoData[[1]], "'), 'ethnic_snps')"))
@@ -52,9 +52,9 @@ ds.PCA <- function(genoData, snp_subset = TRUE, standardize = TRUE, snpBlock = 2
   
   res <- DSI::datashield.aggregate(datasources, cally)
   
-  # TODO aqui comencar a afegir tot el codi que tinc al servidor de isglobal 
-  # i aplicar els coeficients de standaritzacio si fa falta al llegir el geno data
-  # block by block!!!
+  results <- svd(Reduce(rbind, res))
+  
+  return(results)
   
   
   # TODO remove normalized genotype data on the servers
