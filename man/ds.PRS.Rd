@@ -12,6 +12,7 @@ ds.PRS(
   table_id_column = NULL,
   table_prs_name = NULL,
   snp_threshold = 90,
+  snp_assoc = FALSE,
   datasources = NULL
 )
 }

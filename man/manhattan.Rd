@@ -9,7 +9,7 @@ manhattan(
   featureCol = 1,
   chrCol = 2,
   posCol = 3,
-  pvalCol = 6,
+  pvalCol = 4,
   sig = 5e-08,
   sugg = 1e-06,
   threshold = NA,
