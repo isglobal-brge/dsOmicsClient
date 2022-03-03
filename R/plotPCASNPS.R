@@ -20,6 +20,7 @@ plotPCASNPS <- function(res, group = NULL,
     cally <- paste0('plotPCASNPSDS(', res$set, ',"', group, '")')
     grouping <- as.factor(DSI::datashield.aggregate(datasources, as.symbol(cally))[[1]])
   }
+  
   plt <- ggplot2::ggplot(res[[1]][[1]]) +  # Does plot with results from first study server!
     ggplot2::geom_point(aes_string(x = names(res[[1]][[1]])[xcomp], 
                                    y = names(res[[1]][[1]])[ycomp]))

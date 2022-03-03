@@ -34,6 +34,8 @@ ds.PCA <- function(genoData, snp_subset = TRUE, standardize = TRUE, snpBlock = 2
   # and dsBaseClient:::checkClass(datasources, object) for the genoData objects
   # TODO que es pugui agafar nomes una seleccion de SNPs (correu isglobal amb dolors)
   
+  # TODO Linkage diseq filter!
+  
   if(standardize){
     standard_data <- standardizeGenoData(genoData, datasources)
     toAssign <- paste0("'",paste(unlist(standard_data[,1]), collapse = ","), "'")
@@ -44,19 +46,16 @@ ds.PCA <- function(genoData, snp_subset = TRUE, standardize = TRUE, snpBlock = 2
     DSI::datashield.assign.expr(datasources, "pca_sd_hw", toAssign)
     
     cally <- paste0("PCADS(c(", paste(genoData, collapse = ", ")
-                    ,"), pca_rs, pca_means, pca_sd_hw)")
+                    ,"), pca_rs, pca_means, pca_sd_hw, ", snpBlock, ")")
   } else {
     cally <- paste0("PCADS(c(", paste(genoData, collapse = ", ")
-                    ,"), NULL, NULL, NULL)")
+                    ,"), NULL, NULL, NULL, ", snpBlock, ")")
   }
   
   res <- DSI::datashield.aggregate(datasources, cally)
   
-  results <- svd(Reduce(rbind, res))
+  results <- svd(Reduce(rbind, res))$u
   
-  return(results)
-  
-  
-  # TODO remove normalized genotype data on the servers
-  
+  return(list(res = list(data.frame(results)), set = genoData))
+
 }
