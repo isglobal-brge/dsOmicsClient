@@ -10,10 +10,16 @@
 #' @return \code{ggplot} object with PCA plot (x axis First principal component; y axis Second principal component)
 #' @export
 
-ds.PCASNPS <- function(gds, prune = TRUE, ld.threshold = 0.2, datasources = NULL){
+ds.PCASNPS <- function(gds, snp_subset = TRUE, prune = TRUE, ld.threshold = 0.2, datasources = NULL){
   
   if (is.null(datasources)) {
     datasources <- DSI::datashield.connections_find()
+  }
+  
+  if(snp_subset){
+    DSI::datashield.assign.expr(datasources, paste0("subsetGenoData_", 1), 
+                                paste0("subsetGenoDS('", gds, "', 'ethnic_snps')"))
+    gds <- "subsetGenoData_1"
   }
   
   cally <- paste0("PCASNPSDS(", gds, ", ", as.character(prune), ", ", ld.threshold, ")")

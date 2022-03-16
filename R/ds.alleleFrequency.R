@@ -64,12 +64,16 @@ ds.alleleFrequency <- function(genoData, type = "combined", method = "fast",
     aux_df <- lapply(alFreq, function(x){
       return(data.frame(rs = x$rs, n = x$n, part_MAF = x$n * x$MAF))
     })
-    
     # Check consistency of rs IDs
-    if(!all(Vectorize(identical, "x")(lapply(aux_df, function(x){x$rs}), aux_df[[1]]$rs))){
-      stop("The study servers have different rs ID, not consistent.")
+    common_rs <- Reduce(intersect, lapply(aux_df, function(x){x$rs}))
+    if(length(common_rs) == 0){
+      stop("No common SNPs between the study servers.")
     }
-    
+    # Use only common SNPs for each server
+    aux_df <- lapply(aux_df, function(x){
+      x[x$rs %in% common_rs,]
+    })
+
     # Get sum of n*MAF
     sum_part_MAF <- Reduce("+", lapply(aux_df, function(x){x$part_MAF}))
     
@@ -83,7 +87,7 @@ ds.alleleFrequency <- function(genoData, type = "combined", method = "fast",
     results$pooled_MAF <- results$part_MAF / results$n
 
     # Assemble final results to output
-    alFreq <- as_tibble(results[,c(1,2,4)])
+    alFreq <- tibble::as_tibble(results[,c(1,2,4)])
     
   } else if (!(type %in% c("combined", "split"))){
     stop("Allowed values for argument 'type' are ['combined' or 'split']")

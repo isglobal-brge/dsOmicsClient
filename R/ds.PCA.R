@@ -17,11 +17,16 @@ ds.PCA <- function(genoData, snp_subset = TRUE, standardize = TRUE, snpBlock = 2
   
   if(snp_subset){
     if(length(genoData) > 1){
-      lapply(1:length(genoData), function(x){
-        DSI::datashield.assign.expr(datasources, paste0("subsetGenoData_", x), 
-                                    paste0("subsetGenoDS(c('", genoData[[x]], "'), 'ethnic_snps')"))
-      })
-      genoData <- paste0("subsetGenoData_", 1:length(genoData))
+      assigneds <- unlist(lapply(1:length(genoData), function(x){
+        tryCatch({
+          DSI::datashield.assign.expr(datasources, paste0("subsetGenoData_", x), 
+                                      paste0("subsetGenoDS(c('", genoData[[x]], "'), 'ethnic_snps')"))
+          x
+        }, error = function(w){
+          message('[',genoData[[x]], '] Geno file could not be subsetted because of disclosue risk')
+        })
+      }))
+      genoData <- paste0("subsetGenoData_", assigneds)
     } else {
       DSI::datashield.assign.expr(datasources, paste0("subsetGenoData_", 1), 
                                   paste0("subsetGenoDS(c('", genoData[[1]], "'), 'ethnic_snps')"))
@@ -51,10 +56,11 @@ ds.PCA <- function(genoData, snp_subset = TRUE, standardize = TRUE, snpBlock = 2
     cally <- paste0("PCADS(c(", paste(genoData, collapse = ", ")
                     ,"), NULL, NULL, NULL, ", snpBlock, ")")
   }
-  
+  # browser()
   res <- DSI::datashield.aggregate(datasources, cally)
   
-  results <- svd(Reduce(rbind, res))$u
+  # results <- svd(Reduce(rbind, res))$u
+  results <- svd(Reduce(cbind, res))$u
   
   return(list(res = list(data.frame(results)), set = genoData))
 
