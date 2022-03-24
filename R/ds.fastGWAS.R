@@ -32,7 +32,8 @@
 #' @export
 #'
 
-ds.fastGWAS <- function(genoData, formula, family, do.par = FALSE, n.cores = NULL, snpBlock = 20000L, datasources = NULL){
+ds.fastGWAS <- function(genoData, formula, family, do.par = FALSE, n.cores = NULL, 
+                        snpBlock = 20000L, resample = 1L, datasources = NULL){
 
   if (is.null(datasources)) {
     datasources <- DSI::datashield.connections_find()
@@ -97,72 +98,102 @@ ds.fastGWAS <- function(genoData, formula, family, do.par = FALSE, n.cores = NUL
   ds.make(toAssign = paste0("YY_fastGWAS - ", mean_yy),
           newobj = "YC_fastGWAS",
           datasources = datasources)
-
-  if(length(datasources) > 1){
-    # Get the colsums and crossprod all at once
-    fastGWAS_S1_S2_BetaDEN1 <- Reduce(c, DSI::datashield.aggregate(datasources,
-                                                                   paste0("fastGWAS_ColSums(table1 = YC_fastGWAS, geno = S_fastGWAS, do.par = ",
-                                                                          if(do.par){"TRUE"}else{"FALSE"}, ", n.cores = ",
-                                                                          if(is.null(n.cores)){"NULL"}else{n.cores}, ", ",
-                                                                          "type = 'GWASsums', pheno = PHENO_fastGWAS, means = Smeans_fastGWAS)")))
-    # Extract the results into three different variables
-    fastGWAS_S1_S2_BetaDEN1a <- data.frame(fastGWAS_S1_S2_BetaDEN1)
-    cmd <- parse(text = paste0("c('",paste(colnames(fastGWAS_S1_S2_BetaDEN1a)
-                                           [grepl("^crossprod", colnames(fastGWAS_S1_S2_BetaDEN1a))],
-                                           collapse = "','"),"')"))
-    b <- rowSums(fastGWAS_S1_S2_BetaDEN1a[,eval(cmd)])
-    cmd <- parse(text = paste0("c('",paste(colnames(fastGWAS_S1_S2_BetaDEN1a)
-                                           [grepl("^sums", colnames(fastGWAS_S1_S2_BetaDEN1a))],
-                                           collapse = "','"),"')"))
-    S1_fastGWAS <- rowSums(fastGWAS_S1_S2_BetaDEN1a[,eval(cmd)])
-    cmd <- parse(text = paste0("c('",paste(colnames(fastGWAS_S1_S2_BetaDEN1a)
-                                           [grepl("^squared_sums", colnames(fastGWAS_S1_S2_BetaDEN1a))],
-                                           collapse = "','"),"')"))
-    S2_fastGWAS <- rowSums(fastGWAS_S1_S2_BetaDEN1a[,eval(cmd)])
+  
+  # Get results
+  results <- lapply(1:resample, function(x){
+    if(length(datasources) > 1){
+      # Get the colsums and crossprod all at once
+      fastGWAS_S1_S2_BetaDEN1 <- Reduce(c, DSI::datashield.aggregate(datasources,
+                                                                     paste0("fastGWAS_ColSums(table1 = YC_fastGWAS, geno = S_fastGWAS, do.par = ",
+                                                                            if(do.par){"TRUE"}else{"FALSE"}, ", n.cores = ",
+                                                                            if(is.null(n.cores)){"NULL"}else{n.cores}, ", ",
+                                                                            "type = 'GWASsums', pheno = PHENO_fastGWAS, means = Smeans_fastGWAS)")))
+      # Extract the results into three different variables
+      fastGWAS_S1_S2_BetaDEN1a <- data.frame(fastGWAS_S1_S2_BetaDEN1)
+      cmd <- parse(text = paste0("c('",paste(colnames(fastGWAS_S1_S2_BetaDEN1a)
+                                             [grepl("^crossprod", colnames(fastGWAS_S1_S2_BetaDEN1a))],
+                                             collapse = "','"),"')"))
+      b <- rowSums(fastGWAS_S1_S2_BetaDEN1a[,eval(cmd)])
+      cmd <- parse(text = paste0("c('",paste(colnames(fastGWAS_S1_S2_BetaDEN1a)
+                                             [grepl("^sums", colnames(fastGWAS_S1_S2_BetaDEN1a))],
+                                             collapse = "','"),"')"))
+      S1_fastGWAS <- rowSums(fastGWAS_S1_S2_BetaDEN1a[,eval(cmd)])
+      cmd <- parse(text = paste0("c('",paste(colnames(fastGWAS_S1_S2_BetaDEN1a)
+                                             [grepl("^squared_sums", colnames(fastGWAS_S1_S2_BetaDEN1a))],
+                                             collapse = "','"),"')"))
+      S2_fastGWAS <- rowSums(fastGWAS_S1_S2_BetaDEN1a[,eval(cmd)])
+    } else {
+      # Get the colsums and crossprod all at once
+      fastGWAS_S1_S2_BetaDEN1 <- DSI::datashield.aggregate(datasources,
+                                                           paste0("fastGWAS_ColSums(table1 = YC_fastGWAS, geno = S_fastGWAS, do.par = ",
+                                                                  if(do.par){"TRUE"}else{"FALSE"}, ", n.cores = ",
+                                                                  if(is.null(n.cores)){"NULL"}else{n.cores}, ", ",
+                                                                  "type = 'GWASsums', pheno = PHENO_fastGWAS, means = Smeans_fastGWAS)"))[[1]]
+      # Extract the results into three different variables
+      b <- fastGWAS_S1_S2_BetaDEN1$crossprod
+      S1_fastGWAS <- fastGWAS_S1_S2_BetaDEN1$sums
+      S2_fastGWAS <- fastGWAS_S1_S2_BetaDEN1$squared_sums
+    }
+    
+    # Get number of individuals
+    N_IND <- ds.length("YC_fastGWAS", "combine", datasources = datasources)[[1]]
+    
+    # Get DEN1
+    DEN1 <- S2_fastGWAS - (S1_fastGWAS ^ 2) / N_IND
+    
+    # Get betas
+    B <- b / DEN1
+    
+    # Get sum of YC_fastGWAS squared
+    YC_sum_squared <- Reduce("+", DSI::datashield.aggregate(datasources,
+                                                            "fastGWAS_ColSums(YC_fastGWAS, 'square_vect')"))
+    
+    # Compute sigma squared
+    SIG <- (YC_sum_squared - B ^ 2 * DEN1) / (N_IND-k-2)
+    
+    # Compute error
+    ERR <- sqrt(SIG * (1/DEN1))
+    
+    # Compute pvalues
+    PVAL <- 2 * pnorm(-abs(B / ERR))
+    
+    # Get genotype information to complete GWAS results table to fit ds.GWAS output
+    rs <- DSI::datashield.aggregate(datasources[1], paste0("getVariable(c(", paste(genoData, collapse = ","), "), 'snp.rs.id')"))[[1]]
+    alleles <- DSI::datashield.aggregate(datasources[1], paste0("getVariable(c(", paste(genoData, collapse = ","), "), 'snp.allele')"))[[1]]
+    position <- DSI::datashield.aggregate(datasources[1], paste0("getVariable(c(", paste(genoData, collapse = ","), "), 'snp.position')"))[[1]]
+    chromosome <- DSI::datashield.aggregate(datasources[1], paste0("getVariable(c(", paste(genoData, collapse = ","), "), 'snp.chromosome')"))[[1]]
+    ref_allele <- substring(alleles, 1, 1)
+    alt_allele <- substring(alleles, 3, 3)
+    
+    # Gather information and return ordered by p.value
+    return(tibble(rs = rs, chr = chromosome, pos = position, p.value = PVAL, Est = B, Est.SE = ERR,
+                  ref_allele = ref_allele, alt_allele = alt_allele))
+  })
+  
+  if(length(results) == 1){
+    return(results[[1]] %>% arrange(p.value))
   } else {
-    # Get the colsums and crossprod all at once
-    fastGWAS_S1_S2_BetaDEN1 <- DSI::datashield.aggregate(datasources,
-                                                         paste0("fastGWAS_ColSums(table1 = YC_fastGWAS, geno = S_fastGWAS, do.par = ",
-                                                                if(do.par){"TRUE"}else{"FALSE"}, ", n.cores = ",
-                                                                if(is.null(n.cores)){"NULL"}else{n.cores}, ", ",
-                                                                "type = 'GWASsums', pheno = PHENO_fastGWAS, means = Smeans_fastGWAS)"))[[1]]
-    # Extract the results into three different variables
-    b <- fastGWAS_S1_S2_BetaDEN1$crossprod
-    S1_fastGWAS <- fastGWAS_S1_S2_BetaDEN1$sums
-    S2_fastGWAS <- fastGWAS_S1_S2_BetaDEN1$squared_sums
+    results <- Reduce(function(x, y) merge(x, y, by="rs"), results)
+    cmd <- parse(text = paste0("c('",paste(colnames(results)
+                                           [grepl("^p.value", colnames(results))],
+                                           collapse = "','"),"')"))
+    pvalues <- results[,eval(cmd)]
+    median_pvalues <- matrixStats::rowMedians(as.matrix(pvalues))
+    
+    cmd <- parse(text = paste0("c('",paste(colnames(results)
+                                           [grepl("^Est.[^SE]", colnames(results))],
+                                           collapse = "','"),"')"))
+    ests <- results[,eval(cmd)]
+    median_ests <- matrixStats::rowMedians(as.matrix(ests))
+    cmd <- parse(text = paste0("c('",paste(colnames(results)
+                                           [grepl("^Est.[!SE]", colnames(results))],
+                                           collapse = "','"),"')"))
+    estsSE <- results[,eval(cmd)]
+    median_estsSE <- matrixStats::rowMedians(as.matrix(estsSE))
+    
+    final_table <- tibble(rs = results$rs, chr = results$chr.x, pos = results$pos.x,
+                          p.value = median_pvalues, Est = median_ests, Est.SE = median_estsSE,
+                          ref_allele = results$ref_allele.x, alt_allele = results$alt_allele.x) %>% arrange(median_pvalues)
+    return(final_table)
   }
-
-  # Get number of individuals
-  N_IND <- ds.length("YC_fastGWAS", "combine", datasources = datasources)[[1]]
-
-  # Get DEN1
-  DEN1 <- S2_fastGWAS - (S1_fastGWAS ^ 2) / N_IND
-
-  # Get betas
-  B <- b / DEN1
-
-  # Get sum of YC_fastGWAS squared
-  YC_sum_squared <- Reduce("+", DSI::datashield.aggregate(datasources,
-                                                          "fastGWAS_ColSums(YC_fastGWAS, 'square_vect')"))
-
-  # Compute sigma squared
-  SIG <- (YC_sum_squared - B ^ 2 * DEN1) / (N_IND-k-2)
-
-  # Compute error
-  ERR <- sqrt(SIG * (1/DEN1))
-
-  # Compute pvalues
-  PVAL <- 2 * pnorm(-abs(B / ERR))
-
-  # Get genotype information to complete GWAS results table to fit ds.GWAS output
-  rs <- DSI::datashield.aggregate(datasources[1], paste0("getVariable(c(", paste(genoData, collapse = ","), "), 'snp.rs.id')"))[[1]]
-  alleles <- DSI::datashield.aggregate(datasources[1], paste0("getVariable(c(", paste(genoData, collapse = ","), "), 'snp.allele')"))[[1]]
-  position <- DSI::datashield.aggregate(datasources[1], paste0("getVariable(c(", paste(genoData, collapse = ","), "), 'snp.position')"))[[1]]
-  chromosome <- DSI::datashield.aggregate(datasources[1], paste0("getVariable(c(", paste(genoData, collapse = ","), "), 'snp.chromosome')"))[[1]]
-  ref_allele <- substring(alleles, 1, 1)
-  alt_allele <- substring(alleles, 3, 3)
-
-  # Gather information and return ordered by p.value
-  return(tibble(rs = rs, chr = chromosome, pos = position, p.value = PVAL, Est = B, Est.SE = ERR,
-                ref_allele = ref_allele, alt_allele = alt_allele) %>% arrange(p.value))
 }

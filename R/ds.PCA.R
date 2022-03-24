@@ -9,12 +9,14 @@
 #' @export
 #'
 #' @examples
-ds.PCA <- function(genoData, snp_subset = TRUE, standardize = TRUE, snpBlock = 20000L, datasources = NULL){
+ds.PCA <- function(genoData, snp_subset = TRUE, standardize = TRUE, snpBlock = 20000L, ncomp = 5L, datasources = NULL){
   
   if (is.null(datasources)) {
     datasources <- DSI::datashield.connections_find()
   }
-  
+  # Aux variable
+  genoData_og <- genoData
+  #
   if(snp_subset){
     if(length(genoData) > 1){
       assigneds <- unlist(lapply(1:length(genoData), function(x){
@@ -34,10 +36,11 @@ ds.PCA <- function(genoData, snp_subset = TRUE, standardize = TRUE, snpBlock = 2
     }
   }
 
-  # TODO comprobar que els geno files segueixen el mateix ordre?? rollo que les column i files estan alineades
+  # TODO comprobar que els geno files segueixen el mateix ordre?? rollo que les column i files estan alineades,
+  # mateixos individuals i tal
+
   # TODO Add dsBaseClient:::isDefined(datasources, object)
   # and dsBaseClient:::checkClass(datasources, object) for the genoData objects
-  # TODO que es pugui agafar nomes una seleccion de SNPs (correu isglobal amb dolors)
   
   # TODO Linkage diseq filter!
   
@@ -56,12 +59,30 @@ ds.PCA <- function(genoData, snp_subset = TRUE, standardize = TRUE, snpBlock = 2
     cally <- paste0("PCADS(c(", paste(genoData, collapse = ", ")
                     ,"), NULL, NULL, NULL, ", snpBlock, ")")
   }
-  # browser()
   res <- DSI::datashield.aggregate(datasources, cally)
   
-  # results <- svd(Reduce(rbind, res))$u
-  results <- svd(Reduce(cbind, res))$u
+  partial_svd <- t(Reduce("cbind", res))
+  total_svd <- svd(partial_svd)$v
+  if(ncol(total_svd) < ncomp) {
+    message('[ncomp] is too large, fixed to: ', ncol(total_svd))
+    ncomp <- ncol(total_svd)
+  }
   
-  return(list(res = list(data.frame(results)), set = genoData))
+  # TODO que el symbol no sigui genoPCA_results, sino que busqui als servidors si existeix
+  # genoPCA_results_X i incrementi el numero per no machacar resultats ??
+  
+  DSI::datashield.assign.expr(datasources, "genoPCA_results", 
+                              paste0("geno_pca_pooled_addPCDS(c(", paste(genoData, collapse = ", "), 
+                                     "), c(", paste(unlist(total_svd[,1:ncomp]), collapse = ", "), 
+                                     "), ", ncomp,")"))
+  
+  lapply(genoData_og, function(x){
+    # TODO check here que els genoData_og siguin GenotypeData!!!! if not no fer aquest step!!
+    DSI::datashield.assign.expr(datasources, x, paste0("geno_pca_pooled_addPC2GenoDS(",
+                                                       x, ", ", "genoPCA_results", ")"))
+  })
+  
+  
+  return(list(pca_res = "genoPCA_results", geno = genoData))
 
 }

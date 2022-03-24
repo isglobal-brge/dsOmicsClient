@@ -19,11 +19,12 @@ plotPCASNPS <- function(res, group = NULL,
     }
     cally <- paste0('plotPCASNPSDS(', res$set, ',"', group, '")')
     grouping <- as.factor(DSI::datashield.aggregate(datasources, as.symbol(cally))[[1]])
+    # res[[1]][[1]]$grouping <- grouping
   }
-  
+  # browser()
   plt <- ggplot2::ggplot(res[[1]][[1]]) +  # Does plot with results from first study server!
     ggplot2::geom_point(ggplot2::aes_string(x = names(res[[1]][[1]])[xcomp], 
                                    y = names(res[[1]][[1]])[ycomp]))
-  if(!is.null(group)){plt <- plt + ggplot2::aes(color = grouping)}
+  if(!is.null(group)){plt <- plt + ggplot2::aes(color = )}
   plt
 }

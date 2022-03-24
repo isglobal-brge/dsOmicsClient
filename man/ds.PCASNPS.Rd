@@ -4,7 +4,13 @@
 \alias{ds.PCASNPS}
 \title{Principal Component Analysis (PCA) on SNP genotype data}
 \usage{
-ds.PCASNPS(gds, prune = TRUE, ld.threshold = 0.2, datasources = NULL)
+ds.PCASNPS(
+  gds,
+  snp_subset = TRUE,
+  prune = TRUE,
+  ld.threshold = 0.2,
+  datasources = NULL
+)
 }
 \arguments{
 \item{gds}{\code{character} Name of the \code{GDS} object}
