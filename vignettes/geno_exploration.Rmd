@@ -1,0 +1,6 @@
+---
+title: "OmicSHIELD bookdown"
+output: html_notebook
+---
+
+For all the information regarding the dsOmics / dsOmicsClient packages, examples and detailed information, please read the [OmicSHIELD bookdown](https://isglobal-brge.github.io/OmicSHIELD/).

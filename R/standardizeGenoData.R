@@ -11,7 +11,7 @@ standardizeGenoData <- function(genoData, datasources){
   # TODO this is an internal function! no need to search datasources etc.
 
   # Get alternate allele frequencies for each SNP
-  allel_freqs <- ds.alleleFrequency(genoData, type = "combined", fast = TRUE, datasources = datasources)
+  allel_freqs <- ds.alleleFrequency(genoData, type = "combined", datasources = datasources)
 
   # Calculate mean using alternate allele freq. Mean = 2 * MAF
   means <- allel_freqs$pooled_MAF * 2

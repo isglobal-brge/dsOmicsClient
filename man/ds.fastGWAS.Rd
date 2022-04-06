@@ -11,6 +11,7 @@ ds.fastGWAS(
   do.par = FALSE,
   n.cores = NULL,
   snpBlock = 20000L,
+  resample = 1L,
   datasources = NULL
 )
 }

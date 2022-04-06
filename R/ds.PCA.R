@@ -16,34 +16,33 @@ ds.PCA <- function(genoData, snp_subset = TRUE, standardize = TRUE, snpBlock = 2
   }
   # Aux variable
   genoData_og <- genoData
-  #
+  classes <- ds.class(genoData_og, datasources)
+  if(!all(unlist(classes) == "GenotypeData")){
+    stop("[genoData] objects must all be `GenotypeData` objects")
+  }
+  
+  # Temp name
+  tfile <- substring(tempfile(pattern = "", tmpdir = ""), 2)
+  
   if(snp_subset){
     if(length(genoData) > 1){
       assigneds <- unlist(lapply(1:length(genoData), function(x){
         tryCatch({
-          DSI::datashield.assign.expr(datasources, paste0("subsetGenoData_", x), 
+          DSI::datashield.assign.expr(datasources, paste0("subsetGenoData_", x, tfile), 
                                       paste0("subsetGenoDS(c('", genoData[[x]], "'), 'ethnic_snps')"))
           x
         }, error = function(w){
           message('[',genoData[[x]], '] Geno file could not be subsetted because of disclosue risk')
         })
       }))
-      genoData <- paste0("subsetGenoData_", assigneds)
+      genoData <- paste0("subsetGenoData_", assigneds, tfile)
     } else {
-      DSI::datashield.assign.expr(datasources, paste0("subsetGenoData_", 1), 
+      DSI::datashield.assign.expr(datasources, paste0("subsetGenoData_", 1, tfile), 
                                   paste0("subsetGenoDS(c('", genoData[[1]], "'), 'ethnic_snps')"))
-      genoData <- "subsetGenoData_1"
+      genoData <- paste0("subsetGenoData_", 1, tfile)
     }
   }
 
-  # TODO comprobar que els geno files segueixen el mateix ordre?? rollo que les column i files estan alineades,
-  # mateixos individuals i tal
-
-  # TODO Add dsBaseClient:::isDefined(datasources, object)
-  # and dsBaseClient:::checkClass(datasources, object) for the genoData objects
-  
-  # TODO Linkage diseq filter!
-  
   if(standardize){
     standard_data <- standardizeGenoData(genoData, datasources)
     toAssign <- paste0("'",paste(unlist(standard_data[,1]), collapse = ","), "'")
@@ -68,21 +67,17 @@ ds.PCA <- function(genoData, snp_subset = TRUE, standardize = TRUE, snpBlock = 2
     ncomp <- ncol(total_svd)
   }
   
-  # TODO que el symbol no sigui genoPCA_results, sino que busqui als servidors si existeix
-  # genoPCA_results_X i incrementi el numero per no machacar resultats ??
-  
-  DSI::datashield.assign.expr(datasources, "genoPCA_results", 
+  DSI::datashield.assign.expr(datasources, paste0("genoPCA_results", tfile), 
                               paste0("geno_pca_pooled_addPCDS(c(", paste(genoData, collapse = ", "), 
                                      "), c(", paste(unlist(total_svd[,1:ncomp]), collapse = ", "), 
                                      "), ", ncomp,")"))
   
   lapply(genoData_og, function(x){
-    # TODO check here que els genoData_og siguin GenotypeData!!!! if not no fer aquest step!!
     DSI::datashield.assign.expr(datasources, x, paste0("geno_pca_pooled_addPC2GenoDS(",
-                                                       x, ", ", "genoPCA_results", ")"))
+                                                       x, ", ", paste0("genoPCA_results", tfile), ")"))
   })
   
   
-  return(list(pca_res = "genoPCA_results", geno = genoData))
+  return(list(pca_res = paste0("genoPCA_results", tfile), geno = genoData))
 
 }

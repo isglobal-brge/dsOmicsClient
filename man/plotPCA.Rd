@@ -4,11 +4,9 @@
 \alias{plotPCA}
 \title{Plot the results of a \code{ds.PCA()}}
 \usage{
-plotPCA(res, group = NULL, xcomp = 1, ycomp = 2, datasources = NULL)
+plotPCA(object, group = NULL, xcomp = 1, ycomp = 2, datasources = NULL)
 }
 \arguments{
-\item{res}{\code{PCASNPS} Object returned from \code{ds.PCASNPS()}}
-
 \item{group}{}
 
 \item{xcomp}{\code{numeric} Principal component to plot on the X axis}
@@ -16,6 +14,8 @@ plotPCA(res, group = NULL, xcomp = 1, ycomp = 2, datasources = NULL)
 \item{ycomp}{\code{numeric} Principal component to plot on the Y axis}
 
 \item{datasources}{}
+
+\item{res}{\code{PCASNPS} Object returned from \code{ds.PCASNPS()}}
 
 \item{geno}{}
 }

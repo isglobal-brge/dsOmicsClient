@@ -9,6 +9,7 @@ ds.PCA(
   snp_subset = TRUE,
   standardize = TRUE,
   snpBlock = 20000L,
+  ncomp = 5L,
   datasources = NULL
 )
 }
