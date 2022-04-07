@@ -2,29 +2,36 @@
 % Please edit documentation in R/ds.PCA.R
 \name{ds.PCA}
 \alias{ds.PCA}
-\title{Title}
+\title{Principal Component Analysis (PCA) on SNP genotype data}
 \usage{
 ds.PCA(
   genoData,
   snp_subset = TRUE,
   standardize = TRUE,
-  snpBlock = 20000L,
   ncomp = 5L,
   datasources = NULL
 )
 }
 \arguments{
-\item{genoData}{}
+\item{genoData}{\code{character} Name of the \code{GenotypeData} object on the server}
 
-\item{standardize}{}
+\item{snp_subset}{\code{bool} (default \code{TRUE}) Use only SNPs that have been linked to ethnic groups}
 
-\item{snpBlock}{}
+\item{standardize}{\code{bool} (default \code{TRUE}) Standardize the genotype data before performing the analysis}
 
-\item{datasources}{}
+\item{ncomp}{\code{integer} (default \code{5L}) Number of principal components to compute}
+
+\item{datasources}{a list of \code{\link{DSConnection-class}} objects obtained after login}
 }
 \value{
-
+Returns \code{list} with the names of the objects created on the server side that will be used if the principal 
+components are to be plotted
 }
 \description{
-Title
+PCA for genotype data on the study server
+}
+\details{
+Pooled method implemented using block method ("Parallel Algorithms for the Singular Value Decomposition." Berry et al. 2005). 
+The \code{snp_subset} option uses gene regions that have been linked to ethnic groupings, it is suggested to use this option to optimize 
+the computing time and get noise-less principal components.
 }

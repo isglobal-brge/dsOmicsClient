@@ -40,9 +40,9 @@ devtools::install_github('isglobal-brge/dsOmicsClient@v1.0.5')
 
 # Usage:
 
-* see vignettes   
+* see bookdown   
 
-* https://htmlpreview.github.io/?https://github.com/isglobal-brge/dsOmicsClient/blob/master/vignettes/dsOmics.html
+* https://isglobal-brge.github.io/OmicSHIELD/
 
 # Acknowledgements
 

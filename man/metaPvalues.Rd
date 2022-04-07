@@ -4,12 +4,10 @@
 \alias{metaPvalues}
 \title{Meta-analysis of p-values}
 \usage{
-metaPvalues(x, ...)
+metaPvalues(x)
 }
 \arguments{
 \item{x}{a \code{dsOmics} object obtained from \code{ds.limma}, \code{ds.GWAS} or \code{ds.PLINK} functions applied o 2 or more studies}
-
-\item{...}{other arguments of \code{fitNullModel} function in GENESIS package}
 }
 \value{
 a matrix with features p-values of each study and its combination

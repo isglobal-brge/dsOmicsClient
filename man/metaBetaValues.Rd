@@ -2,16 +2,16 @@
 % Please edit documentation in R/metaBetaValues.R
 \name{metaBetaValues}
 \alias{metaBetaValues}
-\title{Title}
+\title{Meta-analysis of beta values}
 \usage{
 metaBetaValues(x)
 }
 \arguments{
-\item{x}{}
+\item{x}{a \code{dsOmics} object obtained from \code{ds.limma}, \code{ds.GWAS} or \code{ds.PLINK} functions applied o 2 or more studies}
 }
 \value{
-
+a matrix with features p-values of each study and its combination
 }
 \description{
-Title
+Meta-analysis of beta values
 }

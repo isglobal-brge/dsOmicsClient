@@ -2,18 +2,18 @@
 % Please edit documentation in R/standardizeGenoData.R
 \name{standardizeGenoData}
 \alias{standardizeGenoData}
-\title{Title}
+\title{Get standaridization coefficients of Genotype data}
 \usage{
 standardizeGenoData(genoData, datasources)
 }
 \arguments{
-\item{genoData}{}
+\item{genoData}{\code{character} Name of the \code{GenotypeData} object on the server}
 
-\item{datasources}{}
+\item{datasources}{a list of \code{DSConnection-class} objects obtained after login}
 }
 \value{
-
+\code{list} with means and SD of HWE
 }
 \description{
-Title
+Get standaridization coefficients of Genotype data
 }

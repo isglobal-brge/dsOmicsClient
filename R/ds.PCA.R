@@ -1,15 +1,22 @@
-#' Title
+#' @title Principal Component Analysis (PCA) on SNP genotype data
+#' 
+#' @description PCA for genotype data on the study server
+#' 
+#' @details Pooled method implemented using block method ("Parallel Algorithms for the Singular Value Decomposition." Berry et al. 2005). 
+#' The \code{snp_subset} option uses gene regions that have been linked to ethnic groupings, it is suggested to use this option to optimize 
+#' the computing time and get noise-less principal components. 
 #'
-#' @param genoData 
-#' @param standardize 
-#' @param snpBlock 
-#' @param datasources 
+#' @param genoData \code{character} Name of the \code{GenotypeData} object on the server
+#' @param snp_subset \code{bool} (default \code{TRUE}) Use only SNPs that have been linked to ethnic groups
+#' @param standardize \code{bool} (default \code{TRUE}) Standardize the genotype data before performing the analysis
+#' @param ncomp \code{integer} (default \code{5L}) Number of principal components to compute
+#' @param datasources a list of \code{\link{DSConnection-class}} objects obtained after login
 #'
-#' @return
+#' @return Returns \code{list} with the names of the objects created on the server side that will be used if the principal 
+#' components are to be plotted
 #' @export
-#'
-#' @examples
-ds.PCA <- function(genoData, snp_subset = TRUE, standardize = TRUE, snpBlock = 20000L, ncomp = 5L, datasources = NULL){
+
+ds.PCA <- function(genoData, snp_subset = TRUE, standardize = TRUE, ncomp = 5L, datasources = NULL){
   
   if (is.null(datasources)) {
     datasources <- DSI::datashield.connections_find()
@@ -53,10 +60,10 @@ ds.PCA <- function(genoData, snp_subset = TRUE, standardize = TRUE, snpBlock = 2
     DSI::datashield.assign.expr(datasources, "pca_sd_hw", toAssign)
     
     cally <- paste0("PCADS(c(", paste(genoData, collapse = ", ")
-                    ,"), pca_rs, pca_means, pca_sd_hw, ", snpBlock, ")")
+                    ,"), pca_rs, pca_means, pca_sd_hw", ")")
   } else {
     cally <- paste0("PCADS(c(", paste(genoData, collapse = ", ")
-                    ,"), NULL, NULL, NULL, ", snpBlock, ")")
+                    ,"), NULL, NULL, NULL", ")")
   }
   res <- DSI::datashield.aggregate(datasources, cally)
   

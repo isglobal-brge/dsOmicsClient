@@ -3,9 +3,8 @@
 #' @param res \code{PCASNPS} Object returned from \code{ds.PCASNPS()}
 #' @param xcomp \code{numeric} Principal component to plot on the X axis
 #' @param ycomp \code{numeric} Principal component to plot on the Y axis
-#' @param group 
-#' @param geno 
-#' @param datasources 
+#' @param group \code{character} Grouping variable
+#' @param datasources a list of \code{\link{DSConnection-class}} objects obtained after login
 #'
 #' @return \code{ggplot} object
 #' @export
@@ -23,7 +22,7 @@ plotPCA <- function(object, group = NULL, xcomp = 1, ycomp = 2, datasources = NU
   dev.off()
   
   if(!is.null(group)){
-    cally <- paste0('plotPCADS(', object$pca_res, ', ', object$geno[1],', "', group, '")') # Assumes all geno objects share same phenotypes file
+    cally <- paste0('plotPCADS(', object$geno[1],', "', group, '")') # Assumes all geno objects share same phenotypes file
     res <- Reduce(c, datashield.aggregate(datasources, cally))
     grouping <- as.factor(res)
     plt <- ggplot2::ggplot(data.frame(data$pooled.coordinates)) +  

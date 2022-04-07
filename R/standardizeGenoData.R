@@ -1,11 +1,11 @@
-#' Title
+#' @title Get standaridization coefficients of Genotype data
+#' 
 #'
-#' @param genoData 
-#' @param datasources 
+#' @param genoData \code{character} Name of the \code{GenotypeData} object on the server
+#' @param datasources a list of \code{DSConnection-class} objects obtained after login
 #'
-#' @return
-#'
-#' @examples
+#' @return \code{list} with means and SD of HWE
+
 standardizeGenoData <- function(genoData, datasources){
 
   # TODO this is an internal function! no need to search datasources etc.

@@ -2,20 +2,21 @@
 % Please edit documentation in R/ds.table_gds.R
 \name{ds.table_gds}
 \alias{ds.table_gds}
-\title{Title}
+\title{Contingency tables of phenotypes}
 \usage{
 ds.table_gds(gds, variable, datasources = NULL)
 }
 \arguments{
-\item{gds}{}
+\item{gds}{\code{character} Name of the \code{GenotypeData} object on the server}
 
-\item{variable}{}
+\item{variable}{\code{character} Phenotype variable to get the contingency table}
 
-\item{datasources}{}
+\item{datasources}{a list of \code{DSConnection-class} objects obtained after login}
 }
 \value{
-
+Results of the \code{dsBaseClient::ds.table}
 }
 \description{
-Title
+Wrapper of the \code{dsBaseClient::ds.table} to directly use the phenotype data stored on a 
+\code{GenotypeData} object on the server
 }
