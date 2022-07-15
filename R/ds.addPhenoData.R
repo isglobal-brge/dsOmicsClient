@@ -21,7 +21,7 @@
 #' \code{FALSE} all the individuals on the input ExpressionSet will be on the output ExpressionSet
 #' @param datasources a list of \code{\link{DSConnection-class}} (default \code{NULL}) objects obtained after login
 #'
-#' @return This function does not have an output. It creates (or overwrites) a data frame on the study server.
+#' @return This function does not have an output. It creates an eSet object on the study server.
 #' @export
 
 ds.addPhenoData2eSet <- function(x, pheno, identifier = "ID", alternate_eset_id = NULL,

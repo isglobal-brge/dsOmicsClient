@@ -7,17 +7,15 @@
 plotPCA(object, group = NULL, xcomp = 1, ycomp = 2, datasources = NULL)
 }
 \arguments{
-\item{group}{}
+\item{group}{\code{character} Grouping variable}
 
 \item{xcomp}{\code{numeric} Principal component to plot on the X axis}
 
 \item{ycomp}{\code{numeric} Principal component to plot on the Y axis}
 
-\item{datasources}{}
+\item{datasources}{a list of \code{\link{DSConnection-class}} objects obtained after login}
 
 \item{res}{\code{PCASNPS} Object returned from \code{ds.PCASNPS()}}
-
-\item{geno}{}
 }
 \value{
 \code{ggplot} object

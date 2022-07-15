@@ -18,6 +18,7 @@ ds.limma(
   normalization = "none",
   voomQualityWeights = FALSE,
   big = FALSE,
+  sort.by = "none",
   datasources = NULL
 )
 }

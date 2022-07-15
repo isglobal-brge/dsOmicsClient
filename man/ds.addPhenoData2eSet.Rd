@@ -36,7 +36,7 @@ between the ExpressionSet and the phenotypes table will be included on the resul
 \item{datasources}{a list of \code{\link{DSConnection-class}} (default \code{NULL}) objects obtained after login}
 }
 \value{
-This function does not have an output. It creates (or overwrites) a data frame on the study server.
+This function does not have an output. It creates an eSet object on the study server.
 }
 \description{
 Add new phenotype data contained on a data.frame to an ExpressionSet. The ExpressionSet
