@@ -48,7 +48,7 @@ ds.addPhenoData2eSet <- function(x, pheno, identifier = "ID", alternate_eset_id 
   
   cally <- paste0("addPhenoDataDS(", x, ", ", pheno, ", '", identifier, "', ", 
                   if(is.null(alternate_eset_id)){"NULL, "}else{paste0("'",alternate_eset_id,"', ")},
-                  complete_cases, ", ", force, ")")
+                  complete_cases, ")")
   DSI::datashield.assign.expr(datasources, newobj.name, as.symbol(cally))
   
 }
