@@ -19,13 +19,15 @@
 #' @param complete_cases \code{bool} (default \code{TRUE}) If \code{TRUE} only the matching individuals 
 #' between the ExpressionSet and the phenotypes table will be included on the resulting ExpressionSet. If 
 #' \code{FALSE} all the individuals on the input ExpressionSet will be on the output ExpressionSet
+#' @param force \code{bool} (default \code{FALSE}). If set to \code{TRUE}, existing columns will be overwritten 
+#' with the new phenotype data
 #' @param datasources a list of \code{\link{DSConnection-class}} (default \code{NULL}) objects obtained after login
 #'
 #' @return This function does not have an output. It creates an eSet object on the study server.
 #' @export
 
 ds.addPhenoData2eSet <- function(x, pheno, identifier = "ID", alternate_eset_id = NULL,
-                            newobj.name = NULL, complete_cases = TRUE, datasources = NULL){
+                            newobj.name = NULL, complete_cases = TRUE, force = FALSE, datasources = NULL){
   
   if(is.null(datasources)){
     datasources <- datashield.connections_find()
@@ -48,7 +50,7 @@ ds.addPhenoData2eSet <- function(x, pheno, identifier = "ID", alternate_eset_id 
   
   cally <- paste0("addPhenoDataDS(", x, ", ", pheno, ", '", identifier, "', ", 
                   if(is.null(alternate_eset_id)){"NULL, "}else{paste0("'",alternate_eset_id,"', ")},
-                  complete_cases, ")")
+                  complete_cases, ", ", force, ")")
   DSI::datashield.assign.expr(datasources, newobj.name, as.symbol(cally))
   
 }

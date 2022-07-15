@@ -11,6 +11,7 @@ ds.addPhenoData2eSet(
   alternate_eset_id = NULL,
   newobj.name = NULL,
   complete_cases = TRUE,
+  force = FALSE,
   datasources = NULL
 )
 }
@@ -32,6 +33,9 @@ otherwise the new ExpressionSet will be assigned to a variable named after this 
 \item{complete_cases}{\code{bool} (default \code{TRUE}) If \code{TRUE} only the matching individuals 
 between the ExpressionSet and the phenotypes table will be included on the resulting ExpressionSet. If 
 \code{FALSE} all the individuals on the input ExpressionSet will be on the output ExpressionSet}
+
+\item{force}{\code{bool} (default \code{FALSE}). If set to \code{TRUE}, existing columns will be overwritten 
+with the new phenotype data}
 
 \item{datasources}{a list of \code{\link{DSConnection-class}} (default \code{NULL}) objects obtained after login}
 }
