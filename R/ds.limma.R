@@ -69,15 +69,17 @@ ds.limma <- function(model, Set, type.data="microarray",
   {
     contrasts<-paste(contrasts, collapse=",")
   }
-
+  
   calltext <- call("limmaDS", Set, variable_names,
                    covariable_names, type, contrasts,
                    levels, coef, sva, annotCols, method,
                    robust, normalization, voomQualityWeights, big, sort.by)
-
+  datashield.assign.expr(datasources, "res", calltext)
+  
+  calltext <- call("limmaDS2", as.symbol(eval(Set)), quote(res), type, contrasts, 
+                   coef, annotCols, robust, sort.by)
+  # ans <- datashield.aggregate(datasources, calltext)
   ans <- datashield.aggregate(datasources, calltext)
   class(ans) <- c("dsLimma", class(ans))
   return(ans)
-
-
 }
