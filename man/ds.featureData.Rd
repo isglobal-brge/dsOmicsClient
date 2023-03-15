@@ -17,6 +17,3 @@ ds.featureData(object, datasources = NULL)
 \description{
 This function is similar to Bioconductor function \code{featureData}
 }
-\examples{
-
-}

@@ -44,6 +44,3 @@ The function fits a generalized linear model of a ExpressionSet for each feature
 in the data sets considered, using user specified condition and covariates
 Outputs a matrix containing a beta value, standard error and p-value for each feature
 }
-\examples{
-
-}

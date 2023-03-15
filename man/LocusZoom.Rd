@@ -60,9 +60,6 @@ plot.}
 \item{pval_threshold}{\code{numeric} (default \code{5}) Threshold of -log_{10}p-value to draw labels with the SNP IDs. 
 If \code{NULL} no labels will be drawn.}
 }
-\value{
-
-}
 \description{
 LocusZoom
 }

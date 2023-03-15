@@ -17,6 +17,3 @@ a character vector of measured variables.
 \description{
 This function is similar to Bioconductor function \code{varLabels}
 }
-\examples{
-
-}

@@ -35,6 +35,3 @@ Fits a generalized linear model to gentic data for each SNP
 in the data sets considered, using user specified outcome and phenotypic variabes as covariates
 Outputs a matrix containing a beta value, standard error and p-value for each SNP
 }
-\examples{
-
-}

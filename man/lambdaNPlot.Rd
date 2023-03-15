@@ -16,9 +16,6 @@ lambdaNPlot(x, pval_column = "p.value", n_column = "n.obs", threshold = 1.2)
 \item{threshold}{\code{numeric} (default \code{1.2}) Threshold to be plotted. Cohorts with a lambda above 
 this threshold will be labeled to identify them easily.}
 }
-\value{
-
-}
 \description{
 Lambda-N plot
 }

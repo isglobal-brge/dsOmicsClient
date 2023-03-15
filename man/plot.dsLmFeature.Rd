@@ -17,6 +17,3 @@ The function produces a QQ-plot of the observed vs expected p-values (with confi
 \details{
 Creates a QQ-plot from omic data analysis
 }
-\examples{
-
-}

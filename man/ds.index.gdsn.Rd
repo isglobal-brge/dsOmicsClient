@@ -17,6 +17,3 @@ a character vector of measured variables.
 \description{
 This function is similar to function \code{index.gdsn}  in the 'gdsfmt' package
 }
-\examples{
-
-}

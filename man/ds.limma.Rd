@@ -55,6 +55,3 @@ Differential Gene Expression Analysis using \code{limma} package from Bioconduct
 \details{
 Implementation of Bioconductor's \code{limma} in DataSHIELD using \code{MEAL} package
 }
-\examples{
-
-}

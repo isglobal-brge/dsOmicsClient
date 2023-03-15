@@ -61,6 +61,3 @@ used to specify strings that will be set as NA, this is useful for phenotypes th
 Yes/No/Don't know/Don't answer/...). Input \code{NULL} to this arguments if this functionality is
 not to be used.
 }
-\examples{
-
-}

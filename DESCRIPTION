@@ -1,7 +1,7 @@
 Package: dsOmicsClient
 Type: Package
 Title: DataSHIELD client site Omics association functions.
-Version: 1.0.18
+Version: 1.0.18-2
 Date: 2021-07-08
 Authors@R: c(person("Yannick", "Marcon", , "yannick.marcon@obiba.org", role = "aut"),
   person("Xavier", "Esriba-Montagut", , "xavier.escriba@isglobal.org", role = "aut"),
@@ -18,5 +18,5 @@ License: MIT
 biocViews: DNAMethylation, Microarray, Software, WholeGenome, GWAS, Non-disclosive
 LazyData: true
 VignetteBuilder: knitr
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.3
 encoding: UTF-8

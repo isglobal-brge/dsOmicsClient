@@ -17,6 +17,3 @@ a numeric value
 \description{
 This function is similar to Bioconductor function \code{dim}
 }
-\examples{
-
-}
